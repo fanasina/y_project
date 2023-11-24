@@ -28,6 +28,10 @@ GENERATE_PERMUTATION_FUNCTIONS_UNSIGNED(TYPE_U_INT)
 GENERATE_PERMUTATION_FUNCTIONS_UNSIGNED(TYPE_U_L_INT)
 GENERATE_PERMUTATION_FUNCTIONS_UNSIGNED(TYPE_SIZE_T)
 
+int sign(long int a){
+  if (a<0) return -1;
+  return 1;
+}
 
 #define GENERATE_PERMUTATION_FUNCTIONS(type)\
   PERMUTATION_##type * CREATE_PERMUTATION_##type(size_t size){\
@@ -67,6 +71,19 @@ GENERATE_PERMUTATION_FUNCTIONS_UNSIGNED(TYPE_SIZE_T)
     free(t_p);\
     return ret; \
   }\
+  \
+  int signature_##type(const PERMUTATION_##type *p){\
+    PERMUTATION_TYPE_SIZE_T *t_p = TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(p);\
+    int ss = 1;\
+    for (size_t i = 0; i < t_p->size; ++i) {\
+      for (size_t j = i + 1; j < t_p->size; ++j) {\
+       ss *= sign((long int)(t_p->perm[j]) - (long int)(t_p->perm[i]));/* sign(j - i);*/\
+      }\
+    }\
+    return ss;\
+  }\
+  \
+ 
 
 
 
