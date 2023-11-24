@@ -13,9 +13,11 @@ if [ "$#" -le 1 ] ; then
   echo "for example: $0 $1 \"-D DEBUG=1 -g\""
 fi
 
+YTESTDIR=$PWD/..
 
-gcc -o launch_is_good_c $1 -L$PWD/../ $2 -lytest -I../include_ytest/include  
+gcc -o launch_is_good_c $1 -L$YTESTDIR $2 -lytest -I$YTESTDIR/include_ytest/include  
+echo "gcc -o launch_is_good_c $1 -L$YTESTDIR $2 -lytest -I$YTESTDIR/include_ytest/include"  
 
-export LD_LIBRARY_PATH=$PWD/../:LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$YTESTDIR:LD_LIBRARY_PATH
 
 

@@ -3,10 +3,13 @@
 FTEST_SRC=src/ftest/ftest.c
 FTEST_O=$(FTEST_SRC:.c=.o)
 
-TOOLS_SRC=../ytools_t/src/tools_t/tools_t.c
+#TOOLDIR=../../ytools_t
+#BARPDIR=../../ybar_progress
+
+TOOLS_SRC=$(TOOLDIR)/src/tools_t/tools_t.c
 TOOLS_O=$(TOOLS_SRC:.c=.o)
 
-BARPROGES_SRC=../ybar_progress/src/bar_progress/bar_progress.c
+BARPROGES_SRC=$(BARPDIR)/src/bar_progress/bar_progress.c
 BARPROGES_O=$(BARPROGES_SRC:.c=.o)
 
 

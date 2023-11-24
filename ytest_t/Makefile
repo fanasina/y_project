@@ -3,7 +3,13 @@ PROJECT_LIB=libytest.so
 CC=gcc
 INCLUDE_DIRS=$(PWD) 
 #$(wildcard $(PWD)/**/include)
-INCLUDE=-I$(PWD)/yftest/include  -I$(PWD)/yfmock/include -I$(PWD)/ytools_t/include -I$(PWD)/ybar_progress/include
+TOOLDIR=$(PWD)/../ytools_t
+BARPDIR=$(PWD)/../ybar_progress
+TOOL_O=$(TOOLDIR)/src/tools_t/tools_t.o
+BARP_O=$(BARPDIR)/src/bar_progress/bar_progress.o
+
+
+INCLUDE=-I$(PWD)/yftest/include  -I$(PWD)/yfmock/include -I$(TOOLDIR)/include -I$(BARPDIR)/include
 CFLAGS=-lpthread -Wall -Werror -fpic $(INCLUDE) 
 #LDFLAGS=
 
@@ -11,9 +17,9 @@ TOPTARGETS := all clean #update_headers
 
 #SRC=$(wildcard y*/src/**/**/*.c) 
 SRC=$(wildcard y*/*/*/*.c) 
-OBJ=$(SRC:.c=.o)
+OBJ=$(SRC:.c=.o) $(TOOL_O) $(BARP_O)
 
-SUBDIRS :=$(wildcard y*)
+SUBDIRS :=$(wildcard y*) $(TOOLDIR) $(BARPDIR)
 
 export
 
@@ -38,7 +44,7 @@ update_headers: $(PROJECT_LIB)
 
 .PHONY: $(TOPTARGETS) $(SUBDIRS)
 
-clean:
+mrproper: clean
 	rm -f $(PROJECT_LIB)
 
 remove_headers:

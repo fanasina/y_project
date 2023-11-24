@@ -12,7 +12,9 @@ LDFLAGS=-L$(PWD)/.. -lytest
 #SRC_DIR=$(ROOT_DIR)/src
 #SRC=$(wildcard */*/*.c) 
 SRC=$(wildcard **/**/*.c) 
-OBJ=$(SRC:.c=.o)
+
+#OBJ=$(SRC:.c=.o)
+
 #HEADS=$(OBJS:.o=.h)
 TEST_DIR=$(PWD)
 EXECSRC=$(NAME_TEST).c

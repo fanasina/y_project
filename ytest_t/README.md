@@ -57,7 +57,7 @@ to unset variables env in local terminal:
 ```
 . unset_env.sh
 ```
-to unset variable permanantly:  need to have the same arg as `set_env.sh` 
+to unset variable permanently:  need to have the same arg as `set_env.sh` 
 ```
 ./unset_env.sh ~/.bashrc
 ```
@@ -69,7 +69,7 @@ or
 
 
 #### uninstall script remove:
-this remove from locale machine env all files and directory copied in `make install` or `./install.sh`
+this remove from locale machine env all files and directory copied by `make install` or `./install.sh`
 ```
 sudo make uninstall
 ```
