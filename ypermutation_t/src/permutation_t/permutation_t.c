@@ -83,7 +83,130 @@ int sign(long int a){
     return ss;\
   }\
   \
- 
+ \
+/*complexité sz*sz/2 */\
+size_t TabToPlaceAlgo_##type(const PERMUTATION_##type *p){\
+  size_t sz = p->size;\
+  PERMUTATION_TYPE_SIZE_T *t_p = TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(p);\
+  size_t *tb= t_p->perm;\
+  size_t pl;\
+  size_t* tPlace = calloc(sz,sizeof(size_t));\
+  for (long int i = sz - 1; i >= 0; i--) {\
+    pl = 0;\
+    for (size_t j = i + 1; j < sz; j++) {\
+      if (tb[j] < tb[i]) {\
+        pl++;\
+      }\
+      if (pl == tb[i]) break;\
+    }\
+    tPlace[tb[i]] = pl;\
+  }\
+  size_t q = 0;\
+  for (size_t i = 0; i < sz;i++) {\
+    q = (i + 1) * q + tPlace[i];\
+  }\
+  return q;\
+}\
+/*complexité sz*sz/2 */\
+size_t TabToPlaceOpt1_##type(const PERMUTATION_##type *p){\
+  size_t sz = p->size;\
+  PERMUTATION_TYPE_SIZE_T *t_p = TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(p);\
+  size_t *tb= t_p->perm;\
+  size_t mx;\
+  size_t* tPlace = malloc(sz*sizeof(size_t));\
+  for (long int i = sz - 1; i >= 0; i--) {\
+    if (i == sz - 1) {\
+      mx = tb[i];\
+      tPlace[mx] = 0;\
+    }\
+    else if (mx > tb[i]) {\
+      size_t pli = 0; /* si c est le plus à droite 0 si pas de superieur à lui, on incremente si on trouve plus petit*/\
+      for (size_t j = sz - 1; j > i; j--) {\
+        if (tb[i] > tb[j]) {\
+          pli++;\
+        }\
+        else if (tb[i] == tb[j]) {\
+          PRINT_DEBUG_("%s\n","something wrong here, tb[i]==tb[j]");\
+        }\
+      }\
+      tPlace[tb[i]] = pli;\
+    }\
+    else if (mx < tb[i]) {\
+      mx = tb[i];\
+      tPlace[mx] = sz - 1 - i;\
+    }\
+    else {\
+      PRINT_DEBUG_("%s\n","something wrong here, tb[i]==mx");\
+\
+    }\
+  }\
+  size_t q = 0;\
+  for (long int i = 0; i < sz; i++) {\
+    q = (i + 1) * q + tPlace[i];\
+  }\
+  return q;\
+}\
+/* complexité sz*(sz+1)*/\
+size_t TabToPlaceNotab_##type(const PERMUTATION_##type *p){\
+  size_t sz = p->size;\
+  PERMUTATION_TYPE_SIZE_T *t_p = TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(p);\
+  size_t *tb= t_p->perm;\
+  size_t mx = sz - 1;\
+  size_t q = 0;\
+  size_t pl;\
+  for (long int i = 0; i < sz; i++) {\
+    size_t j;\
+    for (j = 0; j < sz;j++) {\
+      if (tb[j] == i) break;\
+    }\
+    pl = 0;\
+    j++;\
+    for (;j < sz;j++) {\
+      if (tb[j] < i) {\
+        pl++;\
+      }\
+      if (pl == i) break;\
+    }\
+    q = (i + 1) * q + pl;\
+  }\
+  return q;\
+}\
+/*complexité sz*sz/2 */\
+PERMUTATION_TYPE_SIZE_T * PlaceToTab_##type(PERMUTATION_##type *p, size_t pl){\
+  size_t sz = p->size;\
+  PERMUTATION_TYPE_SIZE_T *t_p = CREATE_PERMUTATION_TYPE_SIZE_T(sz);\
+  size_t *tb= t_p->perm;\
+  size_t a = pl;\
+  size_t pltbi;\
+  size_t size = 1;\
+  for (long int i = 0;i < sz;i++) tb[i] = 0;\
+\
+  for (long int i = sz - 1; i >= 0; i--) {\
+    pltbi = a % (i + 1);\
+    a /= (i + 1);\
+    if (i == sz - 1) {\
+      tb[sz - 1 - pltbi] = i;\
+    }\
+    else {\
+      size_t lt = 0, j = sz - 1;\
+      while (lt < pltbi && j >= 0) {\
+        if (tb[j--] < i) {\
+          lt++;\
+        }\
+      }\
+      while (tb[j] > i) {\
+        j--;\
+      }\
+      tb[j] = i;\
+    }\
+  }\
+  \
+  for (long int i = 0;i < sz;i++) p->perm[i] = p->perm[tb[i]];\
+  return t_p;\
+}\
+\
+
+
 
 
 
