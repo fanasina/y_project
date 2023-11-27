@@ -157,30 +157,51 @@ TEST(){
 TEST(){
 
   PERMUTATION_TYPE_CHAR *p_char = CREATE_PERMUTATION_TYPE_CHAR(6);
+ /* 
   p_char->perm[0]='B';
   p_char->perm[1]='A';
   p_char->perm[2]='Y';
   p_char->perm[3]='C';
   p_char->perm[4]='D';
   p_char->perm[5]='Z';
-
+*/
+  p_char->perm[0]='6';
+  p_char->perm[1]='1';
+  p_char->perm[2]='2';
+  p_char->perm[3]='3';
+  p_char->perm[4]='4';
+  p_char->perm[5]='5';
+  p_char->perm[6]='\0';
 
   PRINTF("init :%s \n",p_char->perm);
   PERMUTATION_TYPE_SIZE_T *tab_45 = TRANSLATE_TO_SET_THEORIC_SIZE_T_TYPE_CHAR(p_char);
   for(size_t i=0; i<p_char->size; ++i) PRINTF(" %ld: %ld \n",i, tab_45->perm[i]);
 
+ //
   size_t pl = TabToPlaceAlgo_TYPE_CHAR(p_char);
   //size_t pl = TabToPlaceOpt1_TYPE_CHAR(p_char);
   PRINTF("sa place est :%ld \n", pl);
+  long int rank=450-1;
+  /* in the article the rank is between 1 to n! , here the rank is between 0 to n! -1 */
+   tab_45 = PlaceToTab_TYPE_CHAR(p_char, rank);
 
-  tab_45 = PlaceToTab_TYPE_CHAR(p_char, pl+1);
+   char * expect_res="652413";
+   /*EXPECT_EQ_TYPE_STRING("652413", expect_res);*/ /* the base is 1,2,3,4,5,6 */
+   EXPECT_EQ_TYPE_STRING(expect_res, p_char->perm); /* the base is 1,2,3,4,5,6 */
 
-  for(size_t i=0; i<p_char->size; ++i) PRINTF(" %ld: %ld \n",i, tab_45->perm[i]);
-/*  tab_45 = PlaceToTab_TYPE_CHAR(p_char,45);
+    /*
+     * for(size_t i=0; i<p_char->size; ++i) PRINTF(" %ld: %ld \n",i, tab_45->perm[i]);
+    PRINTF("ret %ld :%s \n",rank,p_char->perm);
+ 
+  for(long int j=0; j<6; ++j){
+    tab_45 = PlaceToTab_TYPE_CHAR(p_char, j);
 
-  PRINTF("ret :%s \n",p_char->perm);
-  for(size_t i=0; i<sz; ++i) PRINTF(" %ld: %ld \n",i, tab_45->perm[i]);
-*/
+    for(size_t i=0; i<p_char->size; ++i) PRINTF(" %ld: %ld \n",i, tab_45->perm[i]);
+    PRINTF("ret %ld :%s \n",j,p_char->perm);
+  }
+    */
+
+
 }
 
 #if 0

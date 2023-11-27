@@ -2,7 +2,7 @@
 CC=gcc
 TOOLDIR=$(PWD)/../ytools_t
 
-INCLUDE_DIR=$(TOOLDIR)/src
+INCLUDE_DIR=$(TOOLDIR)/include
 CFLAGS=-I$(INCLUDE_DIR) -I./src 
 
 #SRC_DIR=$(ROOT_DIR)/src

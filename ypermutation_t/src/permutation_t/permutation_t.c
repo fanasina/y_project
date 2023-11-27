@@ -121,7 +121,7 @@ size_t TabToPlaceOpt1_##type(const PERMUTATION_##type *p){\
     }\
     else if (mx > tb[i]) {\
       size_t pli = 0; /* si c est le plus à droite 0 si pas de superieur à lui, on incremente si on trouve plus petit*/\
-      for (size_t j = sz - 1; j > i; j--) {\
+      for (long int j = sz - 1; j > i; j--) {\
         if (tb[i] > tb[j]) {\
           pli++;\
         }\
@@ -174,12 +174,19 @@ size_t TabToPlaceNotab_##type(const PERMUTATION_##type *p){\
 /*complexité sz*sz/2 */\
 PERMUTATION_TYPE_SIZE_T * PlaceToTab_##type(PERMUTATION_##type *p, size_t pl){\
   size_t sz = p->size;\
-  PERMUTATION_TYPE_SIZE_T *t_p = CREATE_PERMUTATION_TYPE_SIZE_T(sz);\
-  size_t *tb= t_p->perm;\
+  /*PERMUTATION_TYPE_SIZE_T *t_p = CREATE_PERMUTATION_TYPE_SIZE_T(sz);*/\
+  PERMUTATION_TYPE_SIZE_T *t_p = TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(p);\
+  type *save_perm = malloc(sz*sizeof(type));\
+  long int *tb= t_p->perm;\
   size_t a = pl;\
   size_t pltbi;\
-  size_t size = 1;\
-  for (long int i = 0;i < sz;i++) tb[i] = 0;\
+  /*size_t size = 1;*/\
+  for (long int i = 0;i < sz;i++) {\
+    /*tb[i] = 0;*/\
+    save_perm[tb[i]]=p->perm[i];\
+    PRINT_DEBUG_("%ld => %s \n",tb[i],type##_TO_STR(p->perm[i]));\
+    tb[i]=0;\
+  }\
 \
   for (long int i = sz - 1; i >= 0; i--) {\
     pltbi = a % (i + 1);\
@@ -188,7 +195,7 @@ PERMUTATION_TYPE_SIZE_T * PlaceToTab_##type(PERMUTATION_##type *p, size_t pl){\
       tb[sz - 1 - pltbi] = i;\
     }\
     else {\
-      size_t lt = 0, j = sz - 1;\
+      long int lt = 0, j = sz - 1;\
       while (lt < pltbi && j >= 0) {\
         if (tb[j--] < i) {\
           lt++;\
@@ -201,7 +208,8 @@ PERMUTATION_TYPE_SIZE_T * PlaceToTab_##type(PERMUTATION_##type *p, size_t pl){\
     }\
   }\
   \
-  for (long int i = 0;i < sz;i++) p->perm[i] = p->perm[tb[i]];\
+  /*for (long int i = 0;i < sz;i++) p->perm[i] = save_perm[tb[i]];*/\
+  for (long int i = 0;i < sz;i++) p->perm[i] = save_perm[tb[i]];\
   return t_p;\
 }\
 \

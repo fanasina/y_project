@@ -102,8 +102,10 @@ TYPE_STRING TYPE_STRING_TO_STR(TYPE_STRING var){
 int 
 COMPARE_N_TYPE_STRING(const void *a,const  void* b)
 {
-  PRINT_DEBUG_("a=%s, b=%s\n",(char*)a, (char*)b);
-  return strcmp(( char*)a,( char*)b);
+  char **aa=(char**)a;
+  char **bb=(char**)b;
+  PRINT_DEBUG_("a=%s, b=%s\n",*aa, *bb);
+  return strcmp(*aa,*bb);
 }
 
 void COPY_ARRAY_TYPE_STRING(char** dst, const char** src, size_t size)
