@@ -180,11 +180,9 @@ PERMUTATION_TYPE_SIZE_T * PlaceToTab_##type(PERMUTATION_##type *p, size_t pl){\
   long int *tb= t_p->perm;\
   size_t a = pl;\
   size_t pltbi;\
-  /*size_t size = 1;*/\
   for (long int i = 0;i < sz;i++) {\
-    /*tb[i] = 0;*/\
-    save_perm[tb[i]]=p->perm[i];\
-    PRINT_DEBUG_("%ld => %s \n",tb[i],type##_TO_STR(p->perm[i]));\
+    save_perm[tb[i]]=p->perm[i];/*to save initial order (rank 0) of p->perm */\
+    /*PRINT_DEBUG_("%ld => %s \n",tb[i],type##_TO_STR(p->perm[i]));*/\
     tb[i]=0;\
   }\
 \
@@ -208,7 +206,6 @@ PERMUTATION_TYPE_SIZE_T * PlaceToTab_##type(PERMUTATION_##type *p, size_t pl){\
     }\
   }\
   \
-  /*for (long int i = 0;i < sz;i++) p->perm[i] = save_perm[tb[i]];*/\
   for (long int i = 0;i < sz;i++) p->perm[i] = save_perm[tb[i]];\
   return t_p;\
 }\
