@@ -13,7 +13,7 @@ CFLAGS=-I$(INCLUDE_TOOLDIR) -I$(INCLUDE_PERMDIR) -I./src
 
 
 
-DIMSRC=src/dimension_t.c
+DIMSRC=src/dimension_t/dimension_t.c
 DIMSRC_O=$(DIMSRC:.c=.o)
 
 PERMSRC_O=$(PERMDIR)/src/permutation_t/permutation_t.o

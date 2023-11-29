@@ -24,7 +24,7 @@ DIMDIR=$(PWD)/..
 
 PERMSRC_O=$(YPERMDIR)/src/permutation_t/permutation_t.o
 
-DIMSRC_O=$(INCLUDE_DIR)/dimension_t.o
+DIMSRC_O=$(INCLUDE_DIR)/dimension_t/dimension_t.o
 
 TOPTARGETS := all clean 
 

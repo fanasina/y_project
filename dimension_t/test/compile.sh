@@ -15,7 +15,7 @@ DIR_YTEST=$PWD/../../ytest_t
 SRC=../src
 PERMSRC=$PWD/../../ypermutation_t/src
 
-gcc -o launch_is_good_c $1 -L$DIR_YTEST $2 -lytest -I$DIR_YTEST/include_ytest/include $PERMSRC/permutation_t/permutation_t.o $PERMSRC/set_theoric_t/set_theoric_t.o $SRC/dimension_t.c -I$SRC -I$PERMSRC
+gcc -o launch_is_good_c $1 -L$DIR_YTEST $2 -lytest -I$DIR_YTEST/include_ytest/include $PERMSRC/permutation_t/permutation_t.o $PERMSRC/set_theoric_t/set_theoric_t.o $SRC/dimension_t/dimension_t.c -I$SRC -I$PERMSRC
 #gcc -o launch_is_good_c $1 $2 -lytest -I../include_ytest src/permutation_t/permutation_t.o src/set_theoric_t/set_theoric_t.o -I./src 
 
 export LD_LIBRARY_PATH=$DIR_YTEST/:LD_LIBRARY_PATH

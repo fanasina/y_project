@@ -14,7 +14,7 @@
 
 
 //#include "permutation_t/permutation_t.h"
-#include "dimension_t.h"
+#include "dimension_t/dimension_t.h"
 
 TEST(dimension0){
 

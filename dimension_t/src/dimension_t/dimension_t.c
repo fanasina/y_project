@@ -1,4 +1,4 @@
-#include "dimension_t.h"
+#include "dimension_t/dimension_t.h"
 
 dimension *
 create_dim(size_t sz){
