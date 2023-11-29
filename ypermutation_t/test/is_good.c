@@ -204,6 +204,19 @@ TEST(){
 
 }
 
+TEST(overflowPlacePerm){
+  PERMUTATION_TYPE_CHAR *p_char = CREATE_PERMUTATION_TYPE_CHAR(3);
+ p_char->perm[0]='3';
+  p_char->perm[1]='1';
+  p_char->perm[2]='2';
+  p_char->perm[3]='\0';
+  
+  long int rank=1;
+  PERMUTATION_TYPE_SIZE_T *tab_45 = PlaceToTab_TYPE_CHAR(p_char, rank);
+  for(size_t i=0; i<p_char->size; ++i) PRINTF(" %ld: %ld \n",i, tab_45->perm[i]);
+    PRINTF("ret %ld :%s \n",rank,p_char->perm);
+}
+
 #if 0
 TEST(lessThan){
   long int a=1,b=2;
