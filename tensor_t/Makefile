@@ -3,9 +3,13 @@ CC=gcc
 TOOLDIR=$(PWD)/../ytools_t
 PERMDIR=$(PWD)/../ypermutation_t
 
+DIMDIR=$(PWD)/../dimension_t
+
+
 INCLUDE_PERMDIR=$(PERMDIR)/src 
+INCLUDE_DIMDIR=$(DIMDIR)/src 
 INCLUDE_TOOLDIR=$(TOOLDIR)/include
-CFLAGS=-I$(INCLUDE_TOOLDIR) -I$(INCLUDE_PERMDIR) -I./src 
+CFLAGS=-I$(INCLUDE_TOOLDIR) -I$(INCLUDE_PERMDIR) -I$(INCLUDE_DIMDIR)  -I./src 
 
 #SRC_DIR=$(ROOT_DIR)/src
 #SRC=$(wildcard */*/*.c) 
@@ -13,8 +17,10 @@ CFLAGS=-I$(INCLUDE_TOOLDIR) -I$(INCLUDE_PERMDIR) -I./src
 
 
 
-DIMSRC=src/dimension_t/dimension_t.c
-DIMSRC_O=$(DIMSRC:.c=.o)
+DIMSRC_O=$(DIMDIR)/src/dimension_t/dimension_t.o
+
+TENSRC=src/tensor_t/tensor_t.c
+TENSRC_O=$(TENSRC:.c=.o)
 
 PERMSRC_O=$(PERMDIR)/src/permutation_t/permutation_t.o
 
@@ -24,17 +30,20 @@ PERMSRC_O=$(PERMDIR)/src/permutation_t/permutation_t.o
 
 #SRC=$(wildcard **/**/*.c) 
 #OBJ=$(SRC:.c=.o) #$(TOOLSRC_O) 
+OBJ=$(TENSRC_O)
 
 TOPTARGETS := all clean
-DEP=$(PERMDIR)
+DEP=$(DIMDIR) #$(PERMDIR)
 
 $(TOPTARGETS): $(DEP)
 
 all: $(DIMSRC_O)
 
-
-$(DIMSRC_O) : $(DIMSRC) $(PERMSRC_O)
+$(TENSRC_O) : $(TENSRC) $(DIMSRC_O)
 	$(CC) -o $@ -c $< $(CFLAGS)
+
+#$(DIMSRC_O) : $(DIMSRC) $(PERMSRC_O)
+#	$(CC) -o $@ -c $< $(CFLAGS)
 
 $(DEP):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
