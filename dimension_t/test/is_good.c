@@ -23,7 +23,36 @@ TEST(dimension0){
   EXPECT_EQ(D->size,5);
 
 }
+TEST(rank){
+  dimension *D=create_dim(4);
+  D->perm[0]=2;
+  D->perm[1]=3;
+  D->perm[2]=5;
+  D->perm[3]=6;
 
+  updateRankDim(D);
+  EXPECT_EQ(D->rank, 180);
+
+}
+
+TEST(Coord_linear){
+  dimension *D=create_dim(4);
+  D->perm[0]=2;
+  D->perm[1]=3;
+  D->perm[2]=5;
+  D->perm[3]=6;
+
+  updateRankDim(D);
+
+  size_t line=255;
+  size_t *coord = CoordFromLin(line,*D);
+
+  for(size_t i=0; i<D->size; ++i){
+    LOG("coo[%ld]=%ld\n",i,coord[i]);
+  }
+  
+  EXPECT_EQ(line, LineFromCoord(coord, *D));  
+}
 
 int main(int argc, char **argv){
   
