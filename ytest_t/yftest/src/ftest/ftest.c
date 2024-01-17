@@ -733,7 +733,58 @@ bool expected_##OP##_name_##type(type var1, type var2,const char * name){       
     INCREMENT_EXPECT(fail,name);\
     return false;                                                                         \
   }                                                                                       \
-}
+}\
+bool expected_array_##OP##_##type(type *var1, long int sz1, type *var2, long int sz2){                                            \
+  if(sz1 OP sz2){\
+    size_t count=0;\
+    if(sz1 == sz2){\
+      for(size_t i=0;i<sz1;++i){\
+        if(COMPARE_N_##type(&var1[i], &var2[i]) OP 0)\
+          ++count;\
+        else{ \
+          INCREMENT(count_fail_local); /*++count_fail_local*/                                                                 \
+          return false;\
+        }\
+      }\
+      if(count==sz1){                                                \
+        INCREMENT(count_pass_local); /*++count_pass_local*/                                                                 \
+        return true;                                                                          \
+      }\
+    }\
+    else{\
+      INCREMENT(count_pass_local); /*++count_pass_local*/                                                                 \
+      return true;                                                                          \
+    }\
+  }\
+    INCREMENT(count_fail_local); /*++count_fail_local*/                                                                 \
+    return false;                                                                         \
+} \
+bool expected_array_##OP##_name_##type(type *var1, long int sz1, type *var2, long int sz2, const char * name){                                            \
+  if(sz1 OP sz2){\
+    size_t count=0;\
+    if(sz1 == sz2){\
+      for(size_t i=0;i<sz1;++i){\
+        if(COMPARE_N_##type(&var1[i], &var2[i]) OP 0)\
+          ++count;\
+        else {\
+          INCREMENT_EXPECT(fail,name);\
+          return false;\
+        }\
+      }\
+      if(count==sz1){                                                \
+        INCREMENT_EXPECT(pass,name);\
+        return true;                                                                          \
+      }\
+    }\
+    else{\
+      INCREMENT_EXPECT(pass,name);\
+      return true;                                                                          \
+    }\
+  }\
+    INCREMENT_EXPECT(fail,name);\
+    return false;                                                                         \
+} \
+
 
 EXPECTED_OP_TYPE(EQ,TYPE_CHAR)
 EXPECTED_OP_TYPE(EQ,TYPE_U_CHAR)

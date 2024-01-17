@@ -191,8 +191,10 @@ bool expected_false_f_name(bool val, const char *name);
 
 #define GEN_EXPECTED_OP_TYPE_FUNC(OP,type)\
   bool expected_##OP##_##type(type var1, type var2);\
-  bool expected_##OP##_name_##type(type var1, type var2, const char *name); 
-
+  bool expected_##OP##_name_##type(type var1, type var2, const char *name);\
+\
+  bool expected_array_##OP##_##type(type *var1, long int sz1, type *var2, long int sz2);\
+  bool expected_array_##OP##_name_##type(type *var1, long int sz1, type *var2, long int sz2, const char *name); 
 
 /*
  * ***** generate signature of expected functions EQ ***********
