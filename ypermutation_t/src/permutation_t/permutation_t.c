@@ -41,6 +41,13 @@ int sign(long int a){
     p->perm = malloc(size * sizeof(type));\
     return p;\
   }\
+  PERMUTATION_##type * INIT_PERMUTATION_##type(type *perm, size_t size){\
+    if (size == 0) return NULL;\
+    PERMUTATION_##type *p = CREATE_PERMUTATION_##type(size);\
+    p->perm = malloc(size*sizeof(type));\
+    for(size_t i=0;i<size;++i) p->perm[i] = perm[i];\
+    return p;\
+  }\
 \
   PERMUTATION_TYPE_SIZE_T * TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(const PERMUTATION_##type *p ){\
     if (p == NULL) return NULL;\

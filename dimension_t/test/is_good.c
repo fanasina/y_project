@@ -45,13 +45,13 @@ TEST(Coord_linear){
   updateRankDim(D);
 
   size_t line=255;
-  size_t *coord = CoordFromLin(line,*D);
+  size_t *coord = CoordFromLin(line,D);
 
   for(size_t i=0; i<D->size; ++i){
     LOG("coo[%ld]=%ld\n",i,coord[i]);
   }
   
-  EXPECT_EQ(line, LineFromCoord(coord, *D));  
+  EXPECT_EQ(line, LineFromCoord(coord, D));  
 }
 
 int main(int argc, char **argv){

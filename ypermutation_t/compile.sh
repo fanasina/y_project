@@ -13,10 +13,10 @@ fi
 
 
 
-gcc -o launch_is_good_c $1 -L$PWD/../ $2 -lytest -I../include_ytest/include src/permutation_t/permutation_t.c src/set_theoric_t/set_theoric_t.c -I./src 
+gcc -o launch_is_good_c $1 -L$PWD/../ytest_t/ $2 -lytest -I../include_ytest/include src/permutation_t/permutation_t.c src/set_theoric_t/set_theoric_t.c -I./src 
 #gcc -o launch_is_good_c $1 $2 -lytest -I../include_ytest src/permutation_t/permutation_t.o src/set_theoric_t/set_theoric_t.o -I./src 
 
-export LD_LIBRARY_PATH=$PWD/../:LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PWD/../ytest_t:LD_LIBRARY_PATH
 
 
 #gcc $1 src/ftest/ftest.c src/fmock/fmock.c src/tools_t/tools_t.c src/bar_progress/bar_progress.c src/permutation_t/permutation_t.c src/set_theoric_t/set_theoric_t.c -I./include $2 -o launch_is_good_c -lpthread 

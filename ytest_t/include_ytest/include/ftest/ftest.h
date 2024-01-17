@@ -57,7 +57,11 @@
 #define GE >=
 #define NE !=
 
+#define NORMAL 0
+#define VERB 1
+#define NOVERB 2
 
+extern long int verb;
 extern FILE **f_ou_th;
 extern bool debug;
 extern bool unicolour;
@@ -306,30 +310,59 @@ GEN_EXPECTED_OP_TYPE_FUNC(NE, TYPE_STRING)
 /*
  * only expect
  */
+
+#define IFTESTPASS_NAME(OP,type,var1,var2,name_f,msg_call) \
+  do{ \
+      if(verb==NORMAL){PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);}                                       \
+      else if(verb==VERB){\
+        PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);\
+        PRINT_LOC("test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+        ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+      }\
+  }while(0);
+
+
+#define IFTESTFAIL_NAME(OP,type,var1,var2,name_f,msg_call) \
+   do{\
+     PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+     PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 %s failed %s \n",name_f,msg_call);  \
+   }while(0);
+
 #define HANDLE_OP_EXPECT_NAME(OP,type,var1,var2,name_f,msg_call)                                                          \
 do{      \
    if(is_parallel_nb == 0){\
       if(expected_##OP##_##type(var1, var2)){                                                                       \
-        PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);                                       \
+       /*IFTESTPASS_NAME(OP,type,var1,var2,name_f,msg_call);*/ \
+        if(verb==NORMAL){PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);}                                       \
+        else if(verb==VERB){\
+          PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);\
+          PRINT_LOC("test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+        }\
+     \
       }                                                                                                         \
       else{                                                                                                     \
-        /*PRINT_LOC("Failure\nExpected %s of these values:\n   %s\n\tWhich is:  %s\n %s\n\tWhich is: %s\n\n"\
-          ,DESCRIPTION_##OP,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));  */                                          \
-        PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+       /*IFTESTFAIL_NAME(OP,type,var1,var2,name_f,msg_call);*/ \
+     PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
           ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
-        PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 %s failed %s \n",name_f,msg_call);                                           \
-      }                                                                                                         \
+     PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 %s failed %s \n",name_f,msg_call);  \
+                                                         \
    }else {                                                                                                         \
       if(expected_##OP##_name_##type(var1, var2, name_f)){                                                                       \
-        PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);                                       \
-        /*PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed %s \n\n",name_f);*/                                       \
+       /*IFTESTPASS_NAME(OP,type,var1,var2,name_f,msg_call);*/ \
+        if(verb==NORMAL){PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);}                                       \
+        else if(verb==VERB){\
+          PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);\
+          PRINT_LOC("test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+        }\
       }                                                                                                         \
       else{                                                                                                     \
-        /*PRINT_LOC("Failure\nExpected %s of these values:\n   %s\n\tWhich is:  %s\n %s\n\tWhich is: %s\n\n"\
-         ,DESCRIPTION_##OP ,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));*/                                            \
-        PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+       /*IFTESTFAIL_NAME(OP,type,var1,var2,name_f,msg_call);*/ \
+     PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
           ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
-        PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 %s failed %s \n",name_f,msg_call);                                           \
+     PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 %s failed %s \n",name_f,msg_call);  \
       }                                                                                                         \
     }\
 }while(0);
@@ -340,15 +373,42 @@ do{      \
    * old combined macros HANDLE_OP_EXPECT_ASSERT for ASSERT and EXPECT
    * is_assert : 0 for EXPECT and 1 for ASSERT 
    */
+
+#define IFTESTPASS_                                                          \
+  do{\
+    if(verb==NORMAL){ PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);} \
+    else if(verb==VERB){\
+           PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
+           PRINT_LOC(" test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+    }\
+  }while(0);
+
+ 
+#define IFTESTFAIL_                                                          \
+  do{\
+        PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+        PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
+  }while(0);
+
+
+
 #define HANDLE_OP_EXPECT_ASSERT(OP,type,var1,var2,is_assert)                                                          \
 do{      \
    if(is_parallel_nb == 0){\
       if(expected_##OP##_##type(var1, var2)){                                                                       \
-        PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);                                       \
+       /*IFTESTPASS_(var1,var2);*/                                                          \
+        if(verb==NORMAL){ PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);} \
+        else if(verb==VERB){\
+           PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
+           PRINT_LOC(" test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+        }\
+               \
       }                                                                                                         \
       else{                                                                                                     \
-        /*PRINT_LOC("Failure\nExpected %s of these values:\n   %s\n\tWhich is:  %s\n %s\n\tWhich is: %s\n\n"\
-          ,DESCRIPTION_##OP,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));  */                                          \
+       /*IFTESTFAIL_(var1,var2) ; */                                                        \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
           ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
@@ -356,15 +416,20 @@ do{      \
       }                                                                                                         \
    }else {                                                                                                         \
       if(expected_##OP##_name_##type(var1, var2, __func__)){                                                                       \
-        PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);                                       \
+       /*IFTESTPASS_(var1,var2) ; */                                                        \
+        if(verb==NORMAL){ PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);} \
+        else if(verb==VERB){\
+           PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
+           PRINT_LOC(" test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+        }\
       }                                                                                                         \
       else{                                                                                                     \
-        /*PRINT_LOC("Failure\nExpected %s of these values:\n   %s\n\tWhich is:  %s\n %s\n\tWhich is: %s\n\n"\
-         ,DESCRIPTION_##OP ,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));*/                                            \
+       /*IFTESTFAIL_(var1,var2) ;     */                                                    \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
           ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
-        if(is_assert) return;                                                                                   \
+       if(is_assert) return;                                                                                   \
       }                                                                                                         \
     }\
 }while(0);
@@ -378,22 +443,32 @@ do{      \
 do{      \
    if(is_parallel_nb == 0){\
       if(expected_##OP##_##type(var1, var2)){                                                                       \
-        PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);                                       \
+       /*IFTESTPASS_ ;*/                                                         \
+        if(verb==NORMAL){ PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);} \
+        else if(verb==VERB){\
+           PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
+           PRINT_LOC(" test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+        }\
       }                                                                                                         \
       else{                                                                                                     \
-        /*PRINT_LOC("Failure\nExpected %s of these values:\n   %s\n\tWhich is:  %s\n %s\n\tWhich is: %s\n\n"\
-          ,DESCRIPTION_##OP,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));  */                                          \
+       /*IFTESTFAIL_ ;*/                                                         \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
           ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
       }                                                                                                         \
    }else {                                                                                                         \
       if(expected_##OP##_name_##type(var1, var2, __func__)){                                                                       \
-        PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);                                       \
+       /*IFTESTPASS_(var1,var2) ; */                                                        \
+        if(verb==NORMAL){ PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);} \
+        else if(verb==VERB){\
+           PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
+           PRINT_LOC(" test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+        }\
       }                                                                                                         \
       else{                                                                                                     \
-        /*PRINT_LOC("Failure\nExpected %s of these values:\n   %s\n\tWhich is:  %s\n %s\n\tWhich is: %s\n\n"\
-         ,DESCRIPTION_##OP ,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));*/                                            \
+       /*IFTESTFAIL_(var1,var2) ; */                                                        \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
           ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
@@ -405,11 +480,16 @@ do{      \
 do{      \
    if(is_parallel_nb == 0){\
       if(expected_##OP##_##type(var1, var2)){                                                                       \
-        PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);                                       \
+       /*IFTESTPASS_(var1,var2) ; */                                                        \
+        if(verb==NORMAL){ PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);} \
+        else if(verb==VERB){\
+           PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
+           PRINT_LOC(" test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+        }\
       }                                                                                                         \
       else{                                                                                                     \
-        /*PRINT_LOC("Failure\nExpected %s of these values:\n   %s\n\tWhich is:  %s\n %s\n\tWhich is: %s\n\n"\
-          ,DESCRIPTION_##OP,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));  */                                          \
+       /*IFTESTFAIL_(var1,var2) ; */                                                        \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
           ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
@@ -417,11 +497,16 @@ do{      \
       }                                                                                                         \
    }else {                                                                                                         \
       if(expected_##OP##_name_##type(var1, var2, __func__)){                                                                       \
-        PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);                                       \
+       /*IFTESTPASS_(var1,var2) ; */                                                        \
+        if(verb==NORMAL){ PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__);} \
+        else if(verb==VERB){\
+           PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
+           PRINT_LOC(" test passed : (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
+          ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
+        }\
       }                                                                                                         \
       else{                                                                                                     \
-        /*PRINT_LOC("Failure\nExpected %s of these values:\n   %s\n\tWhich is:  %s\n %s\n\tWhich is: %s\n\n"\
-         ,DESCRIPTION_##OP ,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));*/                                            \
+       /*IFTESTFAIL_(var1,var2) ; */                                                        \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
           ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \

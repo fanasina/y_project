@@ -40,6 +40,7 @@ struct failed_lists{
 #define default_removelog  0
 //#define default_parallel_nb 1
 #define default_parallel_nb_opt 1
+#define default_verb NORMAL
 
 
 /*
@@ -49,6 +50,7 @@ struct failed_lists{
 /*
  * begin variable option
  */
+long int verb=NORMAL;
 
 bool some_thing_wrong = 0;
 
@@ -96,6 +98,7 @@ size_t parallel_nb_opt = 0; /* to solve debug option */
 
 bool is_parallel_nb = 0;
 bool is_parallel_nb_opt = 0;
+bool is_verb = 0;
 bool log_parallel = true;
 bool progress = true; // false;
 
@@ -335,6 +338,10 @@ void usage(int argc, char **argv){
             "\t\tto print debug by using PRINT_DEBUG, by default PRINT_DEBUG is not print unless -d is set\n"
             /*"\t\t-d need to be set at the end of all options if -p is use, to avoid sigfault because the parallel env is not yet set for debug print parallel\n\n"*/
             );
+  printf( "\t -v, --verb = integer or macro: NORMAL or VERB or NOVERB  \n"
+            "\t\tto chage test result printing: NORMAL=0, VERB=1, NOVERB=2 or integers not equal to 0 or 1 \n"
+            );
+
 
   if(array_TYPE_SIZE_T){
     for(int i=0; i< cur_array_TYPE_SIZE_T; ++i){
@@ -365,13 +372,31 @@ const char* extract_string_after_equal_symbole_in_string(const char * in_str){
   return NULL; // check for '\0' or ' ' return !
 }
 
+
+
+#define COMPARE_STR_TO_DEFS(defined,in_str)\
+  /*LOG(" ===================== ======== %s vs %s =========== \n",in_str,#defined);*/\
+  if(strcmp(in_str, #defined)==0){\
+    return defined;\
+  }
+
 long int extract_num_after_equal_symbole_in_string(char * in_str){
+ 
   size_t len=strlen(in_str);
   long int val=0, p=1;
   int added=0;
   for(long i=len-1; i>=0; --i){
     PRINT_DEBUG("(%s)[%ld]=%c\n",in_str,i,in_str[i]);
-    if(in_str[i]=='=') return val;
+    if(in_str[i]=='=') {
+      if(added) return val;
+
+      COMPARE_STR_TO_DEFS(NORMAL,in_str+i+1);
+      COMPARE_STR_TO_DEFS(VERB,in_str+i+1);
+      COMPARE_STR_TO_DEFS(NOVERB,in_str+i+1);
+
+      return -1;
+
+    }
     if(in_str[i] >= '0' && in_str[i] <= '9' ){
       val += p * (in_str[i]-'0');
       p *= 10;
@@ -603,6 +628,7 @@ void parse_options(int argc, char **argv){
     IF_OPTION_NO_ARG(gtestlike)
     //IF_OPTION_WITH_ARG_NUM(parallel_nb)
     IF_OPTION_WITH_ARG_NUM(parallel_nb_opt)
+    IF_OPTION_WITH_ARG_NUM(verb)
     IF_OPTION_WITH_ARG_STR(savelog)
     IF_OPTION_WITH_ARG_STR(timeunit)
     IF_OPTION_WITH_ARG_STR(bar_progress)
