@@ -12,8 +12,8 @@ typedef struct tensor_##type tensor_##type;\
 tensor_##type * CREATE_TENSOR_##type(dimension *dim); \
 void tensorProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
-void tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t nestingDepth); \
-void tensorContractnProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t nestingDepth); \
+void tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
+void tensorContractnProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
 
 
 GENERATE_TENSOR_TYPE(TYPE_FLOAT);
