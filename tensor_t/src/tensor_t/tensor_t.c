@@ -92,30 +92,30 @@ void tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor_##
     subArray(tsub1, M1->dim->perm, 0, len1, nestingDepth);\
     subArray(tDk1, M1->dim->perm, 0, nestingDepth, 0);\
     subArray(tDk0, M0->dim->perm, 0, nestingDepth, len0);\
-    printArraySzt(tsub0,len0,"tsub0");\
+    /*printArraySzt(tsub0,len0,"tsub0");\
     printArraySzt(tsub1,len1,"tsub1");\
     printArraySzt(tDk0,nestingDepth,"tDk0");\
-    printArraySzt(tDk1,nestingDepth,"tDk1");\
+    printArraySzt(tDk1,nestingDepth,"tDk1");*/\
     dimension *dSub0 = init_dim(tsub0, len0);\
     dimension *dSub1 = init_dim(tsub1, len1);\
     dimension *dM1 = init_dim(tDk1, nestingDepth);\
     dimension *dM0 = init_dim(tDk0, nestingDepth);\
-  printDebug_dimension(dSub0,"dSub0");\
+  /*printDebug_dimension(dSub0,"dSub0");\
   printDebug_dimension(dSub1,"dSub1");\
   printDebug_dimension(dM0,"dM0");\
-  printDebug_dimension(dM1,"dM1");\
+  printDebug_dimension(dM1,"dM1");*/\
     dimension *dM;\
     min_dimension(&dM, dM0, dM1);\
-  printDebug_dimension(dM,"dM");\
+  /*printDebug_dimension(dM,"dM");*/\
     \
     dimension *dd;\
     add_dimension(&dd, dSub0, dSub1);\
-  printDebug_dimension(dd,"dd");\
+  /*printDebug_dimension(dd,"dd");*/\
     updateRankDim(dd);\
     *MM = CREATE_TENSOR_##type(dd);\
     tensor_##type *M= *MM;\
 \
-    size_t* coord;\
+    /*size_t* coord;\
     coord = malloc(sizeof(size_t)* M->dim->size);\
 \
     size_t* coord0 , lin0;\
@@ -129,31 +129,31 @@ void tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor_##
     coordM1 = malloc(sizeof(size_t)* M1->dim->size);\
 \
     size_t* Koord ;\
-    Koord = malloc(sizeof(size_t)* nestingDepth);\
+    Koord = malloc(sizeof(size_t)* nestingDepth);*/\
 \
     size_t a0_id, a1_id, n0_id, n1_id;\
     for (size_t i = 0; i < M->dim->rank; i++) {\
-        /*vCoordFromLin(coord, i, M->dim);\
-        subArray(coord0, coord, 0, len0, 0);\
-        subArray(coord1, coord, 0, len1, len0);*/\
         a0_id=i/dSub1->rank;\
         a1_id=i%dSub1->rank;\
-        /*printf("i:%ld=>  c0: %ld vs %ld \n",i,LineFromCoord(coord0,dSub0),a0_id);\
+        /*vCoordFromLin(coord, i, M->dim);\
+        subArray(coord0, coord, 0, len0, 0);\
+        subArray(coord1, coord, 0, len1, len0);\
+        printf("i:%ld=>  c0: %ld vs %ld \n",i,LineFromCoord(coord0,dSub0),a0_id);\
         printf("i:%ld=>  c1: %ld vs %ld \n",i,LineFromCoord(coord1,dSub1),a1_id);*/\
         M->x[i] = 0;\
         for (size_t k = 0; k < dM->rank; k++) {\
+            n0_id= a0_id*dM->rank + k;\
+            n1_id= a1_id + dSub1->rank * k;\
+            M->x[i] += M0->x[n0_id] * M1->x[n1_id];\
             /*vCoordFromLin(Koord, k, dM);\
             concatArray(coordM0, coord0, Koord, 0, 0, len0, 0, nestingDepth);\
             concatArray(coordM1, Koord, coord1, 0, 0, nestingDepth, 0, len1);\
             lin0 = LineFromCoord(coordM0, M0->dim);\
-            lin1 = LineFromCoord(coordM1, M1->dim);*/\
-            n0_id= a0_id*dM->rank + k;\
-            n1_id= a1_id + dSub1->rank * k;\
-            /*printf("k:%ld, lin0:%ld, vs n0: %ld\n",k,lin0,n0_id);\
-            printf("k:%ld, lin1:%ld, vs n1: %ld\n",k,lin1,n1_id);\
-            M->x[i] += M0->x[lin0] * M1->x[lin1];*/\
-            M->x[i] += M0->x[n0_id] * M1->x[n1_id];\
-          /*printf("M[%ld]:%f += M0[%ld]:%f * M1[%ld]:%f | ",i,M->x[i],lin0,M0->x[lin0],lin1,M1->x[lin1]);*/\
+            lin1 = LineFromCoord(coordM1, M1->dim);\
+            printf("k:%ld, lin0:%ld, vs n0: %ld\n",k,lin0,n0_id);\
+            printf("k:%ld, lin1:%ld, vs n1: %ld\n",k,lin1,n1_id);*/\
+            /*M->x[i] += M0->x[lin0] * M1->x[lin1];*/\
+          /*printf("M[%ld]:%f += M0[%ld]:%f * M1[%ld]:%f | \n",i,M->x[i],n0_id,M0->x[n0_id],n1_id,M1->x[n1_id]);*/\
           /*printf("k:%ld |i:%ld |lin0:%ld | lin1:%ld | ",k,i,lin0,lin1);*/\
         }\
       /*printf("\n");*/\
@@ -175,25 +175,25 @@ void tensorContractnProdNotOpt_##type(tensor_##type** MM, tensor_##type *M0, ten
     subArray(tsub1, M1->dim->perm, 0, len1, nestingDepth);\
     subArray(tDk1, M1->dim->perm, 0, nestingDepth, 0);\
     subArray(tDk0, M0->dim->perm, 0, nestingDepth, len0);\
-    printArraySzt(tsub0,len0,"tsub0");\
+    /*printArraySzt(tsub0,len0,"tsub0");\
     printArraySzt(tsub1,len1,"tsub1");\
     printArraySzt(tDk0,nestingDepth,"tDk0");\
-    printArraySzt(tDk1,nestingDepth,"tDk1");\
+    printArraySzt(tDk1,nestingDepth,"tDk1");*/\
     dimension *dSub0 = init_dim(tsub0, len0);\
     dimension *dSub1 = init_dim(tsub1, len1);\
     dimension *dM1 = init_dim(tDk1, nestingDepth);\
     dimension *dM0 = init_dim(tDk0, nestingDepth);\
-  printDebug_dimension(dSub0,"dSub0");\
+  /*printDebug_dimension(dSub0,"dSub0");\
   printDebug_dimension(dSub1,"dSub1");\
   printDebug_dimension(dM0,"dM0");\
-  printDebug_dimension(dM1,"dM1");\
+  printDebug_dimension(dM1,"dM1");*/\
     dimension *dM;\
     min_dimension(&dM, dM0, dM1);\
-  printDebug_dimension(dM,"dM");\
+  /*printDebug_dimension(dM,"dM");*/\
     \
     dimension *dd;\
     add_dimension(&dd, dSub0, dSub1);\
-  printDebug_dimension(dd,"dd");\
+  /*printDebug_dimension(dd,"dd");*/\
     updateRankDim(dd);\
     *MM = CREATE_TENSOR_##type(dd);\
     tensor_##type *M= *MM;\
