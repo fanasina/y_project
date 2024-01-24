@@ -3,6 +3,8 @@
 
 #include "dimension_t/dimension_t.h"
 
+void subArray(size_t* dst, size_t* src, size_t debDst, size_t finDst, size_t debSrc);
+
 #define GENERATE_TENSOR_TYPE(type) \
 struct tensor_##type{\
   dimension *dim;\

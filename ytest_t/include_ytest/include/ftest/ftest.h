@@ -349,8 +349,8 @@ do{      \
      PRINT_LOC("Failure\nExpected: (%s) %s (%s) :\n Value of %s: %s \n Value of %s: %s\n\n"\
           ,#var1,STRFY(OP),#var2,#var1, type##_TO_STR(var1),  #var2, type##_TO_STR(var2));                                            \
      PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 %s failed %s \n",name_f,msg_call);  \
-                                                         \
-   }else {                                                                                                         \
+     }                                                      \
+   } else {                                                                                                         \
       if(expected_##OP##_name_##type(var1, var2, name_f)){                                                                       \
        /*IFTESTPASS_NAME(OP,type,var1,var2,name_f,msg_call);*/ \
         if(verb==NORMAL){PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);}                                       \

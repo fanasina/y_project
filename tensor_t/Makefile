@@ -22,6 +22,9 @@ DIMSRC_O=$(DIMDIR)/src/dimension_t/dimension_t.o
 TENSRC=src/tensor_t/tensor_t.c
 TENSRC_O=$(TENSRC:.c=.o)
 
+clTENSRC=src/tensor_t/cl_tensor_t.c
+clTENSRC_O=$(clTENSRC:.c=.o)
+
 PERMSRC_O=$(PERMDIR)/src/permutation_t/permutation_t.o
 
 #TOOLSRC_O=$(TOOLDIR)/src/tools_t/tools_t.o
@@ -40,6 +43,9 @@ $(TOPTARGETS): $(DEP)
 all: $(TENSRC_O)
 
 $(TENSRC_O) : $(TENSRC) $(DIMSRC_O) $(PERMSRC_O)
+	$(CC) -o $@ -c $^ $(CFLAGS)
+
+$(clTENSRC_O) : $(clTENSRC) $(TENSRC_O) 
 	$(CC) -o $@ -c $^ $(CFLAGS)
 
 #$(DIMSRC_O) : $(DIMSRC) $(PERMSRC_O)
