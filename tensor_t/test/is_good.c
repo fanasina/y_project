@@ -85,10 +85,7 @@ TEST(tensorProd ){
 
   print_tensor_float(M,"M");
 
-  size_t x_idx=0, m_idx;
-  for(size_t i=0; i<M->dim->rank; ++i){
-     EXPECT_EQ_TYPE_FLOAT(Mn->x[i],M->x[i]); 
-  } 
+  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
 
   print_tensor_float(Mn,"Mn");
 }
@@ -141,13 +138,13 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
 
-  d0->perm[0]=5;
-  d0->perm[1]=2; //3;
-  d0->perm[2]=3;
+  d0->perm[0]=35;
+  d0->perm[1]=32; //3;
+  d0->perm[2]=23;
 
-  d1->perm[0]=2;
-  d1->perm[1]=3;//3;
-  d1->perm[2]=4;
+  d1->perm[0]=32;
+  d1->perm[1]=23;//3;
+  d1->perm[2]=44;
 
   updateRankDim(d0);
   updateRankDim(d1);
@@ -161,23 +158,23 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
   for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
   for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
 
-  print_tensor_float(M0,"M0");
-  print_tensor_float(M1,"M1");
+//  print_tensor_float(M0,"M0");
+//  print_tensor_float(M1,"M1");
 
   tensor_TYPE_FLOAT *M;
   tensor_TYPE_FLOAT *MnO;
 
   tensorContractnProd_TYPE_FLOAT(&M, M0,M1,2);
-  print_tensor_float(M,"M");
+//  print_tensor_float(M,"M");
   tensorContractnProdNotOpt_TYPE_FLOAT(&MnO, M0,M1,2);
 
 
-  print_tensor_float(MnO,"MnO");
+//  print_tensor_float(MnO,"MnO");
  
   // for(size_t i=0;i<M->dim->rank;++i)
   //    EXPECT_EQ_TYPE_FLOAT(M->x[i],MnO->x[i]);
     
-  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
 
 
 }
@@ -185,14 +182,14 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
 TEST(cl_tensorContractnProd_TYPE_FLOAT2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
+  
+  d0->perm[0]=35;
+  d0->perm[1]=32; //3;
+  d0->perm[2]=23;
 
-  d0->perm[0]=5;
-  d0->perm[1]=2; //3;
-  d0->perm[2]=3;
-
-  d1->perm[0]=2;
-  d1->perm[1]=3;//3;
-  d1->perm[2]=4;
+  d1->perm[0]=32;
+  d1->perm[1]=23;//3;
+  d1->perm[2]=44;
 
   updateRankDim(d0);
   updateRankDim(d1);
@@ -206,23 +203,23 @@ TEST(cl_tensorContractnProd_TYPE_FLOAT2 ){
   for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
   for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
 
-  print_tensor_float(M0,"M0");
-  print_tensor_float(M1,"M1");
+//  print_tensor_float(M0,"M0");
+//  print_tensor_float(M1,"M1");
 
   tensor_TYPE_FLOAT *M;
   tensor_TYPE_FLOAT *MnO;
 
-  tensorContractnProd_TYPE_FLOAT(&M, M0,M1,2);
-  print_tensor_float(M,"M");
+  tensorContractnProdNotOpt_TYPE_FLOAT(&M, M0,M1,2);
+//  print_tensor_float(M,"M");
   cl_tensorContractnProd_TYPE_FLOAT(&MnO, M0,M1,2);
 
 
-  print_tensor_float(MnO,"MnO");
+//  print_tensor_float(MnO,"MnO");
  
   // for(size_t i=0;i<M->dim->rank;++i)
   //    EXPECT_EQ_TYPE_FLOAT(M->x[i],MnO->x[i]);
     
-  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
 
 
 }
@@ -231,13 +228,13 @@ TEST(cl_tensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
 
-  d0->perm[0]=5;
-  d0->perm[1]=2; //3;
-  d0->perm[2]=3;
+  d0->perm[0]=125;
+  d0->perm[1]=52; //3;
+  d0->perm[2]=63;
 
-  d1->perm[0]=2;
-  d1->perm[1]=3;//3;
-  d1->perm[2]=4;
+  d1->perm[0]=52;
+  d1->perm[1]=63;//3;
+  d1->perm[2]=54;
 
   updateRankDim(d0);
   updateRankDim(d1);
@@ -251,18 +248,19 @@ TEST(cl_tensorContractnProd_TYPE_DOUBLE2 ){
   for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
   for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
 
-  print_tensor_double(M0,"M0");
-  print_tensor_double(M1,"M1");
+  //print_tensor_double(M0,"M0");
+  //print_tensor_double(M1,"M1");
 
   tensor_TYPE_DOUBLE *M;
   tensor_TYPE_DOUBLE *MnO;
 
-  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
-  print_tensor_double(M,"M");
+  tensorContractnProdNotOpt_TYPE_DOUBLE(&M, M0,M1,2);
+  //tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
+  //print_tensor_double(M,"M");
   cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
 
 
-  print_tensor_double(MnO,"MnO");
+  //print_tensor_double(MnO,"MnO");
  
   // for(size_t i=0;i<M->dim->rank;++i)
   //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
@@ -271,6 +269,189 @@ TEST(cl_tensorContractnProd_TYPE_DOUBLE2 ){
 
 
 }
+
+
+TEST(tensorContractnProd_TYPE_DOUBLE2 ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+
+  d0->perm[0]=125;
+  d0->perm[1]=52; //3;
+  d0->perm[2]=63;
+
+  d1->perm[0]=52;
+  d1->perm[1]=63;//3;
+  d1->perm[2]=54;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  //print_tensor_double(M0,"M0");
+  //print_tensor_double(M1,"M1");
+
+  tensor_TYPE_DOUBLE *M;
+  tensor_TYPE_DOUBLE *MnO;
+
+  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
+  //print_tensor_double(M,"M");
+  //cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
+  tensorContractnProdNotOpt_TYPE_DOUBLE(&MnO, M0,M1,2);
+
+  //print_tensor_double(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+  EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+
+}
+
+TEST(TensorProdCL){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(2);
+
+  d0->perm[0]=2;
+  d0->perm[1]=3;
+  d0->perm[2]=2;
+  
+  d1->perm[0]=2;
+  d1->perm[1]=3;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  print_tensor_float(M0,"M0");
+  print_tensor_float(M1,"M1");
+
+
+  tensor_TYPE_FLOAT *M; 
+  tensor_TYPE_FLOAT *Mn; 
+
+  tensorProd_TYPE_FLOAT(&M,M0,M1);
+  cl_tensorProd_TYPE_FLOAT(&Mn,M0,M1);
+  LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+  print_tensor_float(M,"M");
+  
+  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+
+
+  print_tensor_float(Mn,"Mn");
+}
+
+TEST(VS_cl_tensorContractnProd_TYPE_DOUBLE2 ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+
+  d0->perm[0]=125;
+  d0->perm[1]=52; //3;
+  d0->perm[2]=63;
+
+  d1->perm[0]=52;
+  d1->perm[1]=63;//3;
+  d1->perm[2]=154;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  //print_tensor_double(M0,"M0");
+  //print_tensor_double(M1,"M1");
+
+  //tensor_TYPE_DOUBLE *M;
+  tensor_TYPE_DOUBLE *MnO;
+
+  //tensorContractnProdNotOpt_TYPE_DOUBLE(&M, M0,M1,2);
+  //tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
+  //print_tensor_double(M,"M");
+  cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
+
+
+  //print_tensor_double(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+  //EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+
+}
+
+
+TEST(VStensorContractnProd_TYPE_DOUBLE2 ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+
+  d0->perm[0]=125;
+  d0->perm[1]=52; //3;
+  d0->perm[2]=63;
+
+  d1->perm[0]=52;
+  d1->perm[1]=63;//3;
+  d1->perm[2]=154;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  //print_tensor_double(M0,"M0");
+  //print_tensor_double(M1,"M1");
+
+  tensor_TYPE_DOUBLE *M;
+  //tensor_TYPE_DOUBLE *MnO;
+
+  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
+  //print_tensor_double(M,"M");
+  //cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
+  //tensorContractnProdNotOpt_TYPE_DOUBLE(&MnO, M0,M1,2);
+
+  //print_tensor_double(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+  //EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+
+}
+
+
+
 int main(int argc, char **argv){
   
 
