@@ -10,6 +10,9 @@ typedef struct PERMUTATION_TYPE_SIZE_T dimension ;
 dimension * create_dim(size_t size);
 dimension* init_dim(size_t *t, size_t sz);
 
+dimension* sub_dim_head(dimension *t, size_t minusSubdim);
+dimension* sub_dim_tail(dimension *t, size_t minusSubdim);
+
 void add_dimension(dimension **d, dimension *d0, dimension *d1);
 void min_dimension(dimension **d, dimension *d0, dimension *d1);
 

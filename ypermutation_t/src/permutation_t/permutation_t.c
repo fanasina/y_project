@@ -44,6 +44,13 @@ int sign(long int a){
   PERMUTATION_##type * INIT_PERMUTATION_##type(type *perm, size_t size){\
     if (size == 0) return NULL;\
     PERMUTATION_##type *p = CREATE_PERMUTATION_##type(size);\
+    p->perm = perm ; /*malloc(size*sizeof(type));\
+    for(size_t i=0;i<size;++i) p->perm[i] = perm[i];*/\
+    return p;\
+  }\
+  PERMUTATION_##type * INIT_COPY_PERMUTATION_##type(type *perm, size_t size){\
+    if (size == 0) return NULL;\
+    PERMUTATION_##type *p = CREATE_PERMUTATION_##type(size);\
     p->perm = malloc(size*sizeof(type));\
     for(size_t i=0;i<size;++i) p->perm[i] = perm[i];\
     return p;\

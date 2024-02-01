@@ -10,7 +10,7 @@ long int incr(long int i) { return i + 1; }
 long int decr(long int i) { return i - 1; }
 
 dimension* init_dim(size_t *t, size_t sz){
-  dimension *d = INIT_PERMUTATION_TYPE_SIZE_T(t,sz);
+  dimension *d = INIT_COPY_PERMUTATION_TYPE_SIZE_T(t,sz);
   updateRankDim(d);
   return d;
 }
@@ -19,6 +19,22 @@ create_dim(size_t sz){
   return CREATE_PERMUTATION_TYPE_SIZE_T(sz);
 }
 
+dimension* sub_dim_head(dimension *root, size_t minusSubdim){
+  if(minusSubdim < (root->size)){
+    dimension *d = INIT_PERMUTATION_TYPE_SIZE_T(root->perm, (root->size)-minusSubdim);
+    updateRankDim(d);
+    return d;
+  }
+  return NULL;
+}
+dimension* sub_dim_tail(dimension *root, size_t minusSubdim){
+  if(minusSubdim < (root->size)){
+    dimension *d = INIT_PERMUTATION_TYPE_SIZE_T((root->perm)+minusSubdim, (root->size)-minusSubdim);
+    updateRankDim(d);
+    return d;
+  }
+  return NULL;
+}
 void add_dimension(dimension **d, dimension *d0, dimension *d1) {
     (*d) = create_dim(d0->size + d1->size);
     //printf("d size : %ld\n",(*d)->size);
