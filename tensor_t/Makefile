@@ -40,13 +40,13 @@ DEP=$(DIMDIR) $(PERMDIR)
 
 $(TOPTARGETS): $(DEP)
 
-all: $(TENSRC_O)
+all: $(TENSRC_O) $(clTENSRC_O) 
 
 $(TENSRC_O) : $(TENSRC) $(DIMSRC_O) $(PERMSRC_O)
 	$(CC) -o $@ -c $^ $(CFLAGS)
 
 $(clTENSRC_O) : $(clTENSRC) $(TENSRC_O) 
-	$(CC) -o $@ -c $^ $(CFLAGS)
+	$(CC) -o $@ -c $< $(CFLAGS)
 
 #$(DIMSRC_O) : $(DIMSRC) $(PERMSRC_O)
 #	$(CC) -o $@ -c $< $(CFLAGS)

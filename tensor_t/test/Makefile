@@ -28,8 +28,6 @@ EXEC=launch_$(NAME_TEST)_m
 TENSRC=$(TENSDIR)/src/tensor_t/tensor_t.c
 TENSRC_O=$(TENSRC:.c=.o)
 
-clTENSRC=$(TENSDIR)/src/tensor_t/cl_tensor_t.c
-clTENSRC_O=$(clTENSRC:.c=.o)
 
 
 PERMSRC_O=$(YPERMDIR)/src/permutation_t/permutation_t.o
@@ -40,7 +38,7 @@ TOPTARGETS := all clean
 
 DEPS=$(DIMDIR) $(YPERMDIR) $(YTESTDIR) $(TENSDIR)
 
-OBJ=$(DIMSRC_O) $(PERMSRC_O) $(TENSRC_O) $(clTENSRC_O)
+OBJ=$(DIMSRC_O) $(PERMSRC_O) $(TENSRC_O) 
 
 LIB_YTEST=$(YTESTDIR)/libytest.so
 
