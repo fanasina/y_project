@@ -146,10 +146,22 @@ void cl_tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *
     (*MM)=CREATE_TENSOR_##type(dd);  \
     tensor_##type *M = *MM; \
     char *file_cl_src = "../src/kernel_ProdTensor.cl"; \
-    char *func_cl_name = "prodTensorLin_" #type; \
+    char *func_cl_nameEndian = "prodTensorLin_" #type; \
+    char *func_cl_nameNotEndian = "prodTensorLinNotEndian_" #type; \
+    char *func_cl_name; \
+    size_t MeDimRank;\
+  if(endian){\
+    func_cl_name = func_cl_nameEndian;\
+    MeDimRank = M1->dim->rank;\
+    \
+  }else{\
+    func_cl_name = func_cl_nameNotEndian;\
+    MeDimRank = M0->dim->rank;\
+    \
+  }\
   SETUP_cl_KERNEL_(type,file_cl_src,func_cl_name);\
     /*/ Set the arguments of the kernel  */ \
-    ret = clSetKernelArg(kernel, 0, sizeof(size_t), (void *)&(M1->dim->rank)); \
+    ret = clSetKernelArg(kernel, 0, sizeof(size_t), (void *)&MeDimRank); \
     ret |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&M0_mem_obj); \
     ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&M1_mem_obj); \
     ret |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&M_mem_obj); \
@@ -188,11 +200,24 @@ void cl_tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor
     *MM = CREATE_TENSOR_##type(dd);\
     tensor_##type *M= *MM;\
     char *file_cl_src = "../src/kernel_ProdContractnTensor.cl"; \
-    char *func_cl_name = "prodContractnTensorLin_" #type; \
+    /*char *func_cl_name = "prodContractnTensorLin_" #type;*/ \
+    char *func_cl_nameEndian = "prodContractnTensorLin_" #type; \
+    char *func_cl_nameNotEndian = "prodContractnTensorLinNotEndian_" #type; \
+    char *func_cl_name; \
+    size_t dSubRank;\
+  if(endian){\
+    func_cl_name = func_cl_nameEndian;\
+    dSubRank = dSub1->rank;\
+    \
+  }else{\
+    func_cl_name = func_cl_nameNotEndian;\
+    dSubRank = dSub0->rank;\
+    \
+  }\
   SETUP_cl_KERNEL_(type,file_cl_src,func_cl_name);\
   \
     /*/ Set the arguments of the kernel  */ \
-    ret = clSetKernelArg(kernel, 0, sizeof(size_t), (void *)&(dSub1->rank)); \
+    ret = clSetKernelArg(kernel, 0, sizeof(size_t), (void *)&dSubRank); \
     ret |= clSetKernelArg(kernel, 1, sizeof(size_t), (void *)&(dM->rank)); \
     ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&M0_mem_obj); \
     ret |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&M1_mem_obj); \
@@ -211,10 +236,23 @@ void cl2d_tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type
     (*MM)=CREATE_TENSOR_##type(dd);  \
     tensor_##type *M = *MM; \
     char *file_cl_src = "../src/kernel_2d_ProdTensor.cl"; \
-    char *func_cl_name = "prodTensor2dLin_" #type; \
+    /*char *func_cl_name = "prodTensor2dLin_" #type;*/ \
+    char *func_cl_nameEndian = "prodTensor2dLin_" #type; \
+    char *func_cl_nameNotEndian = "prodTensor2dLinNotEndian_" #type; \
+    char *func_cl_name; \
+    size_t MeDimRank;\
+  if(endian){\
+    func_cl_name = func_cl_nameEndian;\
+    MeDimRank = M1->dim->rank;\
+    \
+  }else{\
+    func_cl_name = func_cl_nameNotEndian;\
+    MeDimRank = M0->dim->rank;\
+    \
+  }\
   SETUP_cl_KERNEL_(type,file_cl_src,func_cl_name);\
     /*/ Set the arguments of the kernel  */ \
-    ret = clSetKernelArg(kernel, 0, sizeof(size_t), (void *)&(M1->dim->rank)); \
+    ret = clSetKernelArg(kernel, 0, sizeof(size_t), (void *)&(MeDimRank)); \
     ret |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void *)&M0_mem_obj); \
     ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&M1_mem_obj); \
     ret |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&M_mem_obj); \

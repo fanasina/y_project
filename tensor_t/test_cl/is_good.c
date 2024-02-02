@@ -19,6 +19,7 @@
 #include "tensor_t/cl_tensor_t.h"
 
 TEST(rank){
+  endian=false;
   dimension *D=create_dim(4);
   D->perm[0]=2;
   D->perm[1]=3;
