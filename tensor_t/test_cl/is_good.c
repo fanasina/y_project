@@ -19,7 +19,6 @@
 #include "tensor_t/cl_tensor_t.h"
 
 TEST(rank){
-  endian=false;
   dimension *D=create_dim(4);
   D->perm[0]=2;
   D->perm[1]=3;
@@ -536,6 +535,94 @@ TEST(tensorProd_vs2d ){
 
   //print_tensor_float(Mn,"Mn");
 }
+
+TEST(tensorProd_vs2d_Endian ){
+  endian=false;
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(2);
+
+  d0->perm[0]=24;
+  d0->perm[1]=32;
+  d0->perm[2]=2;
+
+  d1->perm[0]=64;
+  d1->perm[1]=16;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  /*print_tensor_float(M0,"M0");
+  print_tensor_float(M1,"M1");*/
+
+
+  tensor_TYPE_FLOAT *M;
+  tensor_TYPE_FLOAT *Mn;
+
+  cl_tensorProd_TYPE_FLOAT(&M,M0,M1);
+  tensorProd_TYPE_FLOAT(&Mn,M0,M1);
+  LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+  //print_tensor_float(M,"M");
+
+  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+
+  //print_tensor_float(Mn,"Mn");
+}
+
+
+
+TEST(tensorProd_vs2d_Endian ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(2);
+
+  d0->perm[0]=24;
+  d0->perm[1]=32;
+  d0->perm[2]=2;
+
+  d1->perm[0]=64;
+  d1->perm[1]=24;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  /*print_tensor_float(M0,"M0");
+  print_tensor_float(M1,"M1");*/
+
+
+  tensor_TYPE_FLOAT *M;
+  tensor_TYPE_FLOAT *Mn;
+
+  tensorProd_TYPE_FLOAT(&M,M0,M1);
+  //cl2d_tensorProd_TYPE_FLOAT(&Mn,M0,M1,24,24);
+  //cl2d_tensorProd_TYPE_FLOAT(&Mn,M0,M1,32,32);
+  cl2d_tensorProd_TYPE_FLOAT(&Mn,M0,M1,64,16);
+  LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+  //print_tensor_float(M,"M");
+
+  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+
+  //print_tensor_float(Mn,"Mn");
+}
+
 
 
 int main(int argc, char **argv){
