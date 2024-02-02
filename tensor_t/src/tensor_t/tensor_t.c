@@ -33,6 +33,53 @@ void printArraySzt(size_t *a, size_t sz,char *msg){
     return r_tens;\
   }\
 \
+  tensor_##type * sub_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim){\
+    dimension *rdim= rootens->dim;\
+    dimension *dS_t = sub_dim_tail(rdim,rdim->size - minuSubdim);\
+    if(rankInDim < dS_t->rank){\
+      dimension *dS_h = sub_dim_head(rdim,minuSubdim);\
+      tensor_##type *ret_ens = malloc(sizeof(tensor_##type));\
+      ret_ens->dim = dS_h;\
+      /*ret_ens->x = (rootens->x)+rankInDim*dS_t->rank;*/\
+      if(endian){\
+        ret_ens->x = malloc(sizeof(type)*dS_h->rank);\
+        for(size_t i=0; i<dS_h->rank; ++i){\
+          ret_ens->x[i]=rootens->x[i*dS_t->rank + rankInDim];\
+          /*printf("%ld: [i:%ld] | %ld : [%ld ]\n",dS_t->rank, i,dS_h->rank,i*dS_h->rank + rankInDim);*/\
+          \
+        }\
+      }else{\
+        ret_ens->x = (rootens->x)+rankInDim*dS_h->rank;\
+      \
+      }\
+      return ret_ens;\
+    }\
+    return NULL;\
+  }\
+  \
+  tensor_##type * sub_tensor_tail_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim){\
+    dimension *rdim= rootens->dim;\
+    dimension *dS_h = sub_dim_head(rdim,rdim->size - minuSubdim);\
+    if(rankInDim < dS_h->rank){\
+      dimension *dS_t = sub_dim_tail(rdim,minuSubdim);\
+      tensor_##type *ret_ens = malloc(sizeof(tensor_##type));\
+      ret_ens->dim = dS_t;\
+      if(endian==false){\
+        ret_ens->x = malloc(sizeof(type)*dS_t->rank);\
+        for(size_t i=0; i<dS_t->rank; ++i){\
+          ret_ens->x[i]=rootens->x[i*dS_h->rank + rankInDim];\
+          /*printf("%ld: [i:%ld] | %ld : [%ld ]\n",dS_t->rank, i,dS_h->rank,i*dS_h->rank + rankInDim);*/\
+          \
+        }\
+      }else{\
+        ret_ens->x = (rootens->x)+rankInDim*dS_t->rank;\
+      \
+      }\
+      return ret_ens;\
+    }\
+    return NULL;\
+  }\
+  \
 void tensorProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1) {  \
   dimension *dd;  \
     add_dimension(&dd, M0->dim, M1->dim); \
@@ -65,7 +112,10 @@ void tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1)
     size_t m_idx;\
     for(size_t i=0; i<M0->dim->rank; ++i){\
       for(size_t j=0; j<M1->dim->rank; ++j){\
-          m_idx= i*M1->dim->rank + j ;\
+          if(endian)\
+            m_idx= i*M1->dim->rank + j ;\
+          else\
+            m_idx= i+M0->dim->rank * j ;\
           M->x[m_idx]=M0->x[i]*M1->x[j];\
           /*printf("[%ld|%ld:(%ld,%ld)]",x_idx++,m_idx,i,j);*/\
       }\
@@ -133,8 +183,14 @@ void tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor_##
 \
     size_t a0_id, a1_id, n0_id, n1_id;\
     for (size_t i = 0; i < M->dim->rank; i++) {\
-        a0_id=i/dSub1->rank;\
-        a1_id=i%dSub1->rank;\
+        if(endian){\
+          a0_id=i/dSub1->rank;\
+          a1_id=i%dSub1->rank;\
+        }\
+        else{\
+          a0_id=i%dSub0->rank;\
+          a1_id=i/dSub0->rank;\
+        }\
         /*vCoordFromLin(coord, i, M->dim);\
         subArray(coord0, coord, 0, len0, 0);\
         subArray(coord1, coord, 0, len1, len0);\
@@ -142,8 +198,14 @@ void tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor_##
         printf("i:%ld=>  c1: %ld vs %ld \n",i,LineFromCoord(coord1,dSub1),a1_id);*/\
         M->x[i] = 0;\
         for (size_t k = 0; k < dM->rank; k++) {\
+          if(endian){\
             n0_id= a0_id*dM->rank + k;\
             n1_id= a1_id + dSub1->rank * k;\
+          }\
+          else{\
+            n0_id= a0_id + dSub0->rank * k;\
+            n1_id= a1_id*dM->rank + k;\
+          }\
             M->x[i] += M0->x[n0_id] * M1->x[n1_id];\
             /*vCoordFromLin(Koord, k, dM);\
             concatArray(coordM0, coord0, Koord, 0, 0, len0, 0, contractionNumber);\

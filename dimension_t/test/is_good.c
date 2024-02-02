@@ -51,6 +51,23 @@ TEST(SubDim){
 
 }
 
+TEST(SubDim){
+  dimension *D=create_dim(4);
+  D->perm[0]=2;
+  D->perm[1]=3;
+  D->perm[2]=5;
+  D->perm[3]=6;
+
+
+  dimension *d_head2 = sub_dim_head(D,2);
+  
+  
+  EXPECT_EQ(d_head2->rank, 2*3);
+
+  dimension *d_tail2 = sub_dim_tail(D,2);
+  EXPECT_EQ(d_tail2->rank, 5*6);
+
+}
 
 TEST(Coord_linear){
   dimension *D=create_dim(4);

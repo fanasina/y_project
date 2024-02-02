@@ -12,6 +12,8 @@ struct tensor_##type{\
 };\
 typedef struct tensor_##type tensor_##type;\
 tensor_##type * CREATE_TENSOR_##type(dimension *dim); \
+tensor_##type * sub_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
+tensor_##type * sub_tensor_tail_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
 void tensorProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
