@@ -51,6 +51,100 @@ void print_tensor_double(tensor_TYPE_DOUBLE *M, char *msg){
     LOG("%s","\n");
 }
 
+TEST(tensorMinusSubhead_ ){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=4;
+  d0->perm[1]=3;
+  d0->perm[2]=5;
+  
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+
+  endian=false;
+  size_t rnkId = 1;
+  tensor_TYPE_FLOAT *s2h = sub_minus_tensor_head_TYPE_FLOAT(M0,1,rnkId);
+
+  print_tensor_float(M0, "M0 for sub");
+  print_tensor_float(s2h, "sub s2h of M0");
+
+  printDebug_dimension(M0->dim," M0 dimension  ");
+  printDebug_dimension(s2h->dim," s2h dimension  ");
+ //EXPECT_ARRAY_EQ_TYPE_FLOAT(M0->x,s2h->dim->rank,s2h->x,s2h->dim->rank);
+ 
+  for(size_t i1=0; i1<d0->perm[1];++i1){
+    for(size_t i0=0; i0<d0->perm[0];++i0){
+      printf("EXPECT_EQ_TYPE_FLOAT c0[%ld](%ld,%ld,%ld) : s[%ld](%ld,%ld) \n",LineFromCoord((size_t[]){i0,i1,rnkId},M0->dim),rnkId,i0,i1,LineFromCoord((size_t[]){i0,i1},s2h->dim),i0,i1);
+      EXPECT_EQ_TYPE_FLOAT(M0->x[LineFromCoord((size_t[]){i0,i1,rnkId},M0->dim)],s2h->x[LineFromCoord((size_t[]){i0,i1},s2h->dim)]);
+    }  
+  }
+}
+
+TEST(tensorMinusSubtail ){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=4;
+  d0->perm[1]=3;
+  d0->perm[2]=5;
+  
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+
+
+  tensor_TYPE_FLOAT *s1t = sub_minus_tensor_tail_TYPE_FLOAT(M0,1,5);
+
+  print_tensor_float(M0, "M0 for sub");
+  print_tensor_float(s1t, "sub s2t of M0 from 5");
+
+}
+
+
+TEST(tensorMinusSubtail ){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=4;
+  d0->perm[1]=3;
+  d0->perm[2]=5;
+  
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+
+  //endian=false;
+  size_t rnkId=3;
+  tensor_TYPE_FLOAT *s2t = sub_minus_tensor_tail_TYPE_FLOAT(M0,1,rnkId);
+
+
+
+  print_tensor_float(M0, "M0 for sub");
+  print_tensor_float(s2t, "sub s2t of M0 from 3");
+
+  for(size_t i1=0; i1<d0->perm[1];++i1){
+    for(size_t i2=0; i2<d0->perm[2];++i2){
+      printf("EXPECT_EQ_TYPE_FLOAT c0[%ld](%ld,%ld,%ld) : s[%ld](%ld,%ld) \n",LineFromCoord((size_t[]){rnkId,i1,i2},M0->dim),rnkId,i1,i2,LineFromCoord((size_t[]){i1,i2},s2t->dim),i1,i2);
+      EXPECT_EQ_TYPE_FLOAT(M0->x[LineFromCoord((size_t[]){rnkId,i1,i2},M0->dim)],s2t->x[LineFromCoord((size_t[]){i1,i2},s2t->dim)]);
+    }  
+  }
+
+}
+
 TEST(tensorSubhead_ ){
   dimension *d0=create_dim(3);
 
@@ -69,7 +163,7 @@ TEST(tensorSubhead_ ){
 
   endian=false;
   size_t rnkId = 1;
-  tensor_TYPE_FLOAT *s2h = sub_tensor_head_TYPE_FLOAT(M0,1,rnkId);
+  tensor_TYPE_FLOAT *s2h = sub_tensor_head_TYPE_FLOAT(M0,2,rnkId);
 
   print_tensor_float(M0, "M0 for sub");
   print_tensor_float(s2h, "sub s2h of M0");
@@ -85,8 +179,6 @@ TEST(tensorSubhead_ ){
     }  
   }
 }
-
-
 TEST(tensorSubtail ){
   dimension *d0=create_dim(3);
 
@@ -104,7 +196,7 @@ TEST(tensorSubtail ){
   for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
 
 
-  tensor_TYPE_FLOAT *s1t = sub_tensor_tail_TYPE_FLOAT(M0,1,5);
+  tensor_TYPE_FLOAT *s1t = sub_tensor_tail_TYPE_FLOAT(M0,2,5);
 
   print_tensor_float(M0, "M0 for sub");
   print_tensor_float(s1t, "sub s2t of M0 from 5");
@@ -130,7 +222,7 @@ TEST(tensorSubtail ){
 
   //endian=false;
   size_t rnkId=3;
-  tensor_TYPE_FLOAT *s2t = sub_tensor_tail_TYPE_FLOAT(M0,1,rnkId);
+  tensor_TYPE_FLOAT *s2t = sub_tensor_tail_TYPE_FLOAT(M0,2,rnkId);
 
 
 

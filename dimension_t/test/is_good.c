@@ -41,12 +41,12 @@ TEST(SubDim){
   D->perm[2]=5;
   D->perm[3]=6;
 
-  dimension *d_head2 = sub_dim_head(D,2);
+  dimension *d_head2 = sub_minus_dim_head(D,2);
   
   
   EXPECT_EQ(d_head2->rank, 2*3);
 
-  dimension *d_tail2 = sub_dim_tail(D,2);
+  dimension *d_tail2 = sub_minus_dim_tail(D,2);
   EXPECT_EQ(d_tail2->rank, 5*6);
 
 }
@@ -59,12 +59,12 @@ TEST(SubDim){
   D->perm[3]=6;
 
 
-  dimension *d_head2 = sub_dim_head(D,2);
+  dimension *d_head2 = sub_minus_dim_head(D,2);
   
   
   EXPECT_EQ(d_head2->rank, 2*3);
 
-  dimension *d_tail2 = sub_dim_tail(D,2);
+  dimension *d_tail2 = sub_minus_dim_tail(D,2);
   EXPECT_EQ(d_tail2->rank, 5*6);
 
 }

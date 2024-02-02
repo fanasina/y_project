@@ -33,11 +33,11 @@ void printArraySzt(size_t *a, size_t sz,char *msg){
     return r_tens;\
   }\
 \
-  tensor_##type * sub_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim){\
+  tensor_##type * sub_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim){\
     dimension *rdim= rootens->dim;\
-    dimension *dS_t = sub_dim_tail(rdim,rdim->size - minuSubdim);\
+    dimension *dS_t = sub_minus_dim_tail(rdim,rdim->size - minuSubdim);\
     if(rankInDim < dS_t->rank){\
-      dimension *dS_h = sub_dim_head(rdim,minuSubdim);\
+      dimension *dS_h = sub_minus_dim_head(rdim,minuSubdim);\
       tensor_##type *ret_ens = malloc(sizeof(tensor_##type));\
       ret_ens->dim = dS_h;\
       /*ret_ens->x = (rootens->x)+rankInDim*dS_t->rank;*/\
@@ -57,11 +57,59 @@ void printArraySzt(size_t *a, size_t sz,char *msg){
     return NULL;\
   }\
   \
-  tensor_##type * sub_tensor_tail_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim){\
+  tensor_##type * sub_minus_tensor_tail_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim){\
     dimension *rdim= rootens->dim;\
-    dimension *dS_h = sub_dim_head(rdim,rdim->size - minuSubdim);\
+    dimension *dS_h = sub_minus_dim_head(rdim,rdim->size - minuSubdim);\
     if(rankInDim < dS_h->rank){\
-      dimension *dS_t = sub_dim_tail(rdim,minuSubdim);\
+      dimension *dS_t = sub_minus_dim_tail(rdim,minuSubdim);\
+      tensor_##type *ret_ens = malloc(sizeof(tensor_##type));\
+      ret_ens->dim = dS_t;\
+      if(endian==false){\
+        ret_ens->x = malloc(sizeof(type)*dS_t->rank);\
+        for(size_t i=0; i<dS_t->rank; ++i){\
+          ret_ens->x[i]=rootens->x[i*dS_h->rank + rankInDim];\
+          /*printf("%ld: [i:%ld] | %ld : [%ld ]\n",dS_t->rank, i,dS_h->rank,i*dS_h->rank + rankInDim);*/\
+          \
+        }\
+      }else{\
+        ret_ens->x = (rootens->x)+rankInDim*dS_t->rank;\
+      \
+      }\
+      return ret_ens;\
+    }\
+    return NULL;\
+  }\
+  \
+  tensor_##type * sub_tensor_head_##type(tensor_##type *rootens, size_t subdim, size_t rankInDim){\
+    /*return sub_minus_tensor_head_##type(rootens,rootens->dim->size - subdim, rankInDim);*/\
+    dimension *rdim= rootens->dim;\
+    dimension *dS_t = sub_dim_tail(rdim,rdim->size - subdim);\
+    if(rankInDim < dS_t->rank){\
+      dimension *dS_h = sub_dim_head(rdim,subdim);\
+      tensor_##type *ret_ens = malloc(sizeof(tensor_##type));\
+      ret_ens->dim = dS_h;\
+      /*ret_ens->x = (rootens->x)+rankInDim*dS_t->rank;*/\
+      if(endian){\
+        ret_ens->x = malloc(sizeof(type)*dS_h->rank);\
+        for(size_t i=0; i<dS_h->rank; ++i){\
+          ret_ens->x[i]=rootens->x[i*dS_t->rank + rankInDim];\
+          /*printf("%ld: [i:%ld] | %ld : [%ld ]\n",dS_t->rank, i,dS_h->rank,i*dS_h->rank + rankInDim);*/\
+          \
+        }\
+      }else{\
+        ret_ens->x = (rootens->x)+rankInDim*dS_h->rank;\
+      \
+      }\
+      return ret_ens;\
+    }\
+    return NULL;\
+  }\
+  tensor_##type * sub_tensor_tail_##type(tensor_##type *rootens, size_t subdim, size_t rankInDim){ \
+    /*return sub_minus_tensor_tail_##type(rootens,rootens->dim->size - subdim, rankInDim);*/\
+    dimension *rdim= rootens->dim;\
+    dimension *dS_h = sub_dim_head(rdim,rdim->size - subdim);\
+    if(rankInDim < dS_h->rank){\
+      dimension *dS_t = sub_dim_tail(rdim,subdim);\
       tensor_##type *ret_ens = malloc(sizeof(tensor_##type));\
       ret_ens->dim = dS_t;\
       if(endian==false){\

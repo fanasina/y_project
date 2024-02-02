@@ -19,7 +19,7 @@ create_dim(size_t sz){
   return CREATE_PERMUTATION_TYPE_SIZE_T(sz);
 }
 
-dimension* sub_dim_head(dimension *root, size_t minusSubdim){
+dimension* sub_minus_dim_head(dimension *root, size_t minusSubdim){
   if(minusSubdim < (root->size)){
     dimension *d = INIT_PERMUTATION_TYPE_SIZE_T(root->perm, (root->size)-minusSubdim);
     updateRankDim(d);
@@ -27,9 +27,25 @@ dimension* sub_dim_head(dimension *root, size_t minusSubdim){
   }
   return NULL;
 }
-dimension* sub_dim_tail(dimension *root, size_t minusSubdim){
+dimension* sub_minus_dim_tail(dimension *root, size_t minusSubdim){
   if(minusSubdim < (root->size)){
     dimension *d = INIT_PERMUTATION_TYPE_SIZE_T((root->perm)+minusSubdim, (root->size)-minusSubdim);
+    updateRankDim(d);
+    return d;
+  }
+  return NULL;
+}
+dimension* sub_dim_head(dimension *root, size_t subdim){
+  if(subdim < (root->size)){
+    dimension *d = INIT_PERMUTATION_TYPE_SIZE_T(root->perm, subdim);
+    updateRankDim(d);
+    return d;
+  }
+  return NULL;
+}
+dimension* sub_dim_tail(dimension *root, size_t subdim){
+  if(subdim < (root->size)){
+    dimension *d = INIT_PERMUTATION_TYPE_SIZE_T((root->perm)+(root->size - subdim), subdim);
     updateRankDim(d);
     return d;
   }
