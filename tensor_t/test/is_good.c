@@ -442,22 +442,185 @@ TEST(VStensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M1,"M1");
 
   tensor_TYPE_DOUBLE *M;
-  //tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *MnO;
 
   tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
   //print_tensor_double(M,"M");
   //cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
-  //tensorContractnProdNotOpt_TYPE_DOUBLE(&MnO, M0,M1,2);
+  tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
 
   //print_tensor_double(MnO,"MnO");
  
   // for(size_t i=0;i<M->dim->rank;++i)
   //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
     
-  //EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+  EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
 
 
 }
+
+TEST(Pthread_tensorContractnProd_TYPE_DOUBLE2 ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+
+  d0->perm[0]=125;
+  d0->perm[1]=52; //3;
+  d0->perm[2]=63;
+
+  d1->perm[0]=52;
+  d1->perm[1]=63;//3;
+  d1->perm[2]=154;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  //print_tensor_double(M0,"M0");
+  //print_tensor_double(M1,"M1");
+
+  tensor_TYPE_DOUBLE *M;
+  tensor_TYPE_DOUBLE *MnO;
+
+  size_t nbthread = 5;
+
+  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
+  //print_tensor_double(M,"M");
+  //cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
+  tensorContractnProdThread_TYPE_DOUBLE(&MnO, M0,M1,2,nbthread);
+
+  //print_tensor_double(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+  EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+
+}
+TEST(tensorProd_vs ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(2);
+
+  d0->perm[0]=12;
+  d0->perm[1]=13;
+  d0->perm[2]=12;
+  
+  d1->perm[0]=21;
+  d1->perm[1]=23;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+
+
+  tensor_TYPE_FLOAT *M; 
+  tensor_TYPE_FLOAT *Mn; 
+
+  tensorProd_TYPE_FLOAT(&M,M0,M1);
+  tensorProdNotOpt_TYPE_FLOAT(&Mn,M0,M1);
+  LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+
+  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+
+}
+TEST(tensorProd_vsThread ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(2);
+
+  d0->perm[0]=12;
+  d0->perm[1]=13;
+  d0->perm[2]=12;
+  
+  d1->perm[0]=21;
+  d1->perm[1]=23;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+
+
+  tensor_TYPE_FLOAT *M; 
+  tensor_TYPE_FLOAT *Mn; 
+
+  size_t nbthread = 5;
+
+  tensorProdThread_TYPE_FLOAT(&M,M0,M1,nbthread);
+  tensorProdNotOpt_TYPE_FLOAT(&Mn,M0,M1);
+  LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+
+  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+
+}
+
+TEST(tensorProd_vsThread2d ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(2);
+
+  d0->perm[0]=12;
+  d0->perm[1]=13;
+  d0->perm[2]=12;
+  
+  d1->perm[0]=21;
+  d1->perm[1]=23;
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+
+
+  tensor_TYPE_FLOAT *M; 
+  tensor_TYPE_FLOAT *Mn; 
+
+  size_t nbthread = 5;
+
+  tensorProdThread2d_TYPE_FLOAT(&M,M0,M1,nbthread);
+  tensorProdNotOpt_TYPE_FLOAT(&Mn,M0,M1);
+  LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+
+  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+
+}
+
+
+
 
 int main(int argc, char **argv){
   

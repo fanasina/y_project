@@ -1,6 +1,8 @@
 #ifndef __TENSOR_T__H__
 #define __TENSOR_T__H__
 
+#include <pthread.h>
+
 #include "dimension_t/dimension_t.h"
 
 void subArray(size_t* dst, size_t* src, size_t debDst, size_t finDst, size_t debSrc);
@@ -19,6 +21,9 @@ tensor_##type * sub_tensor_tail_##type(tensor_##type *rootens, size_t subdim, si
 void tensorProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
+void tensorProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1,size_t nbthread); \
+void tensorProdThread2d_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1,size_t nbthread); \
+void tensorContractnProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
 void tensorContractnProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
 
 
