@@ -11,7 +11,7 @@ __kernel void prodTensor2dLin_TYPE_FLOAT(long unsigned int M1rank, __global cons
     Mx[k] = M0x[i] * M1x[j]; 
 }
 
-__kernel void prodTensori2dLin_TYPE_DOUBLE(long unsigned int M1rank, __global const double *M0x , __global const double *M1x, __global double *Mx ){
+__kernel void prodTensor2dLin_TYPE_DOUBLE(long unsigned int M1rank, __global const double *M0x , __global const double *M1x, __global double *Mx ){
 
     //Get the index of the current element to be processed
     size_t i = get_group_id(0)*get_local_size(0) + get_local_id(0);
@@ -51,9 +51,3 @@ __kernel void prodTensori2dLinNotEndian_TYPE_DOUBLE(long unsigned int M0rank, __
     Mx[k] = M0x[i] * M1x[j]; 
 
 }
-
-
-
-
-
-

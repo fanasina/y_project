@@ -10,7 +10,7 @@ BARP_O=$(BARPDIR)/src/bar_progress/bar_progress.o
 
 
 INCLUDE=-I$(PWD)/yftest/include  -I$(PWD)/yfmock/include -I$(TOOLDIR)/include -I$(BARPDIR)/include
-CFLAGS=-lpthread -Wall -Werror -fpic $(INCLUDE) 
+CFLAGS=-g -lpthread -Wall -Werror -fpic $(INCLUDE) #"-D DEBUG=1" 
 #LDFLAGS=
 
 TOPTARGETS := all clean #update_headers

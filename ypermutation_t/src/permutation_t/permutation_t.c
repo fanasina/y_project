@@ -43,7 +43,8 @@ int sign(long int a){
   }\
   PERMUTATION_##type * INIT_PERMUTATION_##type(type *perm, size_t size){\
     if (size == 0) return NULL;\
-    PERMUTATION_##type *p = CREATE_PERMUTATION_##type(size);\
+    PERMUTATION_##type *p = malloc(sizeof(PERMUTATION_##type));\
+    p->size = size;\
     p->perm = perm ; /*malloc(size*sizeof(type));\
     for(size_t i=0;i<size;++i) p->perm[i] = perm[i];*/\
     return p;\
@@ -51,11 +52,16 @@ int sign(long int a){
   PERMUTATION_##type * INIT_COPY_PERMUTATION_##type(type *perm, size_t size){\
     if (size == 0) return NULL;\
     PERMUTATION_##type *p = CREATE_PERMUTATION_##type(size);\
-    p->perm = malloc(size*sizeof(type));\
     for(size_t i=0;i<size;++i) p->perm[i] = perm[i];\
     return p;\
   }\
-\
+  void free_permut_##type(PERMUTATION_##type * permut){\
+    if(permut){\
+      free(permut->perm);\
+      free(permut);\
+      /*permut=NULL;*/\
+    }\
+  }\
   PERMUTATION_TYPE_SIZE_T * TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(const PERMUTATION_##type *p ){\
     if (p == NULL) return NULL;\
     PERMUTATION_TYPE_SIZE_T *t_p = malloc(sizeof(PERMUTATION_TYPE_SIZE_T));\
@@ -119,6 +125,7 @@ size_t TabToPlaceAlgo_##type(const PERMUTATION_##type *p){\
   for (size_t i = 0; i < sz;i++) {\
     q = (i + 1) * q + tPlace[i];\
   }\
+  free(tPlace);\
   return q;\
 }\
 /*complexité sz*sz/2 */\
@@ -158,6 +165,7 @@ size_t TabToPlaceOpt1_##type(const PERMUTATION_##type *p){\
   for (long int i = 0; i < sz; i++) {\
     q = (i + 1) * q + tPlace[i];\
   }\
+  free(tPlace);\
   return q;\
 }\
 /* complexité sz*(sz+1)*/\
@@ -221,6 +229,7 @@ PERMUTATION_TYPE_SIZE_T * PlaceToTab_##type(PERMUTATION_##type *p, size_t pl){\
   }\
   \
   for (long int i = 0;i < sz;i++) p->perm[i] = save_perm[tb[i]];\
+  free(save_perm);\
   return t_p;\
 }\
 \

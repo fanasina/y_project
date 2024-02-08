@@ -10,6 +10,7 @@ YPERMDIR=$(PWD)/../../ypermutation_t
 
 TENSDIR=$(PWD)/..
 DIMDIR=$(PWD)/../../dimension_t
+#TOOLDIR=$(PWD)/../../ytools_t
 INCLUDE_DIR=$(PWD)/../src
 CFLAGS=-I$(INCLUDE_DIR) -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src
 LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL
@@ -24,6 +25,9 @@ EXECSRC=$(NAME_TEST).c
 #EXECSRC=openF.c
 
 EXEC=launch_$(NAME_TEST)_m
+
+#TOOLRC=$(TOOLDIR)/src/tools_t/tools_t.c
+#TOOLSRC_O=$(TOOLSRC:.c=.o)
 
 TENSRC=$(TENSDIR)/src/tensor_t/tensor_t.c
 TENSRC_O=$(TENSRC:.c=.o)
@@ -40,7 +44,7 @@ TOPTARGETS := all clean
 
 DEPS=$(DIMDIR) $(YPERMDIR) $(YTESTDIR) $(TENSDIR)
 
-OBJ=$(DIMSRC_O) $(PERMSRC_O) $(TENSRC_O) $(clTENSRC_O)
+OBJ=$(DIMSRC_O) $(PERMSRC_O) $(TENSRC_O) $(clTENSRC_O) #$(TOOLSRC_O)
 
 LIB_YTEST=$(YTESTDIR)/libytest.so
 

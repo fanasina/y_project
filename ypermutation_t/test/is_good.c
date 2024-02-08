@@ -24,12 +24,13 @@ TEST(size_permutation)
   EXPECT_EQ(p->size, 3);
 
   PRINTF("test size_permutation2\n");
+  free_permut_TYPE_CHAR(p);
 }
 
 
 TEST(permutation_t_float_trans)
 {
-  int n =8;
+  int n =6;
   PERMUTATION_TYPE_FLOAT *p = CREATE_PERMUTATION_TYPE_FLOAT(n);
 
   PRINTF(" size = %lu \n",p->size);
@@ -49,14 +50,14 @@ TEST(permutation_t_float_trans)
   for(int i = 0; i < p->size; ++i) PRINTF(" (%d: %f) ,",i,p->perm[i]);
   PRINTF("\n");
   
- 
+  free_permut_TYPE_FLOAT(p);
 //  sleep(n);
 
 }
 
 TEST(not_permutation_)
 {
-  int n =8;
+  int n =6;
   PERMUTATION_TYPE_FLOAT *p = CREATE_PERMUTATION_TYPE_FLOAT(n);
 
   PRINTF(" size = %lu \n",p->size);
@@ -71,7 +72,8 @@ TEST(not_permutation_)
   
   EXPECT_FALSE(IS_PERMUTATION_TYPE_FLOAT(p));
 
-
+  
+  free_permut_TYPE_FLOAT(p);
 //  sleep(n);
 
 }
@@ -96,6 +98,7 @@ TEST(is_permutation_)
   EXPECT_TRUE(IS_PERMUTATION_TYPE_FLOAT(p));
 
 
+  free_permut_TYPE_FLOAT(p);
 //  sleep(n);
 
 }
@@ -140,18 +143,21 @@ TEST(expect){
 
 TEST(){
 
-  PERMUTATION_TYPE_CHAR *p_char = CREATE_PERMUTATION_TYPE_CHAR(6);
+  PERMUTATION_TYPE_CHAR *p_char = CREATE_PERMUTATION_TYPE_CHAR(7);
   p_char->perm[0]='B';
   p_char->perm[1]='A';
   p_char->perm[2]='Y';
   p_char->perm[3]='C';
   p_char->perm[4]='D';
   p_char->perm[5]='Z';
+  p_char->perm[6]='\0';
   
   PERMUTATION_TYPE_SIZE_T *tr_p_char = TRANSLATE_TO_SET_THEORIC_SIZE_T_TYPE_CHAR(p_char);
 
   for(int i = 0; i < tr_p_char->size; ++i) PRINTF(" [%d ]%ld ,",i,tr_p_char->perm[i]);
   PRINTF("p_char == %s\n",p_char->perm);
+  free_permut_TYPE_CHAR(p_char);
+  free_permut_TYPE_SIZE_T(tr_p_char);
 }
 
 TEST(){
@@ -171,7 +177,6 @@ TEST(){
   p_char->perm[3]='3';
   p_char->perm[4]='4';
   p_char->perm[5]='5';
-  p_char->perm[6]='\0';
 
   PRINTF("init :%s \n",p_char->perm);
   PERMUTATION_TYPE_SIZE_T *tab_45 = TRANSLATE_TO_SET_THEORIC_SIZE_T_TYPE_CHAR(p_char);
@@ -201,6 +206,7 @@ TEST(){
   }
     */
 
+  free_permut_TYPE_CHAR(p_char);
 
 }
 
@@ -215,6 +221,7 @@ TEST(overflowPlacePerm){
   PERMUTATION_TYPE_SIZE_T *tab_45 = PlaceToTab_TYPE_CHAR(p_char, rank);
   for(size_t i=0; i<p_char->size; ++i) PRINTF(" %ld: %ld \n",i, tab_45->perm[i]);
     PRINTF("ret %ld :%s \n",rank,p_char->perm);
+  free_permut_TYPE_CHAR(p_char);
 }
 
 #if 0

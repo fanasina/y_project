@@ -1,6 +1,3 @@
-
-
-
 __kernel void prodContractnTensorLin_TYPE_FLOAT(long unsigned int dSubRank, long unsigned int dMRank, __global const float *M0x , __global const float *M1x, __global float *Mx ){
 
     //Get the index of the current element to be processed 
@@ -64,7 +61,3 @@ __kernel void prodContractnTensorLinNotEndian_TYPE_DOUBLE(long unsigned int dSub
             Mx[i] += M0x[n0_id] * M1x[n1_id];
         }
 }
-
-
-
-

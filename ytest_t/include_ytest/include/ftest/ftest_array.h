@@ -17,17 +17,24 @@ do{      \
         else if(verb==VERB){\
           PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);\
           PRINT_LOC("test passed: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
-          for(size_t i=0; i < min(sz1,sz2);++i) \
-            PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-              ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          for(size_t i=0; i < min(sz1,sz2);++i) {\
+              char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+              PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+              ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+              free(str_var1); free(str_var2);\
+           }\
         }\
      \
       }                                                                                                         \
       else{                                                                                                     \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
         for(size_t i=0; i < min(sz1,sz2);++i)\
-          if (!(var1[i] OP var2[i])) PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-            ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          if (!(COMPARE_N_##type((void*)(var1 + i),(void*)(var2 + i)) OP 0)) {\
+           char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+           PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+            ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+           free(str_var1); free(str_var2);\
+          }\
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
                                                          \
    }else {                                                                                                         \
@@ -36,16 +43,23 @@ do{      \
         else if(verb==VERB){\
           PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 %s passed %s \n\n",name_f,msg_call);\
           PRINT_LOC("test passed: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
-          for(size_t i=0; i < min(sz1,sz2);++i) \
-            PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-              ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          for(size_t i=0; i < min(sz1,sz2);++i) {\
+              char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+              PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+              ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+              free(str_var1); free(str_var2);\
+           }\
         }\
       }                                                                                                         \
       else{                                                                                                     \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
         for(size_t i=0; i < min(sz1,sz2);++i)\
-          if (!(var1[i] OP var2[i])) PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-            ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          if (!(COMPARE_N_##type((void*)(var1 + i),(void*)(var2 + i)) OP 0)) {\
+           char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+           PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+            ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+           free(str_var1); free(str_var2);\
+          }\
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
       }                                                                                                         \
     }\
@@ -66,16 +80,23 @@ do{      \
         else if(verb==VERB){\
            PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
           PRINT_LOC("test passed: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
-          for(size_t i=0; i < min(sz1,sz2);++i) \
-            PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-              ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          for(size_t i=0; i < min(sz1,sz2);++i) {\
+              char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+              PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+              ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+              free(str_var1); free(str_var2);\
+           }\
         }\
       }                                                                                                         \
       else{                                                                                                     \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
         for(size_t i=0; i < min(sz1,sz2);++i)\
-          if (!(var1[i] OP var2[i])) PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-            ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          if (!(COMPARE_N_##type((void*)(var1 + i),(void*)(var2 + i)) OP 0)) {\
+           char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+           PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+            ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+           free(str_var1); free(str_var2);\
+          }\
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
       }                                                                                                         \
    }else {                                                                                                         \
@@ -84,16 +105,23 @@ do{      \
         else if(verb==VERB){\
            PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
           PRINT_LOC("test passed: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
-          for(size_t i=0; i < min(sz1,sz2);++i) \
-            PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-              ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          for(size_t i=0; i < min(sz1,sz2);++i) {\
+              char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+              PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+              ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+              free(str_var1); free(str_var2);\
+           }\
         }\
       }                                                                                                         \
       else{                                                                                                     \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
         for(size_t i=0; i < min(sz1,sz2);++i)\
-          if (!(var1[i] OP var2[i])) PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-            ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          if (!(COMPARE_N_##type((void*)(var1 + i),(void*)(var2 + i)) OP 0)) {\
+           char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+           PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+            ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+           free(str_var1); free(str_var2);\
+          }\
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
       }                                                                                                         \
     }\
@@ -107,16 +135,23 @@ do{      \
         else if(verb==VERB){\
            PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
           PRINT_LOC("test passed: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
-          for(size_t i=0; i < min(sz1,sz2);++i) \
-            PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-              ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          for(size_t i=0; i < min(sz1,sz2);++i) {\
+              char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+              PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+              ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+              free(str_var1); free(str_var2);\
+           }\
         }\
       }                                                                                                         \
       else{                                                                                                     \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
         for(size_t i=0; i < min(sz1,sz2);++i)\
-          if (!(var1[i] OP var2[i])) PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-            ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          if (!(COMPARE_N_##type((void*)(var1 + i),(void*)(var2 + i)) OP 0)) {\
+           char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+           PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+            ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+           free(str_var1); free(str_var2);\
+          }\
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
         return;                                                                                   \
       }                                                                                                         \
@@ -126,16 +161,23 @@ do{      \
         else if(verb==VERB){\
            PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s \n\n",__func__); \
           PRINT_LOC("test passed: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
-          for(size_t i=0; i < min(sz1,sz2);++i) \
-            PRINTF("Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-              ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          for(size_t i=0; i < min(sz1,sz2);++i) {\
+              char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+              PRINTF("Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+              ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+              free(str_var1); free(str_var2);\
+           }\
         }\
       }                                                                                                         \
       else{                                                                                                     \
         PRINT_LOC("Failure\nExpected: (%s) %s (%s) \n\n",#var1,STRFY(OP),#var2);                                            \
         for(size_t i=0; i < min(sz1,sz2);++i)\
-          if (!(var1[i] OP var2[i])) PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
-            ,#var1,i, type##_TO_STR(var1[i]),  #var2,i, type##_TO_STR(var2[i]));                                            \
+          if (!(COMPARE_N_##type((void*)(var1 + i),(void*)(var2 + i)) OP 0)) {\
+           char *str_var1 = type##_TO_STR(var1[i]), *str_var2 = type##_TO_STR(var2[i]);\
+           PRINTF(" Value of %s[%ld]: %s \n Value of %s[%ld]: %s\n\n"\
+            ,#var1,i, str_var1,  #var2,i, str_var2);                                            \
+           free(str_var1); free(str_var2);\
+          }\
         PRINT_HK_C(colors_f[k_RED],tab_hk_f[hk_TR]," 1 test failed from %s \n",__func__);                                           \
         return;                                                                                   \
       }                                                                                                         \

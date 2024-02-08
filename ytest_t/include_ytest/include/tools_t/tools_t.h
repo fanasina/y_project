@@ -23,8 +23,6 @@
   #define F_ERR stderr
 #endif
 
-
-
 /*
 #ifndef SECOND
   #define SECOND 0
@@ -37,6 +35,14 @@ double diff_timespec_seconds(struct timespec time_stop, struct timespec time_sta
 double diff_timespec_milliseconds(struct timespec time_stop, struct timespec time_start);
 long diff_timespec_nanoseconds(struct timespec time_stop, struct timespec time_start);
 */
+
+#if 1
+
+extern long int PRECISION_TYPE_FLOAT ;
+extern long int PRECISION_TYPE_DOUBLE ;
+extern long int PRECISION_TYPE_L_DOUBLE ;
+
+#endif
 
 void gotoxy(int x, int y);
 //void get_cursor_position(int *col, int *rows);

@@ -21,6 +21,7 @@
   PERMUTATION_##type * CREATE_PERMUTATION_##type(size_t size);\
   PERMUTATION_##type * INIT_PERMUTATION_##type(type *perm, size_t size);\
   PERMUTATION_##type * INIT_COPY_PERMUTATION_##type(type *perm, size_t size);\
+  void free_permut_##type(PERMUTATION_##type * permut);\
   PERMUTATION_TYPE_SIZE_T * TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(const PERMUTATION_##type *p );\
   bool IS_PERMUTATION_##type(const PERMUTATION_##type *p );\
 size_t TabToPlaceAlgo_##type(const PERMUTATION_##type *p);\

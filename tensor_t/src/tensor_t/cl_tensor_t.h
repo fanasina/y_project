@@ -19,7 +19,7 @@
 void cl_tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void cl_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
 void cl2d_tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t div0Wsz, size_t div1Wsz); \
-/*void cl2d_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t div0Wsz, size_t div1Wsz);*/ \
+void cl2d_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t div0Wsz, size_t div1Wsz); \
 
 CL_GENERATE_TENSOR_TYPE(TYPE_FLOAT);
 CL_GENERATE_TENSOR_TYPE(TYPE_DOUBLE);

@@ -56,7 +56,7 @@ TEST(){
 
 
 TEST(){
-  sleep(3);
+//  sleep(3);
   int a = 5;
   long b = 5;
   ASSERT_EQ(a,b);
@@ -66,7 +66,7 @@ TEST(){
 }
 
 TEST(expect){
-  sleep(2);
+//  sleep(2);
   int a = 5;
   int b = 6;
   EXPECT_EQ(a,b);
@@ -96,8 +96,11 @@ TEST(lessThan){
   EXPECT_LT(a,b);
   EXPECT_LT(b,a);
 
+  double da=0.1,db=0.2;
+  EXPECT_LT_TYPE_DOUBLE(da,db);
+  EXPECT_LT_TYPE_DOUBLE(db,da);
 }
-
+#if 0
 TEST(sleep){sleep(2);}
 TEST(sleep){sleep(2);}
 TEST(sleep){sleep(2);}
@@ -140,8 +143,10 @@ TEST(sleep){sleep(1);}
 TEST(sleep){sleep(1);}
 TEST(sleep){sleep(1);}
 TEST(sleep){sleep(1);}
+#endif
 
 
+#if 1
 MOCK_FUNC(int, f_mock, (), ())
   
 EXPECT_MOCK_CALL(int,f_mock, (),false, 2)  {
@@ -313,6 +318,7 @@ TEST(f7_mock_test){
   PRINTF("second call f7 : %d\n",v1);
 
 }
+#endif
 
 
 int main(int argc, char **argv){

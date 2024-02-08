@@ -11,7 +11,7 @@ YPERMDIR=$(PWD)/../../ypermutation_t
 TENSDIR=$(PWD)/..
 DIMDIR=$(PWD)/../../dimension_t
 INCLUDE_DIR=$(PWD)/../src
-CFLAGS=-I$(INCLUDE_DIR) -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src
+CFLAGS=-I$(INCLUDE_DIR) -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src #"-D DEBUG=1"
 LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL
 
 #SRC_DIR=$(ROOT_DIR)/src

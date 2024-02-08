@@ -28,14 +28,15 @@
     cl_uint ret_num_devices; \
     cl_uint ret_num_platforms; \
     cl_int ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms); \
+    checkError(ret,__func__,"Error: Failed to get platform ID ");\
     ret = clGetDeviceIDs( platform_id, CL_DEVICE_TYPE_DEFAULT, 1, \
             &device_id, &ret_num_devices); \
     size_t returned_size = 0;\
 	  size_t max_workgroup_size = 0;\
-	  ret = clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_workgroup_size, &returned_size);\
+	  /*ret = clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_workgroup_size, &returned_size);\
     checkError(ret,__func__,"Error: Failed to retrieve device info!");\
     printf(" ===========================================================++> return size: %ld\n max group sz: %ld\n", returned_size, max_workgroup_size);\
-\
+*/\
 /*int gpu = 1;\
     ret = clGetDeviceIDs( platform_id, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, \
             &device_id, &ret_num_devices); */\
@@ -136,6 +137,7 @@
     ret |= clReleaseCommandQueue(command_queue); \
     ret |= clReleaseContext(context); \
     checkError(ret,__func__,"Error: Failed to clean up! ");\
+    free(source_str);
 
 #define GEN_cl_FUNC_TENSOR(type)\
 \
@@ -214,6 +216,7 @@ void cl_tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor
     dSubRank = dSub0->rank;\
     \
   }\
+  printf("func_cl_name = %s ......... \n",func_cl_name);\
   SETUP_cl_KERNEL_(type,file_cl_src,func_cl_name);\
   \
     /*/ Set the arguments of the kernel  */ \
@@ -228,7 +231,7 @@ void cl_tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor
   READ_BUF_N_CLEANUP(type)\
 \
 } \
-\
+ \
 \
 void cl2d_tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t div0Wsz, size_t div1Wsz) {  \
     dimension *dd;  \
@@ -262,6 +265,67 @@ void cl2d_tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type
   READ_BUF_N_CLEANUP(type)\
 }  \
 \
+void cl2d_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t div0Wsz, size_t div1Wsz) {\
+\
+    size_t len0 = M0->dim->size - contractionNumber;\
+    size_t len1 = M1->dim->size - contractionNumber;\
+\
+    size_t* tsub0 = malloc(sizeof(size_t) *len0);\
+    size_t* tsub1 = malloc(sizeof(size_t) *len1);\
+    size_t* tDk1 = malloc(sizeof(size_t) *contractionNumber);\
+    size_t* tDk0 = malloc(sizeof(size_t) *contractionNumber);\
+    subArray(tsub0, M0->dim->perm, 0, len0, 0);\
+    subArray(tsub1, M1->dim->perm, 0, len1, contractionNumber);\
+    subArray(tDk1, M1->dim->perm, 0, contractionNumber, 0);\
+    subArray(tDk0, M0->dim->perm, 0, contractionNumber, len0);\
+    dimension *dSub0 = init_dim(tsub0, len0);\
+    dimension *dSub1 = init_dim(tsub1, len1);\
+    dimension *dM1 = init_dim(tDk1, contractionNumber);\
+    dimension *dM0 = init_dim(tDk0, contractionNumber);\
+    dimension *dM;\
+    min_dimension(&dM, dM0, dM1);\
+    \
+    dimension *dd;\
+    add_dimension(&dd, dSub0, dSub1);\
+    updateRankDim(dd);\
+    *MM = CREATE_TENSOR_##type(dd);\
+    tensor_##type *M= *MM;\
+    char *file_cl_src = "../src/kernel_2d_ProdContractnTensor.cl"; \
+    char *func_cl_nameEndian = "prodContractnTensor2dLin_" #type; \
+    char *func_cl_nameNotEndian = "prodContractnTensor2dLinNotEndian_" #type; \
+    char *func_cl_name; \
+    size_t dSubRank;\
+  if(endian){\
+    func_cl_name = func_cl_nameEndian;\
+    dSubRank = dSub1->rank;\
+    \
+  }else{\
+    func_cl_name = func_cl_nameNotEndian;\
+    dSubRank = dSub0->rank;\
+    \
+  }\
+  SETUP_cl_KERNEL_(type,file_cl_src,func_cl_name);\
+  /*size_t cl_dev_max_w_sz,sz_val;\
+  ret = clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &cl_dev_max_w_sz, &sz_val);\
+  printf("CL_DEVICE_MAX_WORK_GROUP_SIZE = :  %ld, sz :%ld\n ",cl_dev_max_w_sz, sz_val);\
+  */\
+    /*/ Set the arguments of the kernel  */ \
+    ret |= clSetKernelArg(kernel, 0, sizeof(size_t), (void *)&dSubRank); \
+    ret |= clSetKernelArg(kernel, 1, sizeof(size_t), (void *)&(dM->rank)); \
+    ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&M0_mem_obj); \
+    ret |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&M1_mem_obj); \
+    ret |= clSetKernelArg(kernel, 4, sizeof(cl_mem), (void *)&M_mem_obj); \
+    checkError(ret,__func__,"Error: Failed to set kernel arguments! ");\
+ \
+  /*printf("EXEC_cl_2d_KERNEL(type,%ld,%ld,%ld,%ld)\n",dSub0->rank,dSub1->rank,div0Wsz,div1Wsz);\
+  */EXEC_cl_2d_KERNEL(type,dSub0->rank,dSub1->rank,div0Wsz,div1Wsz);\
+  READ_BUF_N_CLEANUP(type)\
+\
+} \
+\
+
+
+
 
 void checkError(cl_int error, const char *func_name, char *msg) {
     if (error != CL_SUCCESS) {

@@ -33,8 +33,3 @@ __kernel void prodTensorLinNotEndian_TYPE_DOUBLE(long unsigned int M0rank, __glo
     size_t j = k / M0rank;
     Mx[k] = M0x[i] * M1x[j]; 
 }
-
-
-
-
-

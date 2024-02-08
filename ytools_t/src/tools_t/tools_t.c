@@ -1,10 +1,12 @@
 #include "tools_t/tools_t.h"
 
 
+
 void gotoxy(int x, int y)
 {
     printf("%c[%d;%df", 0x1B, y, x);
 }
+
 
 /*
 void get_cursor_position(int *col, int *rows)
@@ -48,9 +50,10 @@ long diff_timespec_nanoseconds(struct timespec time_stop, struct timespec time_s
 #define GEN_TO_STR_N(type,size,format)  \
   TYPE_STRING type##_TO_STR(type var){  \
     char *ret = malloc(size);                     \
-    sprintf(ret,format,var);            \
-    ret[strlen(ret)]='\0';              \
-    return ret; }
+    int szret = sprintf(ret,format,var);            \
+    ret[szret]='\0';              \
+    return ret;                         \
+  }\
 
 GEN_TO_STR_N(TYPE_CHAR,2,"%c")
 GEN_TO_STR_N(TYPE_U_CHAR,2,"%c")
@@ -67,6 +70,8 @@ TYPE_STRING TYPE_STRING_TO_STR(TYPE_STRING var){
   return var;
 }
 
+#if 0
+
 #define PRECISION_TYPE_CHAR 1
 #define PRECISION_TYPE_U_CHAR 1
 #define PRECISION_TYPE_INT 1
@@ -77,22 +82,44 @@ TYPE_STRING TYPE_STRING_TO_STR(TYPE_STRING var){
 
 // with gcc we can change value of theses  PRECISION_TYPES below with: gcc -D PRECISION_TYPE_FLOAT=100000 for instance!
 #ifndef PRECISION_TYPE_FLOAT 
-  /*#define PRECISION_TYPE_FLOAT 100000000*/
-  #define PRECISION_TYPE_FLOAT 10
+  #define PRECISION_TYPE_FLOAT 100000000
+  /*#define PRECISION_TYPE_FLOAT 10*/
 #endif
 #ifndef PRECISION_TYPE_DOUBLE
-  /*#define PRECISION_TYPE_DOUBLE 100000000000*/
-  #define PRECISION_TYPE_DOUBLE 1000
+  #define PRECISION_TYPE_DOUBLE 100000000000
+  /*#define PRECISION_TYPE_DOUBLE 1000*/
 #endif
 #ifndef PRECISION_TYPE_L_DOUBLE
   #define PRECISION_TYPE_L_DOUBLE 100000000000000
 #endif
 
+#endif
+
+#if 1
+
+long int PRECISION_TYPE_CHAR  = 1;
+long int PRECISION_TYPE_U_CHAR  = 1;
+long int PRECISION_TYPE_INT  = 1;
+long int PRECISION_TYPE_U_INT  = 1;
+long int PRECISION_TYPE_L_INT  = 1;
+long int PRECISION_TYPE_U_L_INT  = 1;
+long int PRECISION_TYPE_SIZE_T  = 1;
+
+long int PRECISION_TYPE_FLOAT  = 100000000;
+long int PRECISION_TYPE_DOUBLE  = 100000000000;
+long int PRECISION_TYPE_L_DOUBLE  = 100000000000000;
+
+#endif
+
+
+
 #define GENERATE_FUNCTION_NUMERIC(type)\
   int COMPARE_N_##type(const void *a, const  void *b){              \
-    type diff = (*(type*)a - *(type*)b)*PRECISION_##type;           \
-    PRINT_DEBUG_(" diff = %s a=%s b=%s \n",type##_TO_STR(diff),type##_TO_STR(*(type*)a), type##_TO_STR(*(type*)b));\
-    if ((diff < 1) && (diff > -1) ) return 0;                       \
+    type diff = (*(type*)a - *(type*)b) * PRECISION_##type;           \
+    /*char *str_diff = type##_TO_STR(diff), *str_a = type##_TO_STR(*(type*)a), *str_b = type##_TO_STR(*(type*)b);\
+    PRINT_DEBUG_(" diff = %s a=%s b=%s PRECISION : %ld\n",str_diff, str_a, str_b, PRECISION_##type);\
+    free(str_diff); free(str_a); free(str_b);\
+    */if ((diff < 1) && (diff > -1) ) return 0;                       \
     return diff;                                                    \
   }                                                                 \
                                                                     \

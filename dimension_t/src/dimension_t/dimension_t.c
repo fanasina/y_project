@@ -1,5 +1,7 @@
 #include "dimension_t/dimension_t.h"
 
+#define min(x,y) (((x)<(y))?(x):(y)) 
+
 bool endian=true;
 
 bool isLessEqThan(long int a, long int b) { return a <= b; }
@@ -10,6 +12,14 @@ long int incr(long int i) { return i + 1; }
 long int decr(long int i) { return i - 1; }
 
 dimension* init_dim(size_t *t, size_t sz){
+  dimension *d = malloc(sizeof(dimension));
+  d->size=sz;
+  d->perm=t;
+  updateRankDim(d);
+  return d;
+}
+
+dimension* init_copy_dim(size_t *t, size_t sz){
   dimension *d = INIT_COPY_PERMUTATION_TYPE_SIZE_T(t,sz);
   updateRankDim(d);
   return d;
@@ -18,6 +28,66 @@ dimension *
 create_dim(size_t sz){
   return CREATE_PERMUTATION_TYPE_SIZE_T(sz);
 }
+void free_dimension(dimension *d){
+  free_permut_TYPE_SIZE_T(d);
+}
+
+dimension* sub_copy_minus_dim_head(dimension *root, size_t minusSubdim){
+  if(minusSubdim < (root->size)){
+    dimension *d = INIT_COPY_PERMUTATION_TYPE_SIZE_T(root->perm, (root->size)-minusSubdim);
+    updateRankDim(d);
+    return d;
+  }
+  return NULL;
+}
+
+dimension* sub_copy_minus_dim_tail(dimension *root, size_t minusSubdim){
+  if(minusSubdim < (root->size)){
+    dimension *d = INIT_COPY_PERMUTATION_TYPE_SIZE_T((root->perm)+minusSubdim, (root->size)-minusSubdim);
+    updateRankDim(d);
+    return d;
+  }
+  return NULL;
+}
+
+dimension* sub_copy_dim_head(dimension *root, size_t subdim){
+  if(subdim < (root->size)){
+    dimension *d = INIT_COPY_PERMUTATION_TYPE_SIZE_T(root->perm, subdim);
+    updateRankDim(d);
+    return d;
+  }
+  return NULL;
+}
+
+dimension* sub_copy_dim_tail(dimension *root, size_t subdim){
+  if(subdim < (root->size)){
+    dimension *d = INIT_COPY_PERMUTATION_TYPE_SIZE_T((root->perm)+(root->size - subdim), subdim);
+    updateRankDim(d);
+    return d;
+  }
+  return NULL;
+}
+
+void add_copy_dimension(dimension **d, dimension *d0, dimension *d1) {
+    (*d) = create_dim(d0->size + d1->size);
+    for (size_t i = 0; i < d0->size; i++) (*d)->perm[i] = d0->perm[i];
+    for (size_t i = 0; i < d1->size; i++) (*d)->perm[d0->size + i] = d1->perm[i];
+    updateRankDim(*d);
+}
+
+void min_copy_dimension(dimension **d, dimension *d0, dimension *d1) {
+    size_t mindim = min(d0->size,d1->size) ;
+    (*d)=create_dim(mindim);
+
+       for (size_t i = 0; i < mindim; i++) {
+            if (d0->perm[i] > d1->perm[i]) (*d)->perm[i] = d1->perm[i];
+            else (*d)->perm[i] = d0->perm[i];
+        }
+    updateRankDim(*d);
+}
+
+
+
 
 dimension* sub_minus_dim_head(dimension *root, size_t minusSubdim){
   if(minusSubdim < (root->size)){
@@ -53,8 +123,6 @@ dimension* sub_dim_tail(dimension *root, size_t subdim){
 }
 void add_dimension(dimension **d, dimension *d0, dimension *d1) {
     (*d) = create_dim(d0->size + d1->size);
-    //printf("d size : %ld\n",(*d)->size);
-    (*d)->perm = malloc(sizeof(size_t)*((*d)->size));
     for (size_t i = 0; i < d0->size; i++) (*d)->perm[i] = d0->perm[i];
     for (size_t i = 0; i < d1->size; i++) (*d)->perm[d0->size + i] = d1->perm[i];
     updateRankDim(*d);

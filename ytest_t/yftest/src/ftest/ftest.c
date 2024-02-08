@@ -34,6 +34,7 @@ struct failed_lists{
   char *name;
   struct failed_lists *next;
 };
+void clear_all_falied_list(struct failed_lists **flist);
 
 #define default_ordered 0
 #define default_unicolour 0
@@ -188,7 +189,7 @@ void append_failed_list(struct failed_lists **fn_failed_list ,const char *name_f
       tmp_failed_l = tmp_failed_l->next; 
     }
     tmp_failed_l = malloc(sizeof(struct failed_lists));
-    tmp_failed_l->name = malloc(strlen(name_failed));
+    tmp_failed_l->name = malloc(strlen(name_failed)+1);
     strcpy(tmp_failed_l->name, name_failed);
     tmp_failed_l->next = NULL;
     rec_tmp->next = tmp_failed_l;
@@ -196,7 +197,7 @@ void append_failed_list(struct failed_lists **fn_failed_list ,const char *name_f
   }
   else{
     *fn_failed_list = malloc(sizeof(struct failed_lists));
-    (*fn_failed_list)->name = malloc(strlen(name_failed));
+    (*fn_failed_list)->name = malloc(strlen(name_failed)+1);
     strcpy((*fn_failed_list)->name, name_failed);
     (*fn_failed_list)->next = NULL;
   }
@@ -240,7 +241,7 @@ size_t extract_num__f(const char *name_f){
  /* TEST_funcname___NUM -> TEST(funcname) */
 char* extract_func_edited_TEST_from_exec_func_name(char* func_name){
   size_t len=strlen(func_name);
-  char *ret_name=malloc(len);
+  char *ret_name=malloc(len+1);
   strcpy(ret_name, func_name);
   char *pad="____";
   size_t len_pad=strlen(pad); 
@@ -266,15 +267,17 @@ void setup_variables_before_exec(){
     size_t len_bp = strlen(bar_progress);
     size_t len_db = strlen(default_bar_progress);
     if( len_bp >= len_db ){
-      char *tmp_bp=malloc(len_bp);
+      char *tmp_bp=malloc(len_bp+1);
       strcpy(tmp_bp,bar_progress);  
       tmp_bp[2]='u';
+      free(bar_progress);
       bar_progress=tmp_bp;
     }
     else{
       char *tmp_bp=malloc(len_bp);
       strcpy(tmp_bp,default_bar_progress);  
       tmp_bp[2]='u';
+      free(default_bar_progress);
       default_bar_progress=tmp_bp;
     }
   }
@@ -569,7 +572,7 @@ void extract_to_array_TYPE_STRING(char * in_str){
       val[cur_val++]='\0';
 
       PRINT_DEBUG("val_str=(((%s) cur_val=[%ld]\n",val,cur_val);
-      array_TYPE_STRING[cur_array_TYPE_STRING]=malloc(strlen(val));
+      array_TYPE_STRING[cur_array_TYPE_STRING]=malloc(strlen(val)+1);
       strcpy(array_TYPE_STRING[cur_array_TYPE_STRING++],val);
       cur_val=0;
     }
@@ -578,10 +581,11 @@ void extract_to_array_TYPE_STRING(char * in_str){
       val[cur_val++]='\0';
       PRINT_DEBUG("val_str=(%s) cur_val=[%ld]\n",val,cur_val);
    
-      array_TYPE_STRING[cur_array_TYPE_STRING]=malloc(strlen(val));
+      array_TYPE_STRING[cur_array_TYPE_STRING]=malloc(strlen(val)+1);
       strcpy(array_TYPE_STRING[cur_array_TYPE_STRING++],val);
 
   }
+  free(val);
 }
 
 
@@ -736,17 +740,18 @@ bool expected_##OP##_name_##type(type var1, type var2,const char * name){       
 }\
 bool expected_array_##OP##_##type(type *var1, long int sz1, type *var2, long int sz2){                                            \
   if(sz1 OP sz2){\
-    size_t count=0;\
     if(sz1 == sz2){\
+      size_t count_ = 0;\
       for(size_t i=0;i<sz1;++i){\
-        if(COMPARE_N_##type(&var1[i], &var2[i]) OP 0)\
-          ++count;\
+        /*if(COMPARE_N_##type((void*)&var1[i],(void*)&var2[i]) OP 0)\
+        */if(COMPARE_N_##type((void*)(var1 + i),(void*)(var2 + i)) OP 0)\
+          ++count_;\
         else{ \
           INCREMENT(count_fail_local); /*++count_fail_local*/                                                                 \
           return false;\
         }\
       }\
-      if(count==sz1){                                                \
+      if(count_ == sz1){                                                \
         INCREMENT(count_pass_local); /*++count_pass_local*/                                                                 \
         return true;                                                                          \
       }\
@@ -761,17 +766,17 @@ bool expected_array_##OP##_##type(type *var1, long int sz1, type *var2, long int
 } \
 bool expected_array_##OP##_name_##type(type *var1, long int sz1, type *var2, long int sz2, const char * name){                                            \
   if(sz1 OP sz2){\
-    size_t count=0;\
     if(sz1 == sz2){\
+      size_t count_=0;\
       for(size_t i=0;i<sz1;++i){\
-        if(COMPARE_N_##type(&var1[i], &var2[i]) OP 0)\
-          ++count;\
+        if(COMPARE_N_##type((void*)&var1[i], (void*)&var2[i]) OP 0)\
+          ++count_;\
         else {\
           INCREMENT_EXPECT(fail,name);\
           return false;\
         }\
       }\
-      if(count==sz1){                                                \
+      if(count_ == sz1){                                                \
         INCREMENT_EXPECT(pass,name);\
         return true;                                                                          \
       }\
@@ -922,7 +927,7 @@ append_func(void (*run)(void), char *name){
   if(f_beging == NULL){
     f_beging = malloc(sizeof(struct func));
     f_static = f_beging;
-    f_static->name = malloc(strlen(name));
+    f_static->name = malloc(strlen(name)+1);
     strcpy(f_static->name,name);
     f_static->run = run;
     f_static->next = NULL;
@@ -930,7 +935,7 @@ append_func(void (*run)(void), char *name){
   else{
     struct func *tmp = malloc(sizeof(struct func));
     tmp->run = run;
-    tmp->name = malloc(strlen(name));
+    tmp->name = malloc(strlen(name)+1);
     strcpy(tmp->name,name);
     tmp->next = NULL;
     f_static->next = tmp;
@@ -1002,7 +1007,10 @@ stat_end_run(size_t ntst, struct timespec start_t){
 bool is_in_array_##type(type *array, type val){\
   bool found = false;\
   for(size_t i = 0; i < cur_array_##type; ++i){\
-    PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));\
+    /*char * strarr = type##_TO_STR(array[i]), *strval = type##_TO_STR(val);\
+    PRINT_DEBUG("compare |%s| in array and val: |%s|\n",strarr, strval);\
+    free(strarr);free(strval);\
+    */PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));\
     if(COMPARE_N_##type((void*)(array[i]),(void*)val  ) == 0 ){\
       found = true;\
       break;\
@@ -1016,6 +1024,9 @@ bool is_in_array_##type(type *array, type val){\
 bool is_in_array_##type(type *array, type val){\
   bool found = false;\
   for(size_t i = 0; i < cur_array_##type; ++i){\
+    /*char * strarr = type##_TO_STR(array[i]), *strval = type##_TO_STR(val);\
+    PRINT_DEBUG("compare |%s| in array and val: |%s|\n",strarr, strval);\
+    free(strarr);free(strval);*/\
     PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));\
     if(COMPARE_N_##type((void*)(&array[i]),(void*)&val  ) == 0 ){\
       found = true;\
@@ -1036,7 +1047,7 @@ GEN_IS_IN_ARRAY_NUM(TYPE_SIZE_T)
 void extract_name_test_from_name(char *name_org, char **name_f){
   size_t len=strlen(name_org); 
   long cur=-1;
-  char *name_test=malloc(len);
+  char *name_test=malloc(len+1);
   for(size_t i=0; i<len; ++i){
     if(cur == -1 && name_org[i]=='(')
       cur=0;
@@ -1092,6 +1103,7 @@ void execute_all(struct func *fun){
   current_fn = tmp;
 }
 
+void _purge_t();
 
 void
 run_all_tests()
@@ -1111,6 +1123,9 @@ run_all_tests()
 
    if(progress)  pthread_join(thrd_progress, NULL);
 
+ #if 0
+  _purge_t();
+#endif
 }
 
 /*
@@ -1321,6 +1336,9 @@ final_parallel_test_()
   free(count_pass_thread);
   free(count_fail_thread);
 
+  for(size_t i=0; i< parallel_nb; ++i)
+    clear_all_falied_list(&thread_test_failed_l[i]);
+
   free(thread_test_failed_l);
 
   
@@ -1364,8 +1382,11 @@ final_parallel_test_()
     for(size_t i=0; i<=parallel_nb; ++i){
       remove(log_name_file_thrd[i]);
       PRINT_DEBUG("file log of treard[%ld] removed\n",i);
+      free(log_name_file_thrd[i]);
     }
+    free(log_name_file_thrd);
   }
+  
 
 }
 
@@ -1406,6 +1427,10 @@ if(progress)  pthread_join(thrd_progress, NULL);
   free(thrd);
   
   final_parallel_test_();
+
+#if 0
+  _purge_t();
+#endif
 }
 
 void run_all_tests_args(int argc, char **argv){
@@ -1417,27 +1442,84 @@ void run_all_tests_args(int argc, char **argv){
   if(is_parallel_nb) run_all_tests_parallel(parallel_nb);
   else run_all_tests();
 }
-
 void 
 clear_all_func(struct func **fun)
 {
-  struct func *tmp = *fun, *ttmp;
-  while(tmp != NULL){
-    ttmp = tmp;
-    tmp = tmp->next;
-    free(ttmp);
+  if(*fun){
+    struct func *tmp = *fun, *ttmp;
+    while(tmp != NULL){
+      free(tmp->name);
+      ttmp = tmp;
+      tmp = tmp->next;
+      free(ttmp);
+    }
+    *fun=NULL;
+  }
+}
+void 
+clear_all_falied_list(struct failed_lists **flist)
+{
+  if(*flist){
+    struct failed_lists *tmp = *flist, *ttmp;
+    while(tmp != NULL){
+      free(tmp->name);
+
+      ttmp = tmp;
+      tmp = tmp->next;
+      free(ttmp);
+    }
+    *flist=NULL;
   }
 }
 /*
  * to purge func list!
  * optionnal but good practice
  */
+void
+_purge_t()
+{
+  
+ #if 0
+  clear_all_func(&f_beging);
+  clear_all_falied_list(&failed_l);
+
+#endif 
+  if(array_TYPE_SIZE_T){
+    free(array_TYPE_SIZE_T);
+    array_TYPE_SIZE_T = NULL;
+  }
+  if(array_TYPE_STRING) {
+    for(int i=0; i< cur_array_TYPE_STRING; ++i){
+      free(array_TYPE_STRING[i]);
+    }
+    free(array_TYPE_STRING);
+    array_TYPE_STRING = NULL;
+  }
+
+  PRINT_DEBUG("%s\n","_purge_t done ");
+}
+
+
+
 __attribute__((destructor)) 
 void
 purge_tests()
 {
-  struct func *tmp = f_beging;
-  clear_all_func(&tmp); 
+
+ #if 1
+  clear_all_func(&f_beging);
+  clear_all_falied_list(&failed_l);
+#endif
+  if(array_TYPE_SIZE_T){
+    free(array_TYPE_SIZE_T);
+  }
+  if(array_TYPE_STRING) {
+    for(int i=0; i< cur_array_TYPE_STRING; ++i){
+      free(array_TYPE_STRING[i]);
+    }
+    free(array_TYPE_STRING);
+  }
+
   PRINT_DEBUG("%s\n","purge done");
   
 }
