@@ -138,6 +138,66 @@ __attribute__((constructor))
       pthread_mutex_init(&mut_count_expect_mock, NULL);
   }
 
+
+
+
+void clear_fmock_info_list(struct func_mock_info_struct **f_mock_list){
+  if(*f_mock_list){
+    struct func_mock_info_struct *tmp_fmock_info = *f_mock_list, *ttmp_fmock_info;
+    while(tmp_fmock_info){ 
+      ttmp_fmock_info = tmp_fmock_info;
+      tmp_fmock_info = tmp_fmock_info->next;
+      free(ttmp_fmock_info->str_namefunc);
+      free(ttmp_fmock_info->str_conditions);
+      free(ttmp_fmock_info->str_caller);
+      clear_variable_current(&(ttmp_fmock_info->l_current_var));
+      free(ttmp_fmock_info);
+    }
+    *f_mock_list = NULL;
+  }
+
+}
+
+void clear_list_base_fmock(struct list_base_fmock **l_fmock){
+  if(*l_fmock){
+    struct list_base_fmock *tmp_l_n = *l_fmock, *ttmp_l_n;
+    while(tmp_l_n){ 
+      ttmp_l_n = tmp_l_n;
+      tmp_l_n = tmp_l_n->next;
+      //clear_fmock_info_list(&((ttmp_l_n->next)->info_mock));
+      free(ttmp_l_n);
+    }
+    *l_fmock=NULL;
+  }
+
+}
+
+void clear_variable_current(struct list_current_variable **lcurrent_var){
+  if(*lcurrent_var){
+    struct list_current_variable *tmp_lcv = *lcurrent_var, *ttmp_lcv;
+    while(tmp_lcv){ 
+      ttmp_lcv = tmp_lcv;
+      tmp_lcv = tmp_lcv->next;
+      
+      free(ttmp_lcv->str_current_variables);
+      free(ttmp_lcv);
+    }
+    *lcurrent_var=NULL;
+  }
+
+}
+
+__attribute__((destructor))
+  void purge_fmock(){
+
+    clear_fmock_info_list(&f_mock_glist);
+    PRINT_DEBUG("purge f_mock_glist %s\n","done");
+    clear_list_base_fmock(&g_list_base_fmock);
+    //PRINT_DEBUG("purge g_list_base_fmock %s\n","done");
+  }
+
+
+
 extern bool is_parallel_nb;
 
 
@@ -193,7 +253,7 @@ __attribute__((destructor))
     struct winsize w;
     ioctl(1, TIOCGWINSZ, &w);
     
-    char *reader=malloc(w.ws_col+1);
+    char *reader=malloc(w.ws_col+3);
     strcpy(reader,"STAT OF MOCK FUNCTIONS");
 
     fprintf(F_OUT,"%s\n\n%0*d\n %*s \n%0*d %s\n\n", colors_f[k_YELLOW] ,w.ws_col,0, (int)(w.ws_col+strlen(reader))/2, reader,w.ws_col,0, DEFAULT_K );
@@ -209,21 +269,28 @@ __attribute__((destructor))
  PRINT_DEBUG("**** STAT mock function:%s, conditions:%s t_left:%ld, init_left:%ld, failed_call:%ld\n",tmock->str_namefunc, tmock->str_conditions, tmock->times_left,tmock->init_times_left, tmock->failed_call);
       if(((tmock->expect_call) && (tmock->init_times_left == tmock->times_left)) || (tmock->failed_call)){
         if(tmock->l_current_var){
+          char *str_nb_call = number_call_translate(tmock->init_times_left);
           PRINTF("%s%s %s%s %s: expect %s, it was called %ld times and failed %ld times, with condition %s\n",colors_f[k_RED],tab_hk_f[hk_FL],colors_f[k_YELLOW],tmock->str_namefunc,DEFAULT_K, 
-            number_call_translate(tmock->init_times_left),
+            str_nb_call,
             tmock->call/*tmock->failed_call + (tmock->init_times_left - tmock->times_left)*/, 
             tmock->failed_call,
             tmock->str_conditions
             );
+
+          free(str_nb_call);
           PRINT_VAR_CUR(tmock);
         }
-        else 
+        else{ 
+          char *str_nb_call = number_call_translate(tmock->init_times_left);
           PRINTF("%s%s %s%s %s: expect %s, it was called %ld times and failed %ld times, with condition %s \n",colors_f[k_RED],tab_hk_f[hk_FL],colors_f[k_YELLOW],tmock->str_namefunc,DEFAULT_K, 
-            number_call_translate(tmock->init_times_left),
+            str_nb_call,
             tmock->call/*tmock->failed_call + (tmock->init_times_left - tmock->times_left)*/, 
             tmock->failed_call, 
             tmock->str_conditions
             );
+
+          free(str_nb_call);
+        }
       }
       tmock=tmock->next;
       //free(tfree);
@@ -235,8 +302,8 @@ __attribute__((destructor))
     /* list each fmock an each calls */
     while(tmp_list_fm){
       tmp_inf_mock = tmp_list_fm->info_mock;
-      memset(reader,'=',w.ws_col);
-      reader[w.ws_col-1]='\0';
+      for(size_t i=0;i<w.ws_col-2;++i) reader[i]='='; //memset(reader,'=',w.ws_col);
+      reader[w.ws_col-2]='\0';
       char *caller="";
       if(tmp_inf_mock->str_caller){ 
         caller = extract_func_edited_TEST_from_exec_func_name(tmp_inf_mock->str_caller);
@@ -262,46 +329,70 @@ __attribute__((destructor))
         reader[bg_rd+len_nameff]=' ';
       }
       PRINTF("%s%s%s\n\n",colors_f[k_BLUE],reader,DEFAULT_K );
+      if(strcmp(caller,"")) free(caller);
+
       while(tmp_inf_mock){
         if(0==strncmp(tmp_inf_mock->str_namefunc,nameff, len_nameff)){
           if(tmp_inf_mock->expect_call==1){
             int success = !((tmp_inf_mock->init_times_left == tmp_inf_mock->times_left) || (tmp_inf_mock->failed_call));
             
             if(tmp_inf_mock->l_current_var){
+              char *str_caller = strprint_caller_(tmp_inf_mock->str_caller);
+              char *str_nb_call = number_call_translate(tmp_inf_mock->init_times_left);
               PRINTF("%s%s%s %s\t expect to%s,\t called %ld times and failed %ld times %s,\t with condition: %s%s\n" , 
-                colors_f[!unicolour*(k_RED - success)],tab_hk_f[hk_FL-success],colors_f[k_NOTHING * success],tmp_inf_mock->str_namefunc, number_call_translate(tmp_inf_mock->init_times_left), tmp_inf_mock->call, 
-                tmp_inf_mock->failed_call, strprint_caller_(tmp_inf_mock->str_caller), tmp_inf_mock->str_conditions, DEFAULT_K);
+                colors_f[!unicolour*(k_RED - success)],tab_hk_f[hk_FL-success],colors_f[k_NOTHING * success],tmp_inf_mock->str_namefunc, str_nb_call, tmp_inf_mock->call, 
+                tmp_inf_mock->failed_call, str_caller, tmp_inf_mock->str_conditions, DEFAULT_K);
+              free(str_nb_call);
+              if(strcmp(str_caller,"")) free(str_caller);
               PRINT_VAR_CUR(tmp_inf_mock);
             }else{
+              char *str_caller = strprint_caller_(tmp_inf_mock->str_caller);
+              char *str_nb_call = number_call_translate(tmp_inf_mock->init_times_left);
               PRINTF("%s%s%s %s\t expect to%s,\t called %ld times and failed %ld times %s,\t with condition: %s%s\n" , 
-                colors_f[!unicolour*(k_RED - success)],tab_hk_f[hk_FL-success],colors_f[k_NOTHING*success],tmp_inf_mock->str_namefunc, number_call_translate(tmp_inf_mock->init_times_left), tmp_inf_mock->call, 
-                tmp_inf_mock->failed_call, strprint_caller_(tmp_inf_mock->str_caller), tmp_inf_mock->str_conditions , DEFAULT_K);
+                colors_f[!unicolour*(k_RED - success)],tab_hk_f[hk_FL-success],colors_f[k_NOTHING*success],tmp_inf_mock->str_namefunc, str_nb_call, tmp_inf_mock->call, 
+                tmp_inf_mock->failed_call, str_caller, tmp_inf_mock->str_conditions , DEFAULT_K);
+              free(str_nb_call);
+              if(strcmp(str_caller,"")) free(str_caller);
             }
           }else if(tmp_inf_mock->expect_call==0) {/* will expect */
             int success = !(tmp_inf_mock->failed_call);
             if(tmp_inf_mock->l_current_var){
+              char *str_caller = strprint_caller_(tmp_inf_mock->str_caller);
+              char *str_nb_call = number_call_translate(tmp_inf_mock->init_times_left);
               PRINTF("%s%s%s %s\t      will%s,\t called %ld times and failed %ld times %s,\t with condition: %s,%s\n" , 
-                colors_f[!unicolour*(k_RED + success)],tab_hk_f[hk_FL-success],colors_f[k_NOTHING*success],tmp_inf_mock->str_namefunc, number_call_translate(tmp_inf_mock->init_times_left), tmp_inf_mock->call, 
-                tmp_inf_mock->failed_call, strprint_caller_(tmp_inf_mock->str_caller), tmp_inf_mock->str_conditions , DEFAULT_K);
+                colors_f[!unicolour*(k_RED + success)],tab_hk_f[hk_FL-success],colors_f[k_NOTHING*success],tmp_inf_mock->str_namefunc, str_nb_call, tmp_inf_mock->call, 
+                tmp_inf_mock->failed_call, str_caller, tmp_inf_mock->str_conditions , DEFAULT_K);
+              free(str_nb_call);
+              if(strcmp(str_caller,"")) free(str_caller);
               PRINT_VAR_CUR(tmp_inf_mock);
             }else{
+              char *str_caller = strprint_caller_(tmp_inf_mock->str_caller);
+              char *str_nb_call = number_call_translate(tmp_inf_mock->init_times_left);
               PRINTF("%s%s%s %s\t      will%s,\t called %ld times and failed %ld times %s,\t with condition: %s %s\n" , 
-                colors_f[!unicolour*(k_RED + success)],tab_hk_f[hk_FL-success],colors_f[k_NOTHING*success],tmp_inf_mock->str_namefunc, number_call_translate(tmp_inf_mock->init_times_left), tmp_inf_mock->call, 
-                tmp_inf_mock->failed_call, strprint_caller_(tmp_inf_mock->str_caller), tmp_inf_mock->str_conditions , DEFAULT_K);
+                colors_f[!unicolour*(k_RED + success)],tab_hk_f[hk_FL-success],colors_f[k_NOTHING*success],tmp_inf_mock->str_namefunc, str_nb_call, tmp_inf_mock->call, 
+                tmp_inf_mock->failed_call, str_caller, tmp_inf_mock->str_conditions , DEFAULT_K);
+              free(str_nb_call);
+              if(strcmp(str_caller,"")) free(str_caller);
             }
           }
           else if(tmp_inf_mock->expect_call==-1){
              if(tmp_inf_mock->l_current_var){
+              char *str_caller = strprint_caller_(tmp_inf_mock->str_caller);
+              char *str_nb_call = number_call_translate(tmp_inf_mock->init_times_left);
               PRINTF("%s%s%s %s\t  %s,\t called %ld times, %s\n" ,
                 colors_f[!unicolour*(k_RED)],tab_hk_f[hk_FL],colors_f[k_DEFAULT],tmp_inf_mock->str_namefunc, 
-                number_call_translate(tmp_inf_mock->init_times_left), tmp_inf_mock->call,
-                strprint_caller_(tmp_inf_mock->str_caller) );
+                str_nb_call, tmp_inf_mock->call, str_caller );
+              free(str_nb_call);
+              if(strcmp(str_caller,"")) free(str_caller);
               PRINT_VAR_CUR(tmp_inf_mock);
             }else{
+              char *str_nb_call = number_call_translate(tmp_inf_mock->init_times_left);
+              char *str_caller = strprint_caller_(tmp_inf_mock->str_caller);
               PRINTF("%s%s%s %s\t  %s,\t called %ld times, %s\n" ,
                 colors_f[!unicolour*(k_RED)],tab_hk_f[hk_FL],colors_f[k_DEFAULT],tmp_inf_mock->str_namefunc, 
-                number_call_translate(tmp_inf_mock->init_times_left), tmp_inf_mock->call,
-                strprint_caller_(tmp_inf_mock->str_caller));
+                str_nb_call, tmp_inf_mock->call, str_caller);
+              free(str_nb_call);
+              if(strcmp(str_caller,"")) free(str_caller);
             }
 
           }
@@ -310,7 +401,11 @@ __attribute__((destructor))
       }
       PRINT_DEBUG(" end listing info mock of %s \n", nameff);
       tmp_list_fm = tmp_list_fm->next;
+      
+      free(nameff);
     }
+    
+    free(reader);
     
     PRINT_DEBUG("%s\n","info mock done!");
     
@@ -321,60 +416,7 @@ __attribute__((destructor))
     pthread_mutex_destroy(&mut_count_expect_mock);
     PRINT_DEBUG("%s\n","pthread_mutex_destroy done!");
     PRINT_DEBUG("%s\n","check mock done!");
+
+
   }
 
-
-void clear_fmock_info_list(struct func_mock_info_struct **f_mock_list){
-  if(*f_mock_list){
-    struct func_mock_info_struct *tmp_fmock_info = *f_mock_list, *ttmp_fmock_info;
-    while(tmp_fmock_info){ 
-      ttmp_fmock_info = tmp_fmock_info;
-      tmp_fmock_info = tmp_fmock_info->next;
-      free(ttmp_fmock_info->str_namefunc);
-      free(ttmp_fmock_info->str_conditions);
-      free(ttmp_fmock_info->str_caller);
-      clear_variable_current(&(ttmp_fmock_info->l_current_var));
-      free(ttmp_fmock_info);
-    }
-    *f_mock_list = NULL;
-  }
-
-}
-
-void clear_list_base_fmock(struct list_base_fmock **l_fmock){
-  if(*l_fmock){
-    struct list_base_fmock *tmp_l_n = *l_fmock, *ttmp_l_n;
-    while(tmp_l_n){ 
-      ttmp_l_n = tmp_l_n;
-      tmp_l_n = tmp_l_n->next;
-      //clear_fmock_info_list(&((ttmp_l_n->next)->info_mock));
-      free(ttmp_l_n);
-    }
-    *l_fmock=NULL;
-  }
-
-}
-
-void clear_variable_current(struct list_current_variable **lcurrent_var){
-  if(*lcurrent_var){
-    struct list_current_variable *tmp_lcv = *lcurrent_var, *ttmp_lcv;
-    while(tmp_lcv){ 
-      ttmp_lcv = tmp_lcv;
-      tmp_lcv = tmp_lcv->next;
-      
-      free(ttmp_lcv->str_current_variables);
-      free(ttmp_lcv);
-    }
-    *lcurrent_var=NULL;
-  }
-
-}
-
-__attribute__((constructor))
-  void purge_fmock(){
-
-    clear_fmock_info_list(&f_mock_glist);
-    PRINT_DEBUG("purge f_mock_glist %s\n","done");
-    //clear_list_base_fmock(&g_list_base_fmock);
-    //PRINT_DEBUG("purge g_list_base_fmock %s\n","done");
-  }

@@ -12,7 +12,7 @@
 #include "ftest/ftest.h"
 #include "fmock/fmock.h"
 
-#if 0
+#if 1
 TEST(true__){
   PRINTF("another test again false\n");
   bool val_bool = false;
@@ -156,6 +156,8 @@ MOCK_FUNC(int, f_mock, (), ())
 
 
 
+
+
 EXPECT_MOCK_CALL(int,f_mock, (),false, 2)  {
   EXPECT_EQ_IN_MOCKF(21,21,f_mock);
   EXPECT_EQ(1,3);
@@ -182,7 +184,7 @@ TEST(mockf1){
 #endif
 
 
-#if 0
+#if 1
 
 MOCK_FUNC(int, f2_mock,(int a,int b),(a,b))
 
@@ -254,6 +256,19 @@ TEST(f2mock_test){
   
 }
 
+#endif
+
+
+
+
+
+
+
+
+
+
+
+#if 1
 
 TEST(f3_mock_test){
   INIT_CALLER_MOCK(f3_mock);
