@@ -60,6 +60,7 @@ void append_list_base_fmock(struct list_base_fmock **l_fmock, struct func_mock_i
   else{
     *l_fmock = malloc(sizeof(struct list_base_fmock)); 
     (*l_fmock)->info_mock = f_mock;
+    (*l_fmock)->next = NULL;
   }
   UNLOCK(mut_g_list_base_fmock);
 }
@@ -113,7 +114,7 @@ void append_fmock_to_listmock(struct func_mock_info_struct **f_mock_list,  struc
 #define SSTRFY(x) STRFY(x)
 
 char* extract_name_func_mock(char *input){
-  char * ret=malloc(strlen(input));
+  char * ret=malloc(strlen(input) + 1);
   strcpy(ret,input);
   char * pre_id_ = SSTRFY(PRE_ID);
   size_t len_pre_id_ = strlen(pre_id_);
@@ -156,7 +157,7 @@ char * number_call_translate(long nb){
 char * strprint_caller_(char *input){
   if(input==NULL) { return "";}
   char *called_in=",\t called in ";
-  char *ret = malloc(strlen(called_in)+strlen(input)+1);
+  char *ret = malloc(strlen(called_in) + strlen(input) + 1);
   sprintf(ret,"%s%s",called_in,input);
   return ret;
 }
@@ -192,7 +193,7 @@ __attribute__((destructor))
     struct winsize w;
     ioctl(1, TIOCGWINSZ, &w);
     
-    char *reader=malloc(w.ws_col);
+    char *reader=malloc(w.ws_col+1);
     strcpy(reader,"STAT OF MOCK FUNCTIONS");
 
     fprintf(F_OUT,"%s\n\n%0*d\n %*s \n%0*d %s\n\n", colors_f[k_YELLOW] ,w.ws_col,0, (int)(w.ws_col+strlen(reader))/2, reader,w.ws_col,0, DEFAULT_K );
@@ -237,7 +238,9 @@ __attribute__((destructor))
       memset(reader,'=',w.ws_col);
       reader[w.ws_col-1]='\0';
       char *caller="";
-      if(tmp_inf_mock->str_caller) caller = extract_func_edited_TEST_from_exec_func_name(tmp_inf_mock->str_caller);
+      if(tmp_inf_mock->str_caller){ 
+        caller = extract_func_edited_TEST_from_exec_func_name(tmp_inf_mock->str_caller);
+      }
       size_t len_caller = strlen(caller);
 
       char *nameff=extract_name_func_mock(tmp_inf_mock->str_namefunc);
@@ -318,4 +321,60 @@ __attribute__((destructor))
     pthread_mutex_destroy(&mut_count_expect_mock);
     PRINT_DEBUG("%s\n","pthread_mutex_destroy done!");
     PRINT_DEBUG("%s\n","check mock done!");
+  }
+
+
+void clear_fmock_info_list(struct func_mock_info_struct **f_mock_list){
+  if(*f_mock_list){
+    struct func_mock_info_struct *tmp_fmock_info = *f_mock_list, *ttmp_fmock_info;
+    while(tmp_fmock_info){ 
+      ttmp_fmock_info = tmp_fmock_info;
+      tmp_fmock_info = tmp_fmock_info->next;
+      free(ttmp_fmock_info->str_namefunc);
+      free(ttmp_fmock_info->str_conditions);
+      free(ttmp_fmock_info->str_caller);
+      clear_variable_current(&(ttmp_fmock_info->l_current_var));
+      free(ttmp_fmock_info);
+    }
+    *f_mock_list = NULL;
+  }
+
+}
+
+void clear_list_base_fmock(struct list_base_fmock **l_fmock){
+  if(*l_fmock){
+    struct list_base_fmock *tmp_l_n = *l_fmock, *ttmp_l_n;
+    while(tmp_l_n){ 
+      ttmp_l_n = tmp_l_n;
+      tmp_l_n = tmp_l_n->next;
+      //clear_fmock_info_list(&((ttmp_l_n->next)->info_mock));
+      free(ttmp_l_n);
+    }
+    *l_fmock=NULL;
+  }
+
+}
+
+void clear_variable_current(struct list_current_variable **lcurrent_var){
+  if(*lcurrent_var){
+    struct list_current_variable *tmp_lcv = *lcurrent_var, *ttmp_lcv;
+    while(tmp_lcv){ 
+      ttmp_lcv = tmp_lcv;
+      tmp_lcv = tmp_lcv->next;
+      
+      free(ttmp_lcv->str_current_variables);
+      free(ttmp_lcv);
+    }
+    *lcurrent_var=NULL;
+  }
+
+}
+
+__attribute__((constructor))
+  void purge_fmock(){
+
+    clear_fmock_info_list(&f_mock_glist);
+    PRINT_DEBUG("purge f_mock_glist %s\n","done");
+    //clear_list_base_fmock(&g_list_base_fmock);
+    //PRINT_DEBUG("purge g_list_base_fmock %s\n","done");
   }

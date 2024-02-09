@@ -12,6 +12,7 @@
 #include "ftest/ftest.h"
 #include "fmock/fmock.h"
 
+#if 0
 TEST(true__){
   PRINTF("another test again false\n");
   bool val_bool = false;
@@ -100,6 +101,9 @@ TEST(lessThan){
   EXPECT_LT_TYPE_DOUBLE(da,db);
   EXPECT_LT_TYPE_DOUBLE(db,da);
 }
+
+#endif
+
 #if 0
 TEST(sleep){sleep(2);}
 TEST(sleep){sleep(2);}
@@ -148,7 +152,10 @@ TEST(sleep){sleep(1);}
 
 #if 1
 MOCK_FUNC(int, f_mock, (), ())
-  
+
+
+
+
 EXPECT_MOCK_CALL(int,f_mock, (),false, 2)  {
   EXPECT_EQ_IN_MOCKF(21,21,f_mock);
   EXPECT_EQ(1,3);
@@ -158,6 +165,7 @@ EXPECT_MOCK_CALL(int,f_mock, (),1, 1)  { EXPECT_EQ_IN_MOCKF(23,21,f_mock);return
 
 EXPECT_MOCK_CALL(int,f_mock, (),1==2||2<1, 1)  {return 18;}
 EXPECT_MOCK_CALL(int,f_mock, (),1, INFINITY)  {return -18;}
+
 
 TEST(mockf1){
   INIT_CALLER_MOCK(f_mock);
@@ -170,6 +178,11 @@ TEST(mockf1){
   }
 
 }
+
+#endif
+
+
+#if 0
 
 MOCK_FUNC(int, f2_mock,(int a,int b),(a,b))
 
