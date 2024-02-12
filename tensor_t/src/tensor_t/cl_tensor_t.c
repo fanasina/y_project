@@ -74,7 +74,7 @@
     ret |= clEnqueueWriteBuffer(command_queue, M1_mem_obj, CL_TRUE, 0, \
             M1->dim->rank * sizeof(type), M1->x, 0, NULL, NULL); \
  \
-    checkError(ret,__func__,"Error: Failed to read buffers! ");\
+    checkError(ret,__func__,"Error: Failed to write buffers! ");\
     /*/ Create a program from the kernel source */ \
     cl_program program = clCreateProgramWithSource(context, 1, \
             (const char **)&source_str, (const size_t *)&source_size, &ret); \
@@ -97,6 +97,7 @@
     /*char func_cl_name[250]; sprintf(func_cl_name,"prodTensorLin_%s", #type);*/ \
     /*printf("cl_func_type = %s\n",func_cl_name); */ \
     cl_kernel kernel = clCreateKernel(program, func_cl_name, &ret); \
+    printf("func_cl_name = %s ......... \n",func_cl_name);\
  
 
     /*/ Set the arguments of the kernel  */ \
@@ -223,7 +224,6 @@ void cl_tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor
     dSubRank = dSub0->rank;\
     \
   }\
-  printf("func_cl_name = %s ......... \n",func_cl_name);\
   SETUP_cl_KERNEL_(type,file_cl_src,func_cl_name);\
   \
     /*/ Set the arguments of the kernel  */ \
@@ -277,7 +277,7 @@ void cl2d_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tens
 \
     size_t len0 = M0->dim->size - contractionNumber;\
     size_t len1 = M1->dim->size - contractionNumber;\
-\
+    \
     size_t* tsub0 = malloc(sizeof(size_t) *len0);\
     size_t* tsub1 = malloc(sizeof(size_t) *len1);\
     size_t* tDk1 = malloc(sizeof(size_t) *contractionNumber);\
@@ -303,22 +303,22 @@ void cl2d_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tens
     char *func_cl_nameNotEndian = "prodContractnTensor2dLinNotEndian_" #type; \
     char *func_cl_name; \
     size_t dSubRank;\
-  if(endian){\
-    func_cl_name = func_cl_nameEndian;\
-    dSubRank = dSub1->rank;\
-    \
-  }else{\
-    func_cl_name = func_cl_nameNotEndian;\
-    dSubRank = dSub0->rank;\
-    \
-  }\
-  SETUP_cl_KERNEL_(type,file_cl_src,func_cl_name);\
-  /*size_t cl_dev_max_w_sz,sz_val;\
-  ret = clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &cl_dev_max_w_sz, &sz_val);\
-  printf("CL_DEVICE_MAX_WORK_GROUP_SIZE = :  %ld, sz :%ld\n ",cl_dev_max_w_sz, sz_val);\
-  */\
+    if(endian){\
+      func_cl_name = func_cl_nameEndian;\
+      dSubRank = dSub1->rank;\
+      \
+    }else{\
+      func_cl_name = func_cl_nameNotEndian;\
+      dSubRank = dSub0->rank;\
+      \
+    }\
+    SETUP_cl_KERNEL_(type,file_cl_src,func_cl_name);\
+    /*size_t cl_dev_max_w_sz,sz_val;\
+    ret = clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &cl_dev_max_w_sz, &sz_val);\
+    printf("CL_DEVICE_MAX_WORK_GROUP_SIZE = :  %ld, sz :%ld\n ",cl_dev_max_w_sz, sz_val);\
+    */\
     /*/ Set the arguments of the kernel  */ \
-    ret |= clSetKernelArg(kernel, 0, sizeof(size_t), (void *)&dSubRank); \
+    ret = clSetKernelArg(kernel, 0, sizeof(size_t), (void *)&dSubRank); \
     ret |= clSetKernelArg(kernel, 1, sizeof(size_t), (void *)&(dM->rank)); \
     ret |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void *)&M0_mem_obj); \
     ret |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void *)&M1_mem_obj); \
@@ -329,6 +329,7 @@ void cl2d_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tens
   */EXEC_cl_2d_KERNEL(type,dSub0->rank,dSub1->rank,div0Wsz,div1Wsz);\
   READ_BUF_N_CLEANUP(type)\
   FREE_dM_S_ \
+  \
   \
 } \
 \
@@ -393,5 +394,4 @@ void checkError(cl_int error, const char *func_name, char *msg) {
 
 GEN_cl_FUNC_TENSOR(TYPE_FLOAT);
 GEN_cl_FUNC_TENSOR(TYPE_DOUBLE);
-
 

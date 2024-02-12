@@ -49,8 +49,8 @@ __kernel void prodContractnTensor2dLiniNotEndian_TYPE_FLOAT(long unsigned int dS
     size_t ind = i + dSubRank * j;
     Mx[ind] = 0; 
         for (k = 0;  k < dMRank; k++) {
-            n0_id = i + dMRank * k;
-            n1_id = j * dSubRank + k;
+            n0_id = i + dSubRank * k;
+            n1_id = j * dMRank + k;
             Mx[ind] += M0x[n0_id] * M1x[n1_id];
         }
 }
@@ -68,8 +68,8 @@ __kernel void prodContractnTensor2dLinNotEndian_TYPE_DOUBLE(long unsigned int dS
     size_t ind = i + dSubRank * j;
     Mx[ind] = 0; 
         for (k = 0;  k < dMRank; k++) {
-            n0_id = i + dMRank * k;
-            n1_id = j * dSubRank + k;
+            n0_id = i + dSubRank * k;
+            n1_id = j * dMRank + k;
             Mx[ind] += M0x[n0_id] * M1x[n1_id];
         }
 }

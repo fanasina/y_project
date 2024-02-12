@@ -20,6 +20,7 @@
 #define VALGRIND_ 0
 
 TEST(rank){
+  endian =true;
   dimension *D=create_dim(4);
   D->perm[0]=2;
   D->perm[1]=3;
@@ -556,6 +557,8 @@ TEST(VStensorContractnProd_TYPE_DOUBLE2 ){
 
 }
 TEST(Pthread_tensorContractnPro2d_TYPE_DOUBLE2 ){
+ 
+  endian = false; 
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
 #if VALGRIND_

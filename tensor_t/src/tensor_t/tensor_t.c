@@ -623,7 +623,7 @@ void* runPro2dContract_thread_##type(void *arg){\
         if(endian)\
           l = j + arg_t->dSub1Rank * i;\
         else\
-          l = j * arg_t->dMRank + i;\
+          l = j * arg_t->dSub0Rank + i;\
         arg_t->Mx[l] = 0;\
         for (size_t k = 0; k < arg_t->dMRank; k++) {\
           if(endian){\

@@ -22,6 +22,7 @@
 #define VALGRIND 1
 
 TEST(rank){
+//  endian=false;
   dimension *D=create_dim(4);
   D->perm[0]=2;
   D->perm[1]=3;
@@ -700,17 +701,18 @@ TEST(VScltensorContractnProd_TYPE_DOUBLE2 ){
 }
 
 TEST(VScl2dtensorContractnProd_TYPE_DOUBLE2 ){
+  endian=false;
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
 #if VALGRIND
 
-  d0->perm[0]=12;
+  d0->perm[0]=8;
   d0->perm[1]=4; //3;
   d0->perm[2]=6;
 
   d1->perm[0]=4;
   d1->perm[1]=6;//3;
-  d1->perm[2]=16;
+  d1->perm[2]=8;
 
 #else  
 
@@ -723,14 +725,6 @@ TEST(VScl2dtensorContractnProd_TYPE_DOUBLE2 ){
   d1->perm[2]=240;
 #endif
 
-
-  d0->perm[0]=512;
-  d0->perm[1]=48; //3;
-  d0->perm[2]=64;
-
-  d1->perm[0]=48;
-  d1->perm[1]=64;//3;
-  d1->perm[2]=240;
 
   updateRankDim(d0);
   updateRankDim(d1);
@@ -752,10 +746,15 @@ TEST(VScl2dtensorContractnProd_TYPE_DOUBLE2 ){
 
   size_t nbth = 10;
 
+ // tensorContractnPro2dThread_TYPE_DOUBLE(&M, M0,M1,2,nbth);
   tensorContractnProdThread_TYPE_DOUBLE(&M, M0,M1,2,nbth);
   //print_tensor_double(M,"M");
+#if VALGRIND
+  //cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
+  cl2d_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2,8,8);
+#else
   cl2d_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2,16,16);
-  //cl2d_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2,8,8);
+#endif
   //tensorContractnProdNotOpt_TYPE_DOUBLE(&MnO, M0,M1,2);
 
   //print_tensor_double(MnO,"MnO");
@@ -870,7 +869,7 @@ TEST(tensorProd_vs2d ){
 }
 
 TEST(tensorProd_vs2d_Endian ){
-  endian=false;
+  //endian=false;
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(2);
 
