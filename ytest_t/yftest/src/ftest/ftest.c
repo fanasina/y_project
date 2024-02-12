@@ -213,7 +213,11 @@ long int id_of_thread_executed(void){
     if(id_thread_self[i] == id_from_self)
       return i;
   }
-  PRINT_ERROR("something wrong on %s, id_from_self: %ld\n",__func__,id_from_self);
+  /*if(id_thread_self){
+    for(long int i=0; i<= parallel_nb; ++i)
+      PRINT_DEBUG(" id_thread_self[%ld] = %ld \n", i, id_thread_self[i]);
+  }*/
+  PRINT_ERROR("\nsomething wrong on %s, id_from_self: %ld\n",__func__,id_from_self);
   return -1;
 }
 
@@ -1007,10 +1011,10 @@ stat_end_run(size_t ntst, struct timespec start_t){
 bool is_in_array_##type(type *array, type val){\
   bool found = false;\
   for(size_t i = 0; i < cur_array_##type; ++i){\
-    /*char * strarr = type##_TO_STR(array[i]), *strval = type##_TO_STR(val);\
+    char * strarr = type##_TO_STR(array[i]), *strval = type##_TO_STR(val);\
     PRINT_DEBUG("compare |%s| in array and val: |%s|\n",strarr, strval);\
     free(strarr);free(strval);\
-    */PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));\
+    /*PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));*/\
     if(COMPARE_N_##type((void*)(array[i]),(void*)val  ) == 0 ){\
       found = true;\
       break;\
@@ -1024,10 +1028,10 @@ bool is_in_array_##type(type *array, type val){\
 bool is_in_array_##type(type *array, type val){\
   bool found = false;\
   for(size_t i = 0; i < cur_array_##type; ++i){\
-    /*char * strarr = type##_TO_STR(array[i]), *strval = type##_TO_STR(val);\
+    char * strarr = type##_TO_STR(array[i]), *strval = type##_TO_STR(val);\
     PRINT_DEBUG("compare |%s| in array and val: |%s|\n",strarr, strval);\
-    free(strarr);free(strval);*/\
-    PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));\
+    free(strarr);free(strval);\
+    /*PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));*/\
     if(COMPARE_N_##type((void*)(&array[i]),(void*)&val  ) == 0 ){\
       found = true;\
       break;\
@@ -1312,6 +1316,7 @@ init_parallel_test_()
     thread_test_failed_l[i] = NULL;
     count_pass_thread[i] = 0;
     count_fail_thread[i] = 0;
+    id_thread_self[i]=0; /* have to initialize because if some threads not yetr run we have warning with valgrind : non initialize value, beause real value is provide by each thread */
   }
 
   current_fn = f_beging;
@@ -1335,6 +1340,9 @@ final_parallel_test_()
   free(count_fail_test);
   free(count_pass_thread);
   free(count_fail_thread);
+
+  free(id_thread_self);
+  //id_thread_self = NULL;
 
   for(size_t i=0; i< parallel_nb; ++i)
     clear_all_falied_list(&thread_test_failed_l[i]);
@@ -1377,17 +1385,20 @@ final_parallel_test_()
       fclose(f_ou_th[id_thrd]);
     }
   }
-  
+
+  free(f_ou_th); 
+
   if(removelog){
     for(size_t i=0; i<=parallel_nb; ++i){
       remove(log_name_file_thrd[i]);
       PRINT_DEBUG("file log of treard[%ld] removed\n",i);
-      free(log_name_file_thrd[i]);
     }
-    free(log_name_file_thrd);
   }
   
+    for(size_t i=0; i<=parallel_nb; ++i)
+      free(log_name_file_thrd[i]);
 
+    free(log_name_file_thrd);
 }
 
 void run_all_tests_parallel(size_t parallel /*, int max_col*/)

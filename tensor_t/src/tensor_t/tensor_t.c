@@ -506,6 +506,7 @@ void tensorProdThrea2d_##type(tensor_##type **MM, tensor_##type *M0, tensor_##ty
   free(thrd);\
   free(arg_th);\
 }  \
+\
 struct arg_ProdContract_##type{\
   type *M0x;\
   type *M1x;\
@@ -592,6 +593,98 @@ void tensorContractnProdThread_##type(tensor_##type** MM, tensor_##type *M0, ten
     }\
     arg_th[i]->dMRank = dM->rank;\
     pthread_create(&thrd[i], NULL, runProdContract_thread_##type, (void*)arg_th[i]);\
+  }\
+\
+  for(size_t i=0; i< nbthread; ++i){\
+    pthread_join(thrd[i], NULL);\
+    free(arg_th[i]);\
+  }\
+\
+  free(thrd);\
+  free(arg_th);\
+  FREE_dM_S_ ; \
+}\
+\
+struct arg_Pro2dContract_##type{\
+  type *M0x;\
+  type *M1x;\
+  type *Mx;\
+  size_t beginRange;\
+  size_t endRange;\
+  size_t dMRank;\
+  size_t dSub0Rank;\
+  size_t dSub1Rank;\
+};\
+void* runPro2dContract_thread_##type(void *arg){\
+  struct arg_Pro2dContract_##type *arg_t = arg;\
+  size_t n0_id, n1_id, l;\
+    for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
+      for (size_t j = 0; j < arg_t->dSub1Rank; j++) {\
+        if(endian)\
+          l = j + arg_t->dSub1Rank * i;\
+        else\
+          l = j * arg_t->dMRank + i;\
+        arg_t->Mx[l] = 0;\
+        for (size_t k = 0; k < arg_t->dMRank; k++) {\
+          if(endian){\
+            n0_id= i * arg_t->dMRank + k;\
+            n1_id= j + arg_t->dSub1Rank * k;\
+          }\
+          else{\
+            n0_id= i + arg_t->dSub0Rank * k;\
+            n1_id= j * arg_t->dMRank + k;\
+          }\
+            arg_t->Mx[l] += arg_t->M0x[n0_id] * arg_t->M1x[n1_id];\
+        }\
+      }\
+    }\
+}\
+/* M[x0,x1,x3..xn] X M[y0,y1,y3..ym] = M[z0,z1...zp] (deep = l > 0) /exists 1<= l<...<l=n /  xl = y0,x{l+1}=y1, x{n}=yl  et zi=xi i<n-l et zj=y{j-(n-l)} j>=n-l alor p=n+m-2l\
+ M[x0,x1,x3..xl x{l+1}...xn] X M[xn,x{n-1},x{n-2}...xl y{l+1} ..ym] = M[x0,x1..xly{l+1}...y{n+m-2l}] (deep = l > 0)\
+M[[i][j]]=sum_{[k]}M0[[i][k]]*M[[k][j]]*/\
+\
+void tensorContractnPro2dThread_##type(tensor_##type** MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread) {\
+\
+    size_t len0 = M0->dim->size - contractionNumber;\
+    size_t len1 = M1->dim->size - contractionNumber;\
+\
+    size_t* tsub0 = malloc(sizeof(size_t) *len0);\
+    size_t* tsub1 = malloc(sizeof(size_t) *len1);\
+    size_t* tDk1 = malloc(sizeof(size_t) *contractionNumber);\
+    size_t* tDk0 = malloc(sizeof(size_t) *contractionNumber);\
+    subArray(tsub0, M0->dim->perm, 0, len0, 0);\
+    subArray(tsub1, M1->dim->perm, 0, len1, contractionNumber);\
+    subArray(tDk1, M1->dim->perm, 0, contractionNumber, 0);\
+    subArray(tDk0, M0->dim->perm, 0, contractionNumber, len0);\
+    dimension *dSub0 = init_dim(tsub0, len0);\
+    dimension *dSub1 = init_dim(tsub1, len1);\
+    dimension *dM1 = init_dim(tDk1, contractionNumber);\
+    dimension *dM0 = init_dim(tDk0, contractionNumber);\
+    dimension *dM;\
+    min_copy_dimension(&dM, dM0, dM1);\
+    \
+    dimension *dd;\
+    add_dimension(&dd, dSub0, dSub1);\
+    updateRankDim(dd);\
+    *MM = CREATE_TENSOR_##type(dd);\
+    tensor_##type *M= *MM;\
+\
+\
+    \
+  pthread_t *thrd = malloc(nbthread * sizeof(pthread_t));\
+  struct arg_Pro2dContract_##type **arg_th = malloc( nbthread * sizeof(struct arg_Pro2dContract_##type *));\
+\
+  for(size_t i = 0; i < nbthread; ++i) {\
+    arg_th[i] = malloc(sizeof(struct arg_Pro2dContract_##type));\
+    arg_th[i]->M0x=M0->x;\
+    arg_th[i]->M1x=M1->x;\
+    arg_th[i]->Mx=M->x;\
+    arg_th[i]->beginRange = i*(dSub0->rank)/nbthread ;\
+    arg_th[i]->endRange = (i+1)*(dSub0->rank)/nbthread ;\
+    arg_th[i]->dSub1Rank = dSub1->rank;\
+    arg_th[i]->dSub0Rank = dSub0->rank;\
+    arg_th[i]->dMRank = dM->rank;\
+    pthread_create(&thrd[i], NULL, runPro2dContract_thread_##type, (void*)arg_th[i]);\
   }\
 \
   for(size_t i=0; i< nbthread; ++i){\

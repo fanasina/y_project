@@ -29,6 +29,7 @@ void tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##
 void tensorProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1,size_t nbthread); \
 void tensorProdThrea2d_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1,size_t nbthread); \
 void tensorContractnProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
+void tensorContractnPro2dThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
 void tensorContractnProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
 
 

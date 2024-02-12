@@ -13,11 +13,13 @@
 #include "fmock/fmock.h"
 
 #if 1
+
 TEST(true__){
   PRINTF("another test again false\n");
   bool val_bool = false;
   ASSERT_TRUE(val_bool);
 }
+
 TEST(test)
 {
   PRINTF("test test\n");
@@ -25,6 +27,7 @@ TEST(test)
   ASSERT_FALSE(val_bool);
 
 }
+
 TEST(float_equal){
   PRINTF("another test float\n");
   ASSERT_TRUE(true);
@@ -182,6 +185,8 @@ TEST(mockf1){
 }
 
 #endif
+
+
 
 
 #if 1
@@ -347,6 +352,7 @@ TEST(f7_mock_test){
 
 }
 #endif
+
 
 
 int main(int argc, char **argv){

@@ -34,7 +34,6 @@ pthread_mutex_t mut_g_list_base_fmock;
  * return the numbers of comas (,) +1 in the input string
  */
 
-
 int parse_count_args_(char *input){
   int val=0;
   for(int i = 0; i< strlen(input); ++i){
@@ -90,6 +89,7 @@ void append_variable_current(struct list_current_variable **lcurrent_var, char *
   }
 }
 
+
 void append_fmock_to_listmock(struct func_mock_info_struct **f_mock_list,  struct func_mock_info_struct *f_mock){
   INCREMENT_(count_f_mock_wished);
   if(f_mock->expect_call) {
@@ -140,7 +140,6 @@ __attribute__((constructor))
 
 
 
-
 void clear_fmock_info_list(struct func_mock_info_struct **f_mock_list){
   if(*f_mock_list){
     struct func_mock_info_struct *tmp_fmock_info = *f_mock_list, *ttmp_fmock_info;
@@ -155,7 +154,6 @@ void clear_fmock_info_list(struct func_mock_info_struct **f_mock_list){
     }
     *f_mock_list = NULL;
   }
-
 }
 
 void clear_list_base_fmock(struct list_base_fmock **l_fmock){
@@ -187,6 +185,7 @@ void clear_variable_current(struct list_current_variable **lcurrent_var){
 
 }
 
+/* destructor will be executed in inverse order of call/place in the file */
 __attribute__((destructor))
   void purge_fmock(){
 
@@ -197,9 +196,7 @@ __attribute__((destructor))
   }
 
 
-
 extern bool is_parallel_nb;
-
 
 
 char * number_call_translate(long nb){
@@ -234,7 +231,6 @@ char * strprint_caller_(char *input){
       PRINTF("\n");\
     }while(0);
 
-
   
 
 __attribute__((destructor))
@@ -256,7 +252,8 @@ __attribute__((destructor))
     char *reader=malloc(w.ws_col+3);
     strcpy(reader,"STAT OF MOCK FUNCTIONS");
 
-    fprintf(F_OUT,"%s\n\n%0*d\n %*s \n%0*d %s\n\n", colors_f[k_YELLOW] ,w.ws_col,0, (int)(w.ws_col+strlen(reader))/2, reader,w.ws_col,0, DEFAULT_K );
+    //fprintf(F_OUT,"%s\n\n%0*d\n %*s \n%0*d %s\n\n", colors_f[k_YELLOW] ,w.ws_col,0, (int)(w.ws_col+strlen(reader))/2, reader,w.ws_col,0, DEFAULT_K );
+    PRINTF("%s\n\n%0*d\n %*s \n%0*d %s\n\n", colors_f[k_YELLOW] ,w.ws_col,0, (int)(w.ws_col+strlen(reader))/2, reader,w.ws_col,0, DEFAULT_K );
 
 
     is_parallel_nb = 0; /* no longer parallel here */
@@ -416,7 +413,6 @@ __attribute__((destructor))
     pthread_mutex_destroy(&mut_count_expect_mock);
     PRINT_DEBUG("%s\n","pthread_mutex_destroy done!");
     PRINT_DEBUG("%s\n","check mock done!");
-
 
   }
 

@@ -19,6 +19,7 @@
 #include "tensor_t/cl_tensor_t.h"
 //#include "tools_t/tools_t.h"
 
+#define VALGRIND 1
 
 TEST(rank){
   dimension *D=create_dim(4);
@@ -36,19 +37,22 @@ TEST(rank){
 
 void print_tensor_float(tensor_TYPE_FLOAT *M, char *msg){
   LOG("================= %s ===============\n",msg);
+#if VALGRIND
   for(size_t i=0; i<M->dim->rank;++i)
       LOG("[%ld]: %f ",i,M->x[i]);
-  
     LOG("%s","\n");
+#endif  
 }
 
 
 void print_tensor_double(tensor_TYPE_DOUBLE *M, char *msg){
   LOG("================= %s ===============\n",msg);
+#if VALGRIND
   for(size_t i=0; i<M->dim->rank;++i)
       LOG("[%ld]: %lf ",i,M->x[i]);
   
     LOG("%s","\n");
+#endif  
 }
 
   extern long int PRECISION_TYPE_FLOAT ;
@@ -302,7 +306,17 @@ TEST(cl_tensorContractnProd_TYPE_DOUBLE2 ){
 TEST(tensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
+#if VALGRIND
 
+  d0->perm[0]=12;
+  d0->perm[1]=5; //3;
+  d0->perm[2]=6;
+
+  d1->perm[0]=5;
+  d1->perm[1]=6;//3;
+  d1->perm[2]=14;
+
+#else
   d0->perm[0]=125;
   d0->perm[1]=52; //3;
   d0->perm[2]=63;
@@ -310,7 +324,7 @@ TEST(tensorContractnProd_TYPE_DOUBLE2 ){
   d1->perm[0]=52;
   d1->perm[1]=63;//3;
   d1->perm[2]=54;
-
+#endif
   updateRankDim(d0);
   updateRankDim(d1);
 
@@ -352,6 +366,7 @@ TEST(TensorProdCL){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(2);
 
+ 
   d0->perm[0]=2;
   d0->perm[1]=3;
   d0->perm[2]=2;
@@ -373,6 +388,7 @@ TEST(TensorProdCL){
 
   print_tensor_float(M0,"M0");
   print_tensor_float(M1,"M1");
+
 
 
   tensor_TYPE_FLOAT *M; 
@@ -399,7 +415,17 @@ TEST(TensorProdCL){
 TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
+#if VALGRIND
 
+  d0->perm[0]=12;
+  d0->perm[1]=4; //3;
+  d0->perm[2]=6;
+
+  d1->perm[0]=4;
+  d1->perm[1]=6;//3;
+  d1->perm[2]=16;
+
+#else  
 
   d0->perm[0]=512;
   d0->perm[1]=48; //3;
@@ -408,6 +434,7 @@ TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
   d1->perm[0]=48;
   d1->perm[1]=64;//3;
   d1->perm[2]=240;
+#endif
 
   updateRankDim(d0);
   updateRankDim(d1);
@@ -457,7 +484,17 @@ TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
 TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
+#if VALGRIND
 
+  d0->perm[0]=12;
+  d0->perm[1]=4; //3;
+  d0->perm[2]=6;
+
+  d1->perm[0]=4;
+  d1->perm[1]=6;//3;
+  d1->perm[2]=16;
+
+#else  
 
   d0->perm[0]=512;
   d0->perm[1]=48; //3;
@@ -466,6 +503,9 @@ TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
   d1->perm[0]=48;
   d1->perm[1]=64;//3;
   d1->perm[2]=240;
+#endif
+
+
 
   updateRankDim(d0);
   updateRankDim(d1);
@@ -519,7 +559,17 @@ TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
 TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
+#if VALGRIND
 
+  d0->perm[0]=12;
+  d0->perm[1]=4; //3;
+  d0->perm[2]=6;
+
+  d1->perm[0]=4;
+  d1->perm[1]=6;//3;
+  d1->perm[2]=16;
+
+#else  
 
   d0->perm[0]=512;
   d0->perm[1]=48; //3;
@@ -528,6 +578,9 @@ TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
   d1->perm[0]=48;
   d1->perm[1]=64;//3;
   d1->perm[2]=240;
+#endif
+
+
 
   updateRankDim(d0);
   updateRankDim(d1);
@@ -578,12 +631,23 @@ TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
 
 
 
-#if 1
 
 
 TEST(VScltensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
+
+#if VALGRIND
+
+  d0->perm[0]=12;
+  d0->perm[1]=4; //3;
+  d0->perm[2]=6;
+
+  d1->perm[0]=4;
+  d1->perm[1]=6;//3;
+  d1->perm[2]=16;
+
+#else  
 
   d0->perm[0]=512;
   d0->perm[1]=48; //3;
@@ -592,6 +656,8 @@ TEST(VScltensorContractnProd_TYPE_DOUBLE2 ){
   d1->perm[0]=48;
   d1->perm[1]=64;//3;
   d1->perm[2]=240;
+#endif
+
 
   updateRankDim(d0);
   updateRankDim(d1);
@@ -636,6 +702,27 @@ TEST(VScltensorContractnProd_TYPE_DOUBLE2 ){
 TEST(VScl2dtensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
+#if VALGRIND
+
+  d0->perm[0]=12;
+  d0->perm[1]=4; //3;
+  d0->perm[2]=6;
+
+  d1->perm[0]=4;
+  d1->perm[1]=6;//3;
+  d1->perm[2]=16;
+
+#else  
+
+  d0->perm[0]=512;
+  d0->perm[1]=48; //3;
+  d0->perm[2]=64;
+
+  d1->perm[0]=48;
+  d1->perm[1]=64;//3;
+  d1->perm[2]=240;
+#endif
+
 
   d0->perm[0]=512;
   d0->perm[1]=48; //3;
@@ -876,7 +963,6 @@ TEST(tensorProd_vs2d_Endian ){
   free_tensor_TYPE_FLOAT(M1);
 }
 
-#endif
 
 int main(int argc, char **argv){
   

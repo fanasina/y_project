@@ -40,7 +40,7 @@ $(SUBDIRS):
 		$(MAKE) -C $@ $(MAKECMDGOALS)
 
 update_headers: $(PROJECT_LIB)
-	for file_h in $(SUBDIRS); do cp -r "$$file_h/include" include_ytest/;	done	
+	for file_h in $(SUBDIRS); do cp -r "$$file_h/include/" include_ytest/;	done	
 
 .PHONY: $(TOPTARGETS) $(SUBDIRS)
 

@@ -17,7 +17,7 @@
 //#include "permutation_t/permutation_t.h"
 #include "tensor_t/tensor_t.h"
 
-#define VALGRING_ 1
+#define VALGRIND_ 0
 
 TEST(rank){
   dimension *D=create_dim(4);
@@ -40,7 +40,7 @@ void print_tensor_float(tensor_TYPE_FLOAT *M, char *msg){
   }
   LOG("================= %s ===============\n",msg);
 
-#if VALGRING_
+#if VALGRIND_
   for(size_t i=0; i<M->dim->rank;++i)
       LOG("[%ld]: %f ",i,M->x[i]);
   
@@ -51,7 +51,7 @@ void print_tensor_float(tensor_TYPE_FLOAT *M, char *msg){
 
 void print_tensor_double(tensor_TYPE_DOUBLE *M, char *msg){
   LOG("================= %s ===============\n",msg);
-#if VALGRING_
+#if VALGRIND_
   for(size_t i=0; i<M->dim->rank;++i)
       LOG("[%ld]: %lf ",i,M->x[i]);
   
@@ -262,7 +262,7 @@ TEST(tensorSubtail ){
 TEST(tensorProd ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(2);
-#if VALGRING_
+#if VALGRIND_
   d0->perm[0]=5;
   d0->perm[1]=2; //3;
   d0->perm[2]=3;
@@ -315,7 +315,7 @@ TEST(tensorProd ){
 TEST(tensorContractnProd_TYPE_FLOAT ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
-#if VALGRING_
+#if VALGRIND_
   d0->perm[0]=5;
   d0->perm[1]=2; //3;
   d0->perm[2]=3;
@@ -377,7 +377,7 @@ TEST(tensorContractnProd_TYPE_FLOAT ){
 TEST(tensorContractnProd_TYPE_FLOAT2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
-#if VALGRING_
+#if VALGRIND_
   d0->perm[0]=5;
   d0->perm[1]=2; //3;
   d0->perm[2]=3;
@@ -438,7 +438,7 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
 TEST(tensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
-#if VALGRING_
+#if VALGRIND_
   d0->perm[0]=5;
   d0->perm[1]=2; //3;
   d0->perm[2]=3;
@@ -499,7 +499,7 @@ TEST(tensorContractnProd_TYPE_DOUBLE2 ){
 TEST(VStensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
-#if VALGRING_
+#if VALGRIND_
   d0->perm[0]=5;
   d0->perm[1]=2; //3;
   d0->perm[2]=3;
@@ -555,11 +555,72 @@ TEST(VStensorContractnProd_TYPE_DOUBLE2 ){
   free_tensor_TYPE_DOUBLE(M1);
 
 }
+TEST(Pthread_tensorContractnPro2d_TYPE_DOUBLE2 ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+#if VALGRIND_
+  d0->perm[0]=5;
+  d0->perm[1]=2; //3;
+  d0->perm[2]=3;
 
+  d1->perm[0]=2;
+  d1->perm[1]=3;//3;
+  d1->perm[2]=8;
+
+#else
+
+  d0->perm[0]=125;
+  d0->perm[1]=52; //3;
+  d0->perm[2]=63;
+
+  d1->perm[0]=52;
+  d1->perm[1]=63;//3;
+  d1->perm[2]=154;
+#endif
+
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  //print_tensor_double(M0,"M0");
+  //print_tensor_double(M1,"M1");
+
+  tensor_TYPE_DOUBLE *M;
+  tensor_TYPE_DOUBLE *MnO;
+
+  size_t nbthread = 5;
+
+  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
+  //print_tensor_double(M,"M");
+  //cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
+  tensorContractnPro2dThread_TYPE_DOUBLE(&MnO, M0,M1,2,nbthread);
+
+  //print_tensor_double(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+  EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+  free_tensor_TYPE_DOUBLE(M);
+  free_tensor_TYPE_DOUBLE(MnO);
+  free_tensor_TYPE_DOUBLE(M0);
+  free_tensor_TYPE_DOUBLE(M1);
+
+}
 TEST(Pthread_tensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
-#if VALGRING_
+#if VALGRIND_
   d0->perm[0]=5;
   d0->perm[1]=2; //3;
   d0->perm[2]=3;
@@ -624,7 +685,7 @@ TEST(tensorProd_vs ){
   dimension *d1=create_dim(2);
 
 
-#if VALGRING_
+#if VALGRIND_
   d0->perm[0]=2;
   d0->perm[1]=3;
   d0->perm[2]=2;
@@ -676,7 +737,7 @@ TEST(tensorProd_vsThread ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(2);
 
-#if VALGRING_
+#if VALGRIND_
   d0->perm[0]=2;
   d0->perm[1]=3;
   d0->perm[2]=2;
@@ -734,7 +795,7 @@ TEST(tensorProd_vsThread2d ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(2);
 
-#if VALGRING_
+#if VALGRIND_
   d0->perm[0]=2;
   d0->perm[1]=3;
   d0->perm[2]=2;

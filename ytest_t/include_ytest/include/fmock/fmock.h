@@ -24,6 +24,7 @@ struct list_current_variable{
  */
 struct func_mock_info_struct{
   long id;
+  bool used;
   char *str_namefunc;
   char *str_conditions;
   char *str_caller;
@@ -74,6 +75,7 @@ extern struct list_base_fmock *g_list_base_fmock;
       (tmp__mock)->call_mock_condition = NULL;\
       /*(tmp__mock)->str_print_current_variables = list_mo_ ## namefunction .str_print_current_variables;*/\
       ((tmp__mock)->info_mock)->expect_call = -1;\
+      ((tmp__mock)->info_mock)->used = true;\
       ((tmp__mock)->info_mock)->call = 0;\
       ((tmp__mock)->info_mock)->failed_call = 0;\
       ((tmp__mock)->info_mock)->str_namefunc = malloc(strlen(#namefunction) + 43 + strlen(#pre_id));\
@@ -101,6 +103,7 @@ extern struct list_base_fmock *g_list_base_fmock;
   } list_mo_ ## namefunction;\
   __attribute__((constructor)) void init_list_m_ ## namefunction(void){\
     list_mo_ ## namefunction.info_mock = malloc(sizeof(struct func_mock_info_struct));\
+    (list_mo_ ## namefunction.info_mock)->used = false;\
     (list_mo_ ## namefunction.info_mock)->times_left = INITSTATE;\
     (list_mo_ ## namefunction.info_mock)->init_times_left = INITSTATE;\
     list_mo_ ## namefunction.str_print_current_variables = NULL;\
@@ -110,12 +113,16 @@ extern struct list_base_fmock *g_list_base_fmock;
   __attribute__((destructor)) void destruct_list_m_  ## namefunction(void){   \
     /*free(list_mo_ ## namefunction.info_mock);*/ \
     struct list_mock_return_ ## namefunction *tmp_nn = list_mo_ ## namefunction.next, *ttmp_nn;\
+    if((list_mo_ ## namefunction.info_mock)->used == false ){\
+      free(list_mo_ ## namefunction.info_mock);\
+    }\
     while(tmp_nn){\
       ttmp_nn = tmp_nn;\
       tmp_nn = tmp_nn->next;\
       /*free(ttmp_nn->info_mock);*/\
       free(ttmp_nn);\
     }\
+    PRINT_DEBUG(" purge list mo_ %s done!\n",#namefunction);\
    \
   }\
     \
@@ -248,6 +255,7 @@ __attribute__((constructor)) void create_str_print_variables ## namefunction(){\
         (tmp_new_mock)->str_print_current_variables = list_mo_ ## namefunction .str_print_current_variables;\
       /*(tmp_new_mock)->info_mock  = malloc(sizeof(struct func_mock_info_struct));*/\
       ((tmp_new_mock)->info_mock)->expect_call = f_expect_call;\
+      ((tmp_new_mock)->info_mock)->used = true;\
       ((tmp_new_mock)->info_mock)->call = 0;\
       ((tmp_new_mock)->info_mock)->failed_call = 0;\
       ((tmp_new_mock)->info_mock)->init_times_left = repeat;\

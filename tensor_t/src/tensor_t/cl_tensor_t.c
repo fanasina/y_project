@@ -3,6 +3,12 @@
 
 #define MAX_SOURCE_SIZE (0x100000)
 
+#define FREE_dM_S_\
+  free_dimension(dM0);\
+  free_dimension(dM1);\
+  free_dimension(dM);\
+  free_dimension(dSub0);\
+  free_dimension(dSub1);\
 
 
 #define SETUP_cl_KERNEL_(type,file_cl_src,func_cl_name)\
@@ -18,7 +24,7 @@
         fprintf(stderr, "Failed to load kernel. \n"); \
         exit(1); \
     } \
-    source_str = (char*)malloc(MAX_SOURCE_SIZE); \
+    source_str = malloc(MAX_SOURCE_SIZE); \
     source_size = fread( source_str, 1, MAX_SOURCE_SIZE, fp); \
     fclose( fp ); \
  \
@@ -85,10 +91,11 @@
       char *log = malloc(sizeof(char)*len);\
       clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, len, log, NULL);\
       printf("Error: Failed to build program executable!\n  %s \n",log);\
+      free(log);\
     }\
     /*/ Create the OpenCL kernel */ \
     /*char func_cl_name[250]; sprintf(func_cl_name,"prodTensorLin_%s", #type);*/ \
-    printf("cl_func_type = %s\n",func_cl_name);  \
+    /*printf("cl_func_type = %s\n",func_cl_name); */ \
     cl_kernel kernel = clCreateKernel(program, func_cl_name, &ret); \
  
 
@@ -194,7 +201,7 @@ void cl_tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor
     dimension *dM1 = init_dim(tDk1, contractionNumber);\
     dimension *dM0 = init_dim(tDk0, contractionNumber);\
     dimension *dM;\
-    min_dimension(&dM, dM0, dM1);\
+    min_copy_dimension(&dM, dM0, dM1);\
     \
     dimension *dd;\
     add_dimension(&dd, dSub0, dSub1);\
@@ -230,6 +237,7 @@ void cl_tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor
   EXEC_cl_KERNEL(type);\
   READ_BUF_N_CLEANUP(type)\
 \
+  FREE_dM_S_ \
 } \
  \
 \
@@ -283,7 +291,7 @@ void cl2d_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tens
     dimension *dM1 = init_dim(tDk1, contractionNumber);\
     dimension *dM0 = init_dim(tDk0, contractionNumber);\
     dimension *dM;\
-    min_dimension(&dM, dM0, dM1);\
+    min_copy_dimension(&dM, dM0, dM1);\
     \
     dimension *dd;\
     add_dimension(&dd, dSub0, dSub1);\
@@ -320,7 +328,8 @@ void cl2d_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tens
   /*printf("EXEC_cl_2d_KERNEL(type,%ld,%ld,%ld,%ld)\n",dSub0->rank,dSub1->rank,div0Wsz,div1Wsz);\
   */EXEC_cl_2d_KERNEL(type,dSub0->rank,dSub1->rank,div0Wsz,div1Wsz);\
   READ_BUF_N_CLEANUP(type)\
-\
+  FREE_dM_S_ \
+  \
 } \
 \
 
