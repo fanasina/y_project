@@ -29,14 +29,29 @@
     fclose( fp ); \
  \
     /*/ Get platform and device information */ \
-    cl_platform_id platform_id = NULL; \
+    /*cl_platform_id platform_id = NULL; \
     cl_device_id device_id = NULL; \
+    */\
+    cl_platform_id *platform_id; \
+    cl_device_id *device_id ; \
     cl_uint ret_num_devices; \
     cl_uint ret_num_platforms; \
-    cl_int ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms); \
+    /*cl_int ret = clGetPlatformIDs(1, &platform_id, &ret_num_platforms); \
     checkError(ret,__func__,"Error: Failed to get platform ID ");\
-    ret = clGetDeviceIDs( platform_id, CL_DEVICE_TYPE_DEFAULT, 1, \
-            &device_id, &ret_num_devices); \
+    */\
+    cl_int ret = clGetPlatformIDs(0, NULL, &ret_num_platforms); \
+    checkError(ret,__func__,"Error: Failed to get num platform ");\
+    if(ret_num_platforms<=0) {printf("Error with num_platforms"); exit(-1);}\
+    platform_id = malloc(sizeof(cl_platform_id)*ret_num_platforms);\
+    ret = clGetPlatformIDs(ret_num_platforms, platform_id, NULL); \
+    checkError(ret,__func__,"Error: Failed to get platform ID ");\
+    /*ret = clGetDeviceIDs( platform_id, CL_DEVICE_TYPE_DEFAULT, 1, &device_id, &ret_num_devices); \
+    */\
+    ret = clGetDeviceIDs( *platform_id, CL_DEVICE_TYPE_DEFAULT, 0, NULL, &ret_num_devices);/*platform_id[0] */ \
+    checkError(ret,__func__,"Error: Failed to get num devices  ");\
+    device_id = malloc(sizeof(cl_device_id)*ret_num_devices);\
+    ret = clGetDeviceIDs( *platform_id, CL_DEVICE_TYPE_DEFAULT, ret_num_devices, device_id, NULL);/*platform_id[0] */ \
+    checkError(ret,__func__,"Error: Failed to get num devices  ");\
     size_t returned_size = 0;\
 	  size_t max_workgroup_size = 0;\
 	  /*ret = clGetDeviceInfo(device_id, CL_DEVICE_MAX_WORK_GROUP_SIZE, sizeof(size_t), &max_workgroup_size, &returned_size);\
@@ -48,11 +63,15 @@
             &device_id, &ret_num_devices); */\
  \
     /*/ Create an OpenCL context */ \
-    cl_context context = clCreateContext( NULL, 1, &device_id, NULL, NULL, &ret); \
+    /*cl_context context = clCreateContext( NULL, 1, &device_id, NULL, NULL, &ret); \
+    */\
+    cl_context context = clCreateContext( NULL, 1, device_id, NULL, NULL, &ret); \
+    checkError(ret,__func__,"Error: Failed to create context  ");\
  \
     /*/ Create a command queue */ \
     /*cl_command_queue command_queue = clCreateCommandQueue(context, device_id, 0, &ret);*/ \
-    cl_command_queue command_queue = clCreateCommandQueueWithProperties(context, device_id, NULL, &ret); /* NULL =default properties = in order */ \
+    /*cl_command_queue command_queue = clCreateCommandQueueWithProperties(context, device_id, NULL, &ret); */ /* NULL =default properties = in order */ \
+    cl_command_queue command_queue = clCreateCommandQueueWithProperties(context, *device_id, NULL, &ret); /* NULL =default properties = in order */ \
  \
     checkError(ret,__func__,"Error: Failed to create command queue with properties ");\
  \
@@ -84,12 +103,18 @@
        return ;\
     }\
     /*/ Build the program */ \
-    ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL); \
+    /*ret = clBuildProgram(program, 1, &device_id, NULL, NULL, NULL); \
+    */\
+    ret = clBuildProgram(program, 1, device_id, NULL, NULL, NULL); \
     if(ret != CL_SUCCESS){\
       size_t len; \
-      clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);\
+      /*clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);\
+      */\
+      clGetProgramBuildInfo(program, *device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &len);\
       char *log = malloc(sizeof(char)*len);\
-      clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, len, log, NULL);\
+      /*clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, len, log, NULL);\
+      */\
+      clGetProgramBuildInfo(program, *device_id, CL_PROGRAM_BUILD_LOG, len, log, NULL);\
       printf("Error: Failed to build program executable!\n  %s \n",log);\
       free(log);\
     }\
@@ -97,7 +122,7 @@
     /*char func_cl_name[250]; sprintf(func_cl_name,"prodTensorLin_%s", #type);*/ \
     /*printf("cl_func_type = %s\n",func_cl_name); */ \
     cl_kernel kernel = clCreateKernel(program, func_cl_name, &ret); \
-    printf("func_cl_name = %s ......... \n",func_cl_name);\
+//    printf("func_cl_name = %s ......... \n >>>>   >>> ret_num_platforms : %d \n >>> >>> ret_num_devices : %d \n",func_cl_name, ret_num_platforms, ret_num_devices);\
  
 
     /*/ Set the arguments of the kernel  */ \
@@ -144,8 +169,11 @@
     ret |= clReleaseMemObject(M_mem_obj); \
     ret |= clReleaseCommandQueue(command_queue); \
     ret |= clReleaseContext(context); \
+    ret |= clReleaseDevice(*device_id); \
     checkError(ret,__func__,"Error: Failed to clean up! ");\
-    free(source_str);
+    free(source_str);\
+    free(platform_id);\
+    free(device_id);
 
 #define GEN_cl_FUNC_TENSOR(type)\
 \

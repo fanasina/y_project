@@ -19,10 +19,10 @@
 #include "tensor_t/cl_tensor_t.h"
 //#include "tools_t/tools_t.h"
 
-#define VALGRIND 1
+#define VALGRIND 0
 
 TEST(rank){
-//  endian=false;
+  //endian=false;
   dimension *D=create_dim(4);
   D->perm[0]=2;
   D->perm[1]=3;
@@ -701,7 +701,7 @@ TEST(VScltensorContractnProd_TYPE_DOUBLE2 ){
 }
 
 TEST(VScl2dtensorContractnProd_TYPE_DOUBLE2 ){
-  endian=false;
+  //endian=false;
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
 #if VALGRIND
