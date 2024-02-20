@@ -22,6 +22,7 @@ TEST(dimension0){
 
   EXPECT_EQ(D->size,5);
 
+  free_dimension(D);
 }
 TEST(rank){
   dimension *D=create_dim(4);
@@ -33,7 +34,71 @@ TEST(rank){
   updateRankDim(D);
   EXPECT_EQ(D->rank, 180);
 
+  free_dimension(D);
 }
+TEST(SplitDim){
+  dimension *D=create_dim(4);
+  D->perm[0]=2;
+  D->perm[1]=3;
+  D->perm[2]=5;
+  D->perm[3]=6;
+  
+  updateRankDim(D);
+  printDebug_dimension(D," D root");  
+
+  dimension *d_part1 = NULL,*d_part2=NULL;
+
+ split_dim_part(D, &d_part1, &d_part2, 1, 2); 
+
+  printDebug_dimension(d_part1," part1 from Root");  
+  printDebug_dimension(d_part2," part2 from Root");  
+
+  dimension *ad;
+
+  add_dimension(&ad,d_part1, d_part2);
+  printDebug_dimension(D," D root");  
+  printDebug_dimension(ad," ad ");  
+
+
+  free_dimension(D);
+  free_dimension(ad);
+  free(d_part1);
+  free(d_part2);
+}
+
+TEST(SplitDim_2){
+  dimension *D=create_dim(4);
+  D->perm[0]=2;
+  D->perm[1]=3;
+  D->perm[2]=5;
+  D->perm[3]=6;
+  
+  updateRankDim(D);
+  printDebug_dimension(D," D root");  
+
+  dimension *d_part1 = NULL,*d_part2=NULL;
+
+ split_dim_part(D, &d_part1, &d_part2, 3, 2); 
+
+  printDebug_dimension(d_part1," part1 from Root");  
+  printDebug_dimension(d_part2," part2 from Root");  
+
+  dimension *ad;
+
+  add_dimension(&ad,d_part1, d_part2);
+  printDebug_dimension(D," D root");  
+  printDebug_dimension(ad," ad ");  
+
+
+  free_dimension(D);
+  free_dimension(ad);
+  free(d_part1);
+  free(d_part2);
+}
+
+
+
+
 TEST(SubDim){
   dimension *D=create_dim(4);
   D->perm[0]=2;
@@ -49,6 +114,9 @@ TEST(SubDim){
   dimension *d_tail2 = sub_minus_dim_tail(D,2);
   EXPECT_EQ(d_tail2->rank, 5*6);
 
+  free_dimension(D);
+  free(d_tail2);
+  free(d_head2);
 }
 
 TEST(SubDim){
@@ -67,6 +135,9 @@ TEST(SubDim){
   dimension *d_tail2 = sub_minus_dim_tail(D,2);
   EXPECT_EQ(d_tail2->rank, 5*6);
 
+  free_dimension(D);
+  free(d_tail2);
+  free(d_head2);
 }
 
 TEST(Coord_linear){
@@ -86,6 +157,8 @@ TEST(Coord_linear){
   }
   
   EXPECT_EQ(line, LineFromCoord(coord, D));  
+  free_dimension(D);
+  free(coord);
 }
 
 int main(int argc, char **argv){

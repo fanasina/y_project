@@ -23,6 +23,14 @@ void printArraySzt(size_t *a, size_t sz,char *msg){
   printf("\n");
 }
 
+/*
+bool isLessEqThan(long int a, long int b) { return a <= b; }
+bool isLessThan(long int a, long int b) { return a < b; }
+bool isGreatEqThan(long int a, long int b) { return a >= b; }
+bool isGreatThan(long int a, long int b) { return a > b; }
+long int incr(long int i) { return i + 1; }
+long int decr(long int i) { return i - 1; }
+*/
 
 #define FREE_COORD_\
   free(coord0);\
@@ -53,7 +61,46 @@ void printArraySzt(size_t *a, size_t sz,char *msg){
     return r_tens;\
   }\
 \
-  tensor_##type* CREATE_TENSOR_FROM_CPY_DIM_##type(dimension *dim){\
+tensor_##type* init_tensor_head_##type(tensor_##type *troot ,dimension *dim){\
+    tensor_##type *r_tens=malloc(sizeof(tensor_##type));\
+    updateRankDim(dim);\
+    r_tens->dim = dim;\
+    r_tens->x = troot->x;\
+    return r_tens;\
+  }\
+\
+ tensor_##type* init_tensor_tail_##type(tensor_##type *troot ,dimension *dim){\
+    tensor_##type *r_tens=malloc(sizeof(tensor_##type));\
+    updateRankDim(dim);\
+    r_tens->dim = dim;\
+    r_tens->x = troot->x + ((troot->dim)->rank - dim->rank);\
+    return r_tens;\
+  }\
+\
+\
+tensor_##type* init_copy_tensor_head_##type(tensor_##type *troot ,dimension *dim){\
+    tensor_##type *r_tens=malloc(sizeof(tensor_##type));\
+    updateRankDim(dim);\
+    r_tens->dim = dim;\
+    /*r_tens->x = troot->x;*/\
+    for(size_t i=0; i<dim->rank;++i)\
+      r_tens->x[i]=troot->x[i];\
+    return r_tens;\
+  }\
+\
+ tensor_##type* init_copy_tensor_tail_##type(tensor_##type *troot ,dimension *dim){\
+    tensor_##type *r_tens=malloc(sizeof(tensor_##type));\
+    updateRankDim(dim);\
+    r_tens->dim = dim;\
+    /*r_tens->x = troot->x + ((troot->dim)->rank - dim->rank);*/\
+    r_tens->x = malloc(sizeof(type)*dim->rank);\
+    for(size_t dRank=(troot->dim)->rank - dim->rank, i=0; i<dim->rank;++i)\
+      r_tens->x[i]=troot->x[i+dRank];\
+    return r_tens;\
+  }\
+\
+\
+ tensor_##type* CREATE_TENSOR_FROM_CPY_DIM_##type(dimension *dim){\
     tensor_##type *r_tens=malloc(sizeof(tensor_##type));\
     r_tens->dim = init_copy_dim(dim->perm,dim->size);\
     r_tens->x = malloc(sizeof(type)*dim->rank);\
@@ -67,7 +114,16 @@ void printArraySzt(size_t *a, size_t sz,char *msg){
       free(tens);\
     }\
   }\
-/*  tensor_##type * sub_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim){\
+  void init_random_x_##type(tensor_##type *M, type minR, type maxR,  int randomRange){\
+    srand(time(NULL));\
+    int randVal;\
+    for(size_t i =0; i<(M->dim)->rank;++i){\
+      randVal = rand() % randomRange;\
+      M->x[i]=minR + (maxR-minR)*randVal  / randomRange ;\
+    \
+    }\
+  }\
+  tensor_##type * sub_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim){\
     dimension *rdim= rootens->dim;\
     dimension *dS_t = sub_minus_dim_tail(rdim,rdim->size - minuSubdim);\
     if(rankInDim < dS_t->rank){\
@@ -157,7 +213,7 @@ void printArraySzt(size_t *a, size_t sz,char *msg){
     }\
     return NULL;\
   }\
-*/  \
+  \
   tensor_##type * sub_copy_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim){\
     dimension *rdim= rootens->dim;\
     dimension *dS_t = sub_copy_minus_dim_tail(rdim,rdim->size - minuSubdim);\
@@ -273,6 +329,147 @@ void printArraySzt(size_t *a, size_t sz,char *msg){
     return NULL;\
   }\
   \
+void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
+  size_t j=0,k=0;\
+  long int *coord = malloc(sizeof(long int)*(T->dim)->size); \
+  char *val=NULL;\
+  char *dimsg=malloc(512);\
+  sprintf(dimsg,"(%s)->dim",msg);\
+  printDebug_dimension(T->dim,dimsg);\
+  printf("%s\n",msg);\
+  long int begin , end, beginIter, endIter ;\
+  long int (*iter)(long int) ;\
+  bool (*cond)(long int, long int) ; \
+  if (endian ) {\
+        begin = (T->dim->size) - 1; end = 0;\
+        iter = decr; cond = isGreatEqThan; \
+  }else{\
+        begin = 0 ; end = (T->dim->size) - 1; \
+        iter = incr; cond = isLessEqThan; \
+  }\
+  for(long int i=0;i<(T->dim)->rank;++i){\
+    vCoordFromLin(coord,i,T->dim);\
+    if(coord[begin]==0){\
+      for(long int j=begin; cond(j,end); j= iter(j) ){\
+        if(coord[j]==0) printf("(");\
+        else break;\
+      }\
+    }\
+    printf(" [{");\
+    for(size_t k=0; k<(T->dim)->size;++k) printf(" %ld,",coord[k]);\
+    val=type##_TO_STR(T->x[i]);\
+    printf("}#%ld] %s, ",i,val);\
+    free(val); val=NULL;\
+    if(coord[begin]==(T->dim)->perm[begin]-1){\
+      for(long int j=begin; cond(j,end); j = iter(j)){\
+        if(coord[j]==(T->dim)->perm[j]-1) printf(")");\
+        else break;\
+      }\
+    }\
+  }\
+  \
+  free(coord);\
+  printf("\n");\
+  free(dimsg);\
+}\
+\
+size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withIndex) {\
+  if(*tensorContent != NULL) {\
+    free(*tensorContent);\
+    *tensorContent = NULL;  \
+  }\
+  size_t sz = ((T->dim)->rank)*(32+ withIndex * 5*(T->dim)->size + 9 );\
+  printf("malloc %ld char\n",sz);\
+  *tensorContent = malloc(sz )  ;\
+  size_t cur=0;\
+  long int *coord = malloc(sizeof(long int)*(T->dim)->size); \
+  char *val=NULL;\
+  long int begin , end, beginIter, endIter ;\
+  long int (*iter)(long int) ;\
+  bool (*cond)(long int, long int) ; \
+  if (endian ) {\
+        begin = (T->dim->size) - 1; end = 0;\
+        iter = decr; cond = isGreatEqThan; \
+  }else{\
+        begin = 0 ; end = (T->dim->size) - 1; \
+        iter = incr; cond = isLessEqThan; \
+  }\
+  for(long int i=0;i<(T->dim)->rank;++i){\
+    vCoordFromLin(coord,i,T->dim);\
+    if(coord[begin]==0){\
+      for(long int j=begin; cond(j,end); j= iter(j) ){\
+        if(coord[j]==0) /*printf("(")*/(*tensorContent)[cur++]='(';\
+        else break;\
+      }\
+    }\
+  if(withIndex){\
+    (*tensorContent)[cur++]=' ';\
+   (*tensorContent)[cur++]='[';\
+    (*tensorContent)[cur++]='{';\
+    for(size_t k=0; k<(T->dim)->size;++k) {\
+      /*printf(" %ld,",coord[k]);*/\
+      val=TYPE_SIZE_T_TO_STR(coord[k]);\
+      for(size_t c=0;c<strlen(val);++c){\
+        (*tensorContent)[cur++]=' ';\
+        (*tensorContent)[cur++]=val[c];\
+      }\
+      free(val); val = NULL;\
+      (*tensorContent)[cur++]=',';\
+    }\
+    (*tensorContent)[cur++]='}';\
+    (*tensorContent)[cur++]='#';\
+       val=TYPE_SIZE_T_TO_STR(i);\
+    for(size_t c=0;c<strlen(val);++c)\
+      (*tensorContent)[cur++]=val[c];\
+    free(val); val = NULL;\
+    (*tensorContent)[cur++]=']';\
+    (*tensorContent)[cur++]=' ';\
+  }\
+    val=type##_TO_STR(T->x[i]);\
+    /*printf(" {%ld} %s [",i,val);*/\
+    (*tensorContent)[cur++]=' ';\
+    for(size_t c=0;c<strlen(val);++c)\
+      (*tensorContent)[cur++]=val[c];\
+    free(val); val = NULL;\
+    (*tensorContent)[cur++]=',';\
+    if(coord[begin]==(T->dim)->perm[begin]-1){\
+      for(long int j=begin; cond(j,end); j = iter(j)){\
+        if(coord[j]==(T->dim)->perm[j]-1) /*printf(")"); */ (*tensorContent)[cur++]=')';\
+        else break;\
+      }\
+    }\
+  }\
+  \
+  free(coord);\
+  /*printf("\n");*/(*tensorContent)[cur++]='\n';\
+  (*tensorContent)[cur++]='\0';\
+  return cur;\
+}\
+  \
+  \
+void split_tensor_##type(tensor_##type *Troot, tensor_##type **Tpart1, tensor_##type **Tpart2, size_t pivotSplit, size_t rangeInPivot){\
+  size_t sz = (Troot->dim)->size;\
+  if(pivotSplit < sz){\
+    if( rangeInPivot < (Troot->dim)->perm[pivotSplit]){\
+      dimension *dpart1, *dpart2;\
+      split_dim_part(Troot->dim, &dpart1, &dpart2, pivotSplit, rangeInPivot);\
+      *Tpart1 = init_tensor_head_##type(Troot, dpart1);\
+      *Tpart2 = init_tensor_tail_##type(Troot, dpart2);\
+    }\
+  }\
+}  \
+void split_copy_tensor_##type(tensor_##type *Troot, tensor_##type **Tpart1, tensor_##type **Tpart2, size_t pivotSplit, size_t rangeInPivot){\
+  size_t sz = (Troot->dim)->size;\
+  if(pivotSplit < sz){\
+    if( rangeInPivot < (Troot->dim)->perm[pivotSplit]){\
+      dimension *dpart1, *dpart2;\
+      split_dim_part(Troot->dim, &dpart1, &dpart2, pivotSplit, rangeInPivot);\
+      *Tpart1 = init_tensor_head_##type(Troot, dpart1);\
+      *Tpart2 = init_tensor_tail_##type(Troot, dpart2);\
+    }\
+  }\
+}\
+\
 void tensorProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1) {  \
   dimension *dd;  \
     add_dimension(&dd, M0->dim, M1->dim); \

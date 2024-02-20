@@ -17,7 +17,7 @@
 //#include "permutation_t/permutation_t.h"
 #include "tensor_t/tensor_t.h"
 
-#define VALGRIND_ 0
+#define VALGRIND_ 1
 
 TEST(rank){
   endian =true;
@@ -42,9 +42,10 @@ void print_tensor_float(tensor_TYPE_FLOAT *M, char *msg){
   LOG("================= %s ===============\n",msg);
 
 #if VALGRIND_
-  for(size_t i=0; i<M->dim->rank;++i)
+  /*for(size_t i=0; i<M->dim->rank;++i)
       LOG("[%ld]: %f ",i,M->x[i]);
-  
+  */
+  print_tensor_msg_TYPE_FLOAT(M,msg);
 #endif
     LOG("%s","\n");
 }
@@ -53,9 +54,11 @@ void print_tensor_float(tensor_TYPE_FLOAT *M, char *msg){
 void print_tensor_double(tensor_TYPE_DOUBLE *M, char *msg){
   LOG("================= %s ===============\n",msg);
 #if VALGRIND_
+  /*
   for(size_t i=0; i<M->dim->rank;++i)
       LOG("[%ld]: %lf ",i,M->x[i]);
-  
+  */
+  print_tensor_msg_TYPE_DOUBLE(M,msg);
 #endif
     LOG("%s","\n");
 }
@@ -259,6 +262,201 @@ TEST(tensorSubtail ){
   free_tensor_TYPE_FLOAT(M0);
   free_tensor_TYPE_FLOAT(s2t);
 }
+
+TEST(randomInit){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=4;
+  d0->perm[1]=3;
+  d0->perm[2]=5;
+  
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  init_random_x_TYPE_FLOAT(M0,2.7,5.4,50001);
+
+  print_tensor_float(M0, "M0 random");
+  free_tensor_TYPE_FLOAT(M0);
+}
+TEST(printT_init_false){
+  endian=false;
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=2;
+  d0->perm[1]=3;
+  d0->perm[2]=4;
+  
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  //init_random_x_TYPE_FLOAT(M0,2,5,50);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+
+
+//  print_tensor_float(M0, "M0 ");
+  print_tensor_msg_TYPE_FLOAT(M0, "M0 ");
+  free_tensor_TYPE_FLOAT(M0);
+  
+}
+
+
+TEST(printT_Init_true){
+  endian=true;
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=2;
+  d0->perm[1]=3;
+  d0->perm[2]=4;
+  
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  //init_random_x_TYPE_FLOAT(M0,2,5,50);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+
+
+//  print_tensor_float(M0, "M0 ");
+  print_tensor_msg_TYPE_FLOAT(M0, "M0 ");
+  free_tensor_TYPE_FLOAT(M0);
+  
+}
+
+TEST(sprinttens){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=4;
+  d0->perm[1]=3;
+  d0->perm[2]=2;
+
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  init_random_x_TYPE_DOUBLE(M0,2.7,5.4,50001);
+
+  //print_tensor_double(M0, "test print M0");
+  char *tensCont = NULL;
+  size_t nbChar = sprint_tensor_TYPE_DOUBLE(&tensCont, M0, false);
+
+  LOG(" avec Sprint_tensor sans index, M0 est : \n%s \n, il y a %ld charactères\n",tensCont, nbChar);
+  
+  nbChar = sprint_tensor_TYPE_DOUBLE(&tensCont, M0, true);
+
+  LOG(" avec Sprint_tensor avec index, M0 est : \n%s \n, il y a %ld charactères\n",tensCont, nbChar);
+
+  endian=false;
+ 
+  nbChar = sprint_tensor_TYPE_DOUBLE(&tensCont, M0, true);
+
+  LOG(" avec Sprint_tensor avec index et endian=false, M0 est : \n%s \n, il y a %ld charactères\n",tensCont, nbChar);
+
+
+  free(tensCont);
+  free_tensor_TYPE_DOUBLE(M0);
+}
+
+
+#if 1
+
+TEST(Split_randomInit){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=4;
+  d0->perm[1]=3;
+  d0->perm[2]=5;
+  
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  init_random_x_TYPE_FLOAT(M0,2.7,5.4,50001);
+
+  print_tensor_float(M0, "M0 random");
+  print_tensor_msg_TYPE_FLOAT(M0, "M0 random");
+
+  tensor_TYPE_FLOAT *Tpart1=NULL, *Tpart2=NULL;
+
+  split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 1, 2);
+
+  print_tensor_float(Tpart1, " Tpart1 1");
+  print_tensor_msg_TYPE_FLOAT(Tpart1, " Tpart1 1");
+  print_tensor_float(Tpart2, "Tpart2 ..");
+  print_tensor_msg_TYPE_FLOAT(Tpart2, "Tpart2 ..");
+
+  printDebug_dimension(Tpart1->dim,"dim part1 "); 
+  printDebug_dimension(Tpart2->dim,"dim part2 "); 
+  printDebug_dimension(M0->dim,"dim root "); 
+
+  free_tensor_TYPE_FLOAT(M0);
+  free(Tpart1->dim);
+  free(Tpart2->dim);
+  free(Tpart1);
+  free(Tpart2);
+}
+#endif
+
+#if 1
+
+TEST(Split_randomInit){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=4;
+  d0->perm[1]=3;
+  d0->perm[2]=5;
+  
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  init_random_x_TYPE_FLOAT(M0,2.7,5.4,50001);
+
+  print_tensor_float(M0, "M0 random");
+
+  tensor_TYPE_FLOAT *Tpart1=NULL, *Tpart2=NULL;
+
+  split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 2, 1);
+
+  print_tensor_float(Tpart1, " Tpart1 1");
+  print_tensor_float(Tpart2, "Tpart2 ..");
+
+  printDebug_dimension(Tpart1->dim,"dim part1 "); 
+  printDebug_dimension(Tpart2->dim,"dim part2 "); 
+  printDebug_dimension(M0->dim,"dim root "); 
+
+  free_tensor_TYPE_FLOAT(M0);
+  free(Tpart1->dim);
+  free(Tpart2->dim);
+  free(Tpart1);
+  free(Tpart2);
+}
+#endif
 
 TEST(tensorProd ){
   dimension *d0=create_dim(3);
@@ -620,6 +818,70 @@ TEST(Pthread_tensorContractnPro2d_TYPE_DOUBLE2 ){
   free_tensor_TYPE_DOUBLE(M1);
 
 }
+TEST(contract_dim1){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(1);
+#if VALGRIND_
+  d0->perm[0]=5;
+  d0->perm[1]=2; //3;
+  d0->perm[2]=3;
+
+  d1->perm[0]=3;
+
+#else
+
+  d0->perm[0]=125;
+  d0->perm[1]=52; //3;
+  d0->perm[2]=63;
+
+  d1->perm[0]=63;
+#endif
+
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  print_tensor_double(M0,"M0");
+  print_tensor_double(M1,"M1");
+
+  tensor_TYPE_DOUBLE *M;
+  tensor_TYPE_DOUBLE *MnO;
+
+  size_t nbthread = 5;
+
+  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,1);
+  //print_tensor_double(M,"M");
+  //cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,1);
+  tensorContractnProdThread_TYPE_DOUBLE(&MnO, M0,M1,1,nbthread);
+
+  print_tensor_double(MnO,"MnO");
+
+printDebug_dimension(M0->dim," M0 dimension  ");
+printDebug_dimension(M1->dim," M1 dimension  ");
+printDebug_dimension(M->dim," M dimension  ");
+
+
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+  EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+  free_tensor_TYPE_DOUBLE(M);
+  free_tensor_TYPE_DOUBLE(MnO);
+  free_tensor_TYPE_DOUBLE(M0);
+  free_tensor_TYPE_DOUBLE(M1);
+
+}
+
 TEST(Pthread_tensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);

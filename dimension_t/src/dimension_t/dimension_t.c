@@ -121,6 +121,30 @@ dimension* sub_dim_tail(dimension *root, size_t subdim){
   }
   return NULL;
 }
+
+/*
+void split_dim_part(dimension *root, dimension **part_1, dimension **part_2, size_t sz_nb_minus_part ) */
+void split_dim_part(dimension *root, dimension **part_1, dimension **part_2, size_t pivotSplit, size_t rangeInPivot ) {
+  if(pivotSplit < root->size){
+  if(rangeInPivot <  root->perm[pivotSplit]){
+    //size_t sz_part1= (root->rank * sz_nb_minus_part)/(root->perm[(root->size)-1]);
+    //printf("sz_part1 :%ld \n",sz_part1);
+    *part_1 = init_copy_dim(root->perm, root->size);
+    ((*part_1)->perm[pivotSplit]) -= rangeInPivot;
+    updateRankDim(*part_1);
+    /*if(sz_nb_minus_part <2)
+      *part_2 = init_copy_dim((root->perm), root->size-1 );
+    else{*/
+      *part_2 = init_copy_dim((root->perm), root->size );
+      (*part_2)->perm[pivotSplit] = rangeInPivot ;
+    //}
+    updateRankDim(*part_2);
+  }
+  }
+}
+
+
+
 void add_dimension(dimension **d, dimension *d0, dimension *d1) {
     (*d) = create_dim(d0->size + d1->size);
     for (size_t i = 0; i < d0->size; i++) (*d)->perm[i] = d0->perm[i];
@@ -146,10 +170,13 @@ void min_dimension(dimension **d, dimension *d0, dimension *d1) {
 
 void printDebug_dimension(dimension *d,char *msg){
 
-  printf("%s / dim->size = %ld | dim->rank = %ld \n",msg,d->size,d->rank);
+  printf("(%s)->size = %ld | (%s)->rank = %ld \n",msg,d->size,msg,d->rank);
   for(size_t i=0; i<d->size; ++i)
     printf("[%ld: %ld] |", i,d->perm[i]);
-  printf("\n");
+  if(endian)
+    printf("litle endian (true)\n");
+  else
+    printf("litle endian (false) \n");
 }
 
 void updateRankDim(dimension *dim){

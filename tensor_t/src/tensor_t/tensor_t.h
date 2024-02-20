@@ -1,6 +1,8 @@
 #ifndef __TENSOR_T__H__
 #define __TENSOR_T__H__
 
+#include <stdlib.h>
+#include <time.h>
 #include <pthread.h>
 
 #include "dimension_t/dimension_t.h"
@@ -14,15 +16,19 @@ struct tensor_##type{\
 };\
 typedef struct tensor_##type tensor_##type;\
 tensor_##type * CREATE_TENSOR_##type(dimension *dim); \
+tensor_##type* CREATE_TENSOR_FROM_CPY_DIM_##type(dimension *dim);\
 void free_tensor_##type(tensor_##type *  tens); \
-/*tensor_##type * sub_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
+tensor_##type * sub_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
 tensor_##type * sub_minus_tensor_tail_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
 tensor_##type * sub_tensor_head_##type(tensor_##type *rootens, size_t subdim, size_t rankInDim); \
 tensor_##type * sub_tensor_tail_##type(tensor_##type *rootens, size_t subdim, size_t rankInDim); \
-*/tensor_##type * sub_copy_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
+tensor_##type * sub_copy_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
 tensor_##type * sub_copy_minus_tensor_tail_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
 tensor_##type * sub_copy_tensor_head_##type(tensor_##type *rootens, size_t sub_copydim, size_t rankInDim); \
 tensor_##type * sub_copy_tensor_tail_##type(tensor_##type *rootens, size_t sub_copydim, size_t rankInDim); \
+void print_tensor_msg_##type(tensor_##type *T, char *msg);\
+size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withIndex);\
+void split_tensor_##type(tensor_##type *Troot, tensor_##type **Tpart1, tensor_##type **Tpart2, size_t pivotSplit, size_t rangeInPivot);\
 void tensorProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
@@ -31,6 +37,7 @@ void tensorProdThrea2d_##type(tensor_##type **MM, tensor_##type *M0, tensor_##ty
 void tensorContractnProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
 void tensorContractnPro2dThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
 void tensorContractnProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
+void init_random_x_##type(tensor_##type *M, type minR, type maxR,  int randomRange);\
 
 
 GENERATE_TENSOR_TYPE(TYPE_FLOAT);

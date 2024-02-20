@@ -5,6 +5,15 @@
 
 extern bool endian;
 
+
+bool isLessEqThan(long int a, long int b) ;
+bool isLessThan(long int a, long int b) ;
+bool isGreatEqThan(long int a, long int b)  ;
+bool isGreatThan(long int a, long int b)  ;
+long int incr(long int i) ;
+long int decr(long int i) ;
+
+
 typedef struct PERMUTATION_TYPE_SIZE_T dimension ;
 
 dimension * create_dim(size_t size);
@@ -21,6 +30,8 @@ dimension* sub_copy_minus_dim_head(dimension *t, size_t minusSubdim);
 dimension* sub_copy_minus_dim_tail(dimension *t, size_t minusSubdim);
 dimension* sub_copy_dim_head(dimension *t, size_t sub_copydim);
 dimension* sub_copy_dim_tail(dimension *t, size_t sub_copydim);
+
+void split_dim_part(dimension *root, dimension **part_1, dimension **part_2, size_t pivotSplit, size_t rangeInPivot );
 
 void add_copy_dimension(dimension **d, dimension *d0, dimension *d1);
 void min_copy_dimension(dimension **d, dimension *d0, dimension *d1);
