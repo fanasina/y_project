@@ -380,9 +380,9 @@ TEST(sprinttens){
 TEST(Split_randomInit){
   dimension *d0=create_dim(3);
 
-  d0->perm[0]=4;
+  d0->perm[0]=2;
   d0->perm[1]=3;
-  d0->perm[2]=5;
+  d0->perm[2]=4;
   
 
   updateRankDim(d0);
@@ -399,20 +399,22 @@ TEST(Split_randomInit){
 
   tensor_TYPE_FLOAT *Tpart1=NULL, *Tpart2=NULL;
 
-  split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 1, 2);
+  //split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 1, 2);
+  //split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 2, 3);
+  split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 1, 1);
 
   print_tensor_float(Tpart1, " Tpart1 1");
-  print_tensor_msg_TYPE_FLOAT(Tpart1, " Tpart1 1");
+  //print_tensor_msg_TYPE_FLOAT(Tpart1, " Tpart1 1");
   print_tensor_float(Tpart2, "Tpart2 ..");
-  print_tensor_msg_TYPE_FLOAT(Tpart2, "Tpart2 ..");
+  //print_tensor_msg_TYPE_FLOAT(Tpart2, "Tpart2 ..");
 
-  printDebug_dimension(Tpart1->dim,"dim part1 "); 
-  printDebug_dimension(Tpart2->dim,"dim part2 "); 
-  printDebug_dimension(M0->dim,"dim root "); 
+//  printDebug_dimension(Tpart1->dim,"dim part1 "); 
+//  printDebug_dimension(Tpart2->dim,"dim part2 "); 
+//  printDebug_dimension(M0->dim,"dim root "); 
 
   free_tensor_TYPE_FLOAT(M0);
-  free(Tpart1->dim);
-  free(Tpart2->dim);
+  free_dimension(Tpart1->dim);
+  free_dimension(Tpart2->dim);
   free(Tpart1);
   free(Tpart2);
 }
@@ -421,6 +423,7 @@ TEST(Split_randomInit){
 #if 1
 
 TEST(Split_randomInit){
+ endian=false;
   dimension *d0=create_dim(3);
 
   d0->perm[0]=4;
@@ -441,7 +444,9 @@ TEST(Split_randomInit){
 
   tensor_TYPE_FLOAT *Tpart1=NULL, *Tpart2=NULL;
 
-  split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 2, 1);
+  split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 2, 4);
+  //split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 0, 1);
+  //split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 2, 1);
 
   print_tensor_float(Tpart1, " Tpart1 1");
   print_tensor_float(Tpart2, "Tpart2 ..");
@@ -451,8 +456,55 @@ TEST(Split_randomInit){
   printDebug_dimension(M0->dim,"dim root "); 
 
   free_tensor_TYPE_FLOAT(M0);
-  free(Tpart1->dim);
-  free(Tpart2->dim);
+  free_dimension(Tpart1->dim);
+  free_dimension(Tpart2->dim);
+  free(Tpart1);
+  free(Tpart2);
+}
+#endif
+
+
+#if 1
+
+TEST(SplitOne_randomInit){
+  dimension *d0=create_dim(1);
+
+  d0->perm[0]=4;
+
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  init_random_x_TYPE_FLOAT(M0,2.7,5.4,50001);
+
+  print_tensor_float(M0, "M0 random");
+
+  tensor_TYPE_FLOAT *Tpart1=NULL, *Tpart2=NULL;
+
+  if(endian){
+    split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 0, 1);
+  }else{
+    split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 0, 3);
+  }
+
+  print_tensor_float(Tpart1, " Tpart1 1");
+  print_tensor_float(Tpart2, "Tpart2 ..");
+
+  printDebug_dimension(Tpart1->dim,"dim part1 ");
+  printDebug_dimension(Tpart2->dim,"dim part2 ");
+  printDebug_dimension(M0->dim,"dim root ");
+
+  for(size_t i=0;i<(Tpart1->dim)->rank;++i) Tpart1->x[i]=0;
+  print_tensor_float(Tpart1, "Tpart1 0");
+  print_tensor_float(M0, "M0 Tpart1 0");
+
+  free_tensor_TYPE_FLOAT(M0);
+  free_dimension(Tpart1->dim);
+  free_dimension(Tpart2->dim);
   free(Tpart1);
   free(Tpart2);
 }

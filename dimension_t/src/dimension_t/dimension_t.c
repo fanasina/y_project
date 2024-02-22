@@ -173,10 +173,60 @@ void printDebug_dimension(dimension *d,char *msg){
   printf("(%s)->size = %ld | (%s)->rank = %ld \n",msg,d->size,msg,d->rank);
   for(size_t i=0; i<d->size; ++i)
     printf("[%ld: %ld] |", i,d->perm[i]);
-  if(endian)
-    printf("litle endian (true)\n");
+ /* if(endian)
+    printf("\nendian (true): the bigest index varies first, e.g:  [x0,x1,x2,...,xn] xn is the bigest index\n");
   else
-    printf("litle endian (false) \n");
+    printf("\nendian (false): the lowest index varies first, e.g: [x0,x1,x2,...,xn] x0 is the lowest index\n");
+*/
+}
+
+size_t sprint_dimension(char **dimContent, dimension *d){
+  if(*dimContent != NULL){
+    free(*dimContent);
+    *dimContent=NULL;
+  }
+  size_t nbch=6*d->size+40;
+  *dimContent = malloc(nbch);
+  //printf("nbCh=%ld\n",nbch);
+  char *val=NULL;
+  size_t cur=0;
+  char *dimSzCh="dim->size";
+  for(size_t i=0; i<strlen(dimSzCh);++i)
+    (*dimContent)[cur++]=dimSzCh[i];
+  (*dimContent)[cur++]='=';
+  val=TYPE_SIZE_T_TO_STR(d->size);
+  for(size_t c=0;c<strlen(val);++c)
+    (*dimContent)[cur++]=val[c];
+  free(val); val = NULL;
+  (*dimContent)[cur++]=' ';
+  (*dimContent)[cur++]='/';
+  (*dimContent)[cur++]=' ';
+  char *dimRkCh="dim->rank";
+  for(size_t i=0; i<strlen(dimRkCh);++i)
+    (*dimContent)[cur++]=dimRkCh[i];
+  (*dimContent)[cur++]='=';
+  val=TYPE_SIZE_T_TO_STR(d->rank);
+  for(size_t c=0;c<strlen(val);++c)
+    (*dimContent)[cur++]=val[c];
+  free(val); val = NULL;
+  (*dimContent)[cur++]=' ';
+  (*dimContent)[cur++]='\n';
+  (*dimContent)[cur++]='[';
+  for(size_t i=0; i<d->size;++i){
+    (*dimContent)[cur++]=' ';
+    val=TYPE_SIZE_T_TO_STR(d->perm[i]);
+    for(size_t c=0;c<strlen(val);++c)
+      (*dimContent)[cur++]=val[c];
+    free(val); val = NULL;
+    (*dimContent)[cur++]=',';
+   
+  }
+  (*dimContent)[cur++]=']';
+
+  (*dimContent)[cur++]='\n';
+  (*dimContent)[cur++]='\0';
+
+  return cur;
 }
 
 void updateRankDim(dimension *dim){

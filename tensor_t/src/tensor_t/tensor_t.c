@@ -343,9 +343,11 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
   if (endian ) {\
         begin = (T->dim->size) - 1; end = 0;\
         iter = decr; cond = isGreatEqThan; \
+        printf("endian(=true): the bigest index varies first, e.g:  [x0,x1,x2,...,xn] xn is the bigest index \n");\
   }else{\
         begin = 0 ; end = (T->dim->size) - 1; \
         iter = incr; cond = isLessEqThan; \
+        printf("endian(=false): the lowest index varies first, e.g:  [x0,x1,x2,...,xn] x0 is the lowest index \n");\
   }\
   for(long int i=0;i<(T->dim)->rank;++i){\
     vCoordFromLin(coord,i,T->dim);\
@@ -378,8 +380,8 @@ size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withInde
     free(*tensorContent);\
     *tensorContent = NULL;  \
   }\
-  size_t sz = ((T->dim)->rank)*(32+ withIndex * 5*(T->dim)->size + 9 );\
-  printf("malloc %ld char\n",sz);\
+  size_t sz = ((T->dim)->rank)*(32+ withIndex * 5*(T->dim)->size + 129 );\
+  /*printf("malloc %ld char\n",sz);*/\
   *tensorContent = malloc(sz )  ;\
   size_t cur=0;\
   long int *coord = malloc(sizeof(long int)*(T->dim)->size); \
@@ -390,9 +392,19 @@ size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withInde
   if (endian ) {\
         begin = (T->dim->size) - 1; end = 0;\
         iter = decr; cond = isGreatEqThan; \
+        val=malloc(128);\
+        sprintf(val,"endian(=true): the bigest index varies first, e.g:  [x0,x1,x2,...,xn] xn is the bigest index \n");\
+        for(size_t c=0;c<strlen(val);++c)\
+          (*tensorContent)[cur++]=val[c];\
+        free(val); val = NULL;\
   }else{\
         begin = 0 ; end = (T->dim->size) - 1; \
         iter = incr; cond = isLessEqThan; \
+        val=malloc(128);\
+        sprintf(val,"endian(=false): the lowest index varies first, e.g:  [x0,x1,x2,...,xn] x0 is the lowest index \n");\
+        for(size_t c=0;c<strlen(val);++c)\
+          (*tensorContent)[cur++]=val[c];\
+        free(val); val = NULL;\
   }\
   for(long int i=0;i<(T->dim)->rank;++i){\
     vCoordFromLin(coord,i,T->dim);\

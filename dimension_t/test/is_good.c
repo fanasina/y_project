@@ -161,6 +161,25 @@ TEST(Coord_linear){
   free(coord);
 }
 
+TEST(sprint_dim){
+  dimension *D=create_dim(4);
+  D->perm[0]=2;
+  D->perm[1]=3;
+  D->perm[2]=5;
+  D->perm[3]=6;
+
+  updateRankDim(D);
+
+  char *dimSTR =NULL;
+  size_t nb=sprint_dimension(&dimSTR, D);
+
+  LOG(" nb char : %ld\n, dim print:\n%s\n",nb, dimSTR);
+
+  free_dimension(D);
+  free(dimSTR);
+}
+
+
 int main(int argc, char **argv){
   
 

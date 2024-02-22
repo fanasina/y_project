@@ -40,6 +40,7 @@ void add_dimension(dimension **d, dimension *d0, dimension *d1);
 void min_dimension(dimension **d, dimension *d0, dimension *d1);
 
 void printDebug_dimension(dimension *d, char *msg);
+size_t sprint_dimension(char **dimContent, dimension *d);
 
 void updateRankDim(dimension *dim);
 size_t LineFromCoord(size_t *coo, dimension *dim);
