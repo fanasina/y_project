@@ -179,6 +179,44 @@ TEST(sprint_dim){
   free(dimSTR);
 }
 
+TEST(incrment_dim){
+  endian=false;
+  dimension *D=create_dim(4);
+  D->perm[0]=2;
+  D->perm[1]=3;
+  D->perm[2]=5;
+  D->perm[3]=6;
+
+  updateRankDim(D);
+
+  char *dimSTR =NULL;
+  size_t nb=sprint_dimension(&dimSTR, D);
+
+  LOG(" nb char : %ld\n, dim print:\n%s\n",nb, dimSTR);
+
+  increment_dim_var(D);
+
+  nb=sprint_dimension(&dimSTR, D);
+
+  LOG(" nb char : %ld\n, dim print increment:\n%s\n",nb, dimSTR);
+
+  free_dimension(D);
+  free(dimSTR);
+}
+
+
+TEST(list_perm_in_dim){
+  list_perm_in_dim *l_p=NULL;
+
+  for(size_t i=1;i<5; ++i){
+    append_in_list_perm(&l_p, i);
+  }
+
+  dimension *dim=create_dim_from_list_perm(l_p);
+
+  printDebug_dimension(dim, "from l_p"); 
+}
+
 
 int main(int argc, char **argv){
   

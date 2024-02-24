@@ -38,6 +38,17 @@ void tensorContractnProdThread_##type(tensor_##type **MM, tensor_##type *M0, ten
 void tensorContractnPro2dThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
 void tensorContractnProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
 void init_random_x_##type(tensor_##type *M, type minR, type maxR,  int randomRange);\
+tensor_##type * parseInput_withDim_to_tensor_##type(char *input);\
+struct array_chainlist_##type{\
+  size_t index;\
+  type x;\
+  struct array_chainlist_##type *next;\
+};\
+typedef struct array_chainlist_##type array_chainlist_##type;\
+void append_array_chainlist_##type(array_chainlist_##type **list_a, type x);\
+tensor_##type * create_tensor_from_list_array_##type( array_chainlist_##type *l_a, dimension *part_dim);\
+void free_array_chainlist_##type(array_chainlist_##type *l_a);\
+
 
 
 GENERATE_TENSOR_TYPE(TYPE_FLOAT);

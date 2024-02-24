@@ -204,7 +204,7 @@ char * number_call_translate(long nb){
   if(nb>1) sprintf(ret," be called %ld times",nb);
   else if(nb == 1) sprintf(ret," be called once");
   else if(nb == 0 ) sprintf(ret," not to be executed");
-  else if(nb==INFINITY) sprintf(ret," be called forever");
+  else if(nb==ININITY_REPS) sprintf(ret," be called forever");
   else if(nb==INITSTATE) sprintf(ret," not expected");
   else sprintf(ret," nothing! it's negative:%ld", nb);
 

@@ -118,6 +118,16 @@ GENERATE_ALL(TYPE_DOUBLE)
 GENERATE_ALL(TYPE_L_DOUBLE)
 GENERATE_ALL(TYPE_STRING)
 
+/* strto_type */
+
+int strto_TYPE_INT(char *str, char **endptr);
+unsigned int strto_TYPE_U_INT(char *str, char **endptr);
+long int strto_TYPE_L_INT(char *str, char **endptr);
+unsigned long int strto_TYPE_U_L_INT(char *str, char **endptr);
+size_t strto_TYPE_SIZE_T(char *str, char **endptr);
+float strto_TYPE_FLOAT(char *str, char **endptr);
+double strto_TYPE_DOUBLE(char *str, char **endptr);
+long double strto_TYPE_L_DOUBLE(char *str, char **endptr);
 
 /*
  * time calucl

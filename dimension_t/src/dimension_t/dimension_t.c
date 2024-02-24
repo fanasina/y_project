@@ -143,7 +143,14 @@ void split_dim_part(dimension *root, dimension **part_1, dimension **part_2, siz
   }
 }
 
-
+void increment_dim_var(dimension *d){
+  if(endian){
+    (d->perm[0])++;
+  }
+  else{
+    (d->perm[d->size - 1])++;
+  }
+}
 
 void add_dimension(dimension **d, dimension *d0, dimension *d1) {
     (*d) = create_dim(d0->size + d1->size);
@@ -170,9 +177,11 @@ void min_dimension(dimension **d, dimension *d0, dimension *d1) {
 
 void printDebug_dimension(dimension *d,char *msg){
 
-  printf("(%s)->size = %ld | (%s)->rank = %ld \n",msg,d->size,msg,d->rank);
+  printf("(%s)->size = %ld | (%s)->rank = %ld \n[",msg,d->size,msg,d->rank);
   for(size_t i=0; i<d->size; ++i)
-    printf("[%ld: %ld] |", i,d->perm[i]);
+    printf(" %ld,", d->perm[i]);
+    printf("] \n");
+    //printf("[%ld: %ld] |", i,d->perm[i]);
  /* if(endian)
     printf("\nendian (true): the bigest index varies first, e.g:  [x0,x1,x2,...,xn] xn is the bigest index\n");
   else
@@ -285,5 +294,48 @@ size_t* CoordFromLin(size_t line, dimension *dim){
     ret=malloc(dim->size*sizeof(size_t));
     vCoordFromLin(ret,line,dim);
     return ret;
+}
+
+void append_in_list_perm(list_perm_in_dim **list_p, size_t perm){
+    list_perm_in_dim *lis=malloc(sizeof(list_perm_in_dim));
+    lis->perm=perm;
+    lis->next=NULL;
+  if(*list_p == NULL){
+    lis->index=0;
+    *list_p = lis;
+  }
+  else{
+    list_perm_in_dim *tmp =*list_p;
+    while(tmp->next) tmp=tmp->next;
+    lis->index = tmp->index +1;
+    tmp->next=lis;
+  }
+}
+
+dimension * create_dim_from_list_perm( list_perm_in_dim *l_p){
+
+  if(l_p){
+    list_perm_in_dim *tmp =l_p;
+    while(tmp->next) tmp=tmp->next;
+    dimension *dim=create_dim(tmp->index + 1);
+    (dim)->size = tmp->index + 1;
+    tmp=l_p;
+    while(tmp){
+      (dim)->perm[tmp->index]=tmp->perm;
+      tmp=tmp->next;
+    }
+    updateRankDim(dim);
+    return dim;
+  }
+  return NULL;
+}
+
+void free_list_perm_in_dim(list_perm_in_dim *l_p){
+  list_perm_in_dim *tmp=l_p, *ttmp;
+  while(tmp){
+    ttmp = tmp;
+    tmp = ttmp->next;
+    free(ttmp);
+  }
 }
 

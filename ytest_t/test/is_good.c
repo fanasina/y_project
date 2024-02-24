@@ -169,7 +169,7 @@ EXPECT_MOCK_CALL(int,f_mock, (),false, 2)  {
 EXPECT_MOCK_CALL(int,f_mock, (),1, 1)  { EXPECT_EQ_IN_MOCKF(23,21,f_mock);return 10;}
 
 EXPECT_MOCK_CALL(int,f_mock, (),1==2||2<1, 1)  {return 18;}
-EXPECT_MOCK_CALL(int,f_mock, (),1, INFINITY)  {return -18;}
+EXPECT_MOCK_CALL(int,f_mock, (),1, ININITY_REPS)  {return -18;}
 
 
 TEST(mockf1){
@@ -238,7 +238,7 @@ EXPECT_MOCK_CALL(int, f2_mock, (int a,int b), (a==b), 1){
 
 
 
-EXPECT_MOCK_CALL(int, f2_mock, (int a,int b), (1), INFINITY){
+EXPECT_MOCK_CALL(int, f2_mock, (int a,int b), (1), ININITY_REPS){
   return a*b;
 }
 

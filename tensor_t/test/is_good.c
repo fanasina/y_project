@@ -423,7 +423,7 @@ TEST(Split_randomInit){
 #if 1
 
 TEST(Split_randomInit){
- endian=false;
+  //endian=false;
   dimension *d0=create_dim(3);
 
   d0->perm[0]=4;
@@ -444,8 +444,8 @@ TEST(Split_randomInit){
 
   tensor_TYPE_FLOAT *Tpart1=NULL, *Tpart2=NULL;
 
-  split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 2, 4);
-  //split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 0, 1);
+  //split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 2, 4);
+  split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 0, 1);
   //split_tensor_TYPE_FLOAT(M0,&Tpart1,&Tpart2, 2, 1);
 
   print_tensor_float(Tpart1, " Tpart1 1");
@@ -685,6 +685,118 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
   free_tensor_TYPE_FLOAT(M1);
 
 }
+TEST(tensorContractnProd_TYPE_DOUBLE_2_1 ){
+  dimension *d0=create_dim(2);
+  dimension *d1=create_dim(1);
+#if VALGRIND_
+  d0->perm[0]=4;
+  d0->perm[1]=2; //3;
+
+  d1->perm[0]=2;
+
+#else
+
+  d0->perm[0]=125;
+  d0->perm[1]=52; //3;
+
+  d1->perm[0]=52;
+#endif
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  print_tensor_double(M0,"M0");
+  print_tensor_double(M1,"M1");
+
+  tensor_TYPE_DOUBLE *M;
+  tensor_TYPE_DOUBLE *MnO;
+
+  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,1);
+  //print_tensor_double(M,"M");
+  //cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
+  tensorContractnProdNotOpt_TYPE_DOUBLE(&MnO, M0,M1,1);
+
+  print_tensor_double(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+  EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+  free_tensor_TYPE_DOUBLE(M);
+  free_tensor_TYPE_DOUBLE(MnO);
+  free_tensor_TYPE_DOUBLE(M0);
+  free_tensor_TYPE_DOUBLE(M1);
+
+}
+
+
+TEST(tensorContractnProd_TYPE_DOUBLE_2_2 ){
+  dimension *d0=create_dim(2);
+  dimension *d1=create_dim(2);
+#if VALGRIND_
+  d0->perm[0]=4;
+  d0->perm[1]=2; //3;
+
+  d1->perm[0]=2;
+  d1->perm[1]=1;
+
+#else
+
+  d0->perm[0]=125;
+  d0->perm[1]=52; //3;
+
+  d1->perm[0]=52;
+  d1->perm[1]=1;
+#endif
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  print_tensor_double(M0,"M0");
+  print_tensor_double(M1,"M1");
+
+  tensor_TYPE_DOUBLE *M;
+  tensor_TYPE_DOUBLE *MnO;
+
+  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,1);
+  //print_tensor_double(M,"M");
+  //cl_tensorContractnProd_TYPE_DOUBLE(&MnO, M0,M1,2);
+  tensorContractnProdNotOpt_TYPE_DOUBLE(&MnO, M0,M1,1);
+
+  print_tensor_double(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+  EXPECT_ARRAY_EQ_TYPE_DOUBLE(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+  free_tensor_TYPE_DOUBLE(M);
+  free_tensor_TYPE_DOUBLE(MnO);
+  free_tensor_TYPE_DOUBLE(M0);
+  free_tensor_TYPE_DOUBLE(M1);
+
+}
+
+
 
 TEST(tensorContractnProd_TYPE_DOUBLE2 ){
   dimension *d0=create_dim(3);
@@ -1165,6 +1277,53 @@ TEST(tensorProd_vsThread2d ){
   free_tensor_TYPE_FLOAT(M0);
   free_tensor_TYPE_FLOAT(M1);
 }
+
+TEST(parseInput_withDim_to_tensor){
+  endian=true;
+  char *input="[2,3]"\
+               "((1.21,10,0.23)"\
+               "(.56,124,22.5)) ";
+
+  tensor_TYPE_FLOAT *t=parseInput_withDim_to_tensor_TYPE_FLOAT(input);
+
+  print_tensor_msg_TYPE_FLOAT(t," tensor from input" );
+
+  free_tensor_TYPE_FLOAT(t);
+}
+
+TEST(parseInput_unknownpart_to_tensor){
+  //endian=true;
+  endian=true;
+  char *input="[*,3]"\
+               "((1.21,10,0.23)"\
+               "((1.21,10,0.23)"\
+               "((1.21,10,0.23)"\
+               "((1.21,10,0.23)"\
+               "((1.21,10,0.23)"\
+               "((1.21,10,0.23)"\
+               "(.56,124,22.5)) ";
+
+  tensor_TYPE_FLOAT *t=parseInput_withDim_to_tensor_TYPE_FLOAT(input);
+
+  print_tensor_msg_TYPE_FLOAT(t," tensor from input" );
+
+  free_tensor_TYPE_FLOAT(t);
+}
+
+TEST(parseInput_unknownpart_to_tensorendfalse){
+  endian=false;
+  char *input="[3,_]"\
+               "((1.21,10,0.23,21)"\
+               "((1.21,10,0.23,.1)"\
+               "(.56,124,22.5,1.44))";
+
+  tensor_TYPE_FLOAT *t=parseInput_withDim_to_tensor_TYPE_FLOAT(input);
+
+  print_tensor_msg_TYPE_FLOAT(t," tensor from input" );
+
+  free_tensor_TYPE_FLOAT(t);
+}
+
 
 int main(int argc, char **argv){
   

@@ -4,7 +4,7 @@
 #include "ftest/ftest.h"
 #include "tools_t/tools_t.h"
 
-#define INFINITY -8
+#define ININITY_REPS -8
 #define INITSTATE -1
 #define DONOTHING 0
 
@@ -33,8 +33,8 @@ struct func_mock_info_struct{
   int expect_call;/* 1 if EXPECT_MOCK_CALL and 0 if WILL_MOCK_CALL */
   long call;/* increment when call (try to executed) and 0 if not : init value */
   long failed_call;/* increment when condition not fill and 0 if not : init value */
-  long init_times_left;/* DONOTHING do nothing (pass to -> next), INFINITY every time; INITSTATE init; > 0 execute and decrement  */
-  long times_left;/* DONOTHING do nothing (pass to -> next), INFINITY every time; INITSTATE init; > 0 execute and decrement  */
+  long init_times_left;/* DONOTHING do nothing (pass to -> next), ININITY_REPS every time; INITSTATE init; > 0 execute and decrement  */
+  long times_left;/* DONOTHING do nothing (pass to -> next), ININITY_REPS every time; INITSTATE init; > 0 execute and decrement  */
   struct func_mock_info_struct *next;
 };
 
@@ -65,8 +65,8 @@ extern struct list_base_fmock *g_list_base_fmock;
 
 #if 0
     int expect_call; /* 1 if EXPECT_MOCK_CALL and 0 if WILL_MOCK_CALL */\
-    long init_times_left; /* DONOTHING do nothing (pass to -> next), INFINITY every time; INITSTATE init; > 0 execute and decrement  */\
-    long times_left; /* DONOTHING do nothing (pass to -> next), INFINITY every time; INITSTATE init; > 0 execute and decrement  */\
+    long init_times_left; /* DONOTHING do nothing (pass to -> next), ININITY_REPS every time; INITSTATE init; > 0 execute and decrement  */\
+    long times_left; /* DONOTHING do nothing (pass to -> next), ININITY_REPS every time; INITSTATE init; > 0 execute and decrement  */\
 
 #endif
 
@@ -191,7 +191,7 @@ extern struct list_base_fmock *g_list_base_fmock;
       PRINT_HK_C(RED_K,tab_hk_f[hk_TR]," 1 argument check failed from %s \n",__func__);                                 \
     }*/\
     PRINT_DEBUG(" %*c VALUES: mock function:%s, conditions:%s t_left:%ld, init_left:%ld| args:%s\n",8,'^',(tmp_mock->info_mock)->str_namefunc, (tmp_mock->info_mock)->str_conditions, (tmp_mock->info_mock)->times_left,(tmp_mock->info_mock)->init_times_left, #args_call_with_parenthesis);\
-    if (((tmp_mock->info_mock)->times_left <= INFINITY) || ((tmp_mock->info_mock)->times_left > 0)){\
+    if (((tmp_mock->info_mock)->times_left <= ININITY_REPS) || ((tmp_mock->info_mock)->times_left > 0)){\
       --((tmp_mock->info_mock)->times_left);\
     PRINT_DEBUG(" %*c VALUES: mock function:%s, conditions:%s t_left:%ld, init_left:%ld| args:%s\n",8,'v',(tmp_mock->info_mock)->str_namefunc, (tmp_mock->info_mock)->str_conditions, (tmp_mock->info_mock)->times_left,(tmp_mock->info_mock)->init_times_left, #args_call_with_parenthesis);\
       if(1 == tmp_mock->call_mock_condition args_call_with_parenthesis){\

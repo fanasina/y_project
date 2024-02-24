@@ -47,6 +47,20 @@ size_t LineFromCoord(size_t *coo, dimension *dim);
 size_t* CoordFromLin(size_t line, dimension *dim);
 void vCoordFromLin(size_t *ret, size_t line, dimension *dim );
 
+void increment_dim_var(dimension *d);
+
+struct list_perm_in_dim{
+  size_t index;
+  size_t perm;
+  struct list_perm_in_dim *next;
+};
+
+typedef struct list_perm_in_dim list_perm_in_dim;
+
+void append_in_list_perm(list_perm_in_dim **list_p, size_t perm);
+dimension * create_dim_from_list_perm( list_perm_in_dim *l_p);
+
+void free_list_perm_in_dim(list_perm_in_dim *l_p);
 
 #endif /* __DIMENSION_T__H__ */
 //int compare_dimension(dimension *d1, dimension *d2);

@@ -343,11 +343,11 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
   if (endian ) {\
         begin = (T->dim->size) - 1; end = 0;\
         iter = decr; cond = isGreatEqThan; \
-        printf("endian(=true): the bigest index varies first, e.g:  [x0,x1,x2,...,xn] xn is the bigest index \n");\
+        /*printf("endian(=true): the bigest index varies first, e.g:  [x0,x1,x2,...,xn] xn is the bigest index \n");*/\
   }else{\
         begin = 0 ; end = (T->dim->size) - 1; \
         iter = incr; cond = isLessEqThan; \
-        printf("endian(=false): the lowest index varies first, e.g:  [x0,x1,x2,...,xn] x0 is the lowest index \n");\
+        /*printf("endian(=false): the lowest index varies first, e.g:  [x0,x1,x2,...,xn] x0 is the lowest index \n");*/\
   }\
   for(long int i=0;i<(T->dim)->rank;++i){\
     vCoordFromLin(coord,i,T->dim);\
@@ -357,10 +357,10 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
         else break;\
       }\
     }\
-    printf(" [{");\
+    printf(" [");\
     for(size_t k=0; k<(T->dim)->size;++k) printf(" %ld,",coord[k]);\
     val=type##_TO_STR(T->x[i]);\
-    printf("}#%ld] %s, ",i,val);\
+    printf(" |#%ld]: %s, ",i,val);\
     free(val); val=NULL;\
     if(coord[begin]==(T->dim)->perm[begin]-1){\
       for(long int j=begin; cond(j,end); j = iter(j)){\
@@ -617,7 +617,7 @@ void* runProd_thread_##type(void *arg){\
           a0_id=i % arg_t->MRank;\
           a1_id=i / arg_t->MRank;\
         }\
-        arg_t->Mx[i] += arg_t->M0x[a0_id] * arg_t->M1x[a1_id];\
+        arg_t->Mx[i] = arg_t->M0x[a0_id] * arg_t->M1x[a1_id];\
    }\
 }\
 \
@@ -984,6 +984,128 @@ void tensorContractnProdNotOpt_##type(tensor_##type** MM, tensor_##type *M0, ten
     FREE_dM_S_ ; \
 }\
 \
+\
+/*format_file: [dim]((x,x,a)(a,x,a)) | example:[2,3,4](((a0,b0,c0,d0)(a1,b1,c1,d1)(a2,b2,c2,d2))((e0,f0,g0,h0)(e1,f1,g1,h1)(e2,f2,g2,h2)))*/\
+tensor_##type * parseInput_withDim_to_tensor_##type(char *input){\
+  tensor_##type *tens ;\
+  size_t len = strlen(input);\
+  list_perm_in_dim *l_p=NULL;\
+  size_t ss;\
+  char *ttmp=input;\
+  char *ppEnd="[";\
+  bool size_unknown=false; \
+  for(size_t i=0; i<len ; ++i){\
+    if(input[i]==']') break;\
+    if((input[i]=='*') ||(input[i]=='_')){ size_unknown =true; break;}\
+  }\
+  while(ppEnd && (ppEnd[0] !=']') ){\
+    ss = strtoul(ttmp, &ppEnd, 10);\
+    while(ttmp == ppEnd && ppEnd[0] !=']'){\
+      ttmp++;\
+      ss = strtoul(ttmp, &ppEnd, 10);\
+    }\
+    if(ppEnd !=ttmp )\
+      append_in_list_perm(&l_p,ss);\
+      /*printf("ss: %ld\n",ss);*/\
+    ttmp=ppEnd;\
+  }\
+  dimension *dim=create_dim_from_list_perm(l_p);\
+  /*printf("ppEnd = %s\n",ppEnd);*/\
+\
+  ttmp++; ppEnd++;\
+\
+  if(size_unknown == false){\
+    tens = CREATE_TENSOR_##type(dim);\
+  \
+    size_t i=0;\
+    type x;\
+    while(ppEnd && (ppEnd[0] !='\0') && i<dim->rank){\
+      x = strto_##type(ttmp, &ppEnd);\
+      while(ttmp == ppEnd && ppEnd[0] !='\0'){\
+        ttmp++;\
+        x = strto_##type(ttmp, &ppEnd);\
+      }\
+      if(ppEnd[0]!='\0')\
+        (tens)->x[i] = x;\
+        /*printf("d: %lf\n",d);*/\
+      ttmp=ppEnd;\
+      ++i;\
+    }\
+  }\
+  else{\
+    array_chainlist_##type *l_a=NULL;\
+    type x;\
+    while(ppEnd && (ppEnd[0] !='\0')){\
+      x = strto_##type(ttmp, &ppEnd);\
+      while(ttmp == ppEnd && ppEnd[0] !='\0'){\
+        ttmp++;\
+        x = strto_##type(ttmp, &ppEnd);\
+      }\
+      /*if(ppEnd[0]!='\0')*/ \
+      if(ppEnd != ttmp)\
+        append_array_chainlist_##type(&l_a, x);\
+      /*printf("-- x: %f\n",x);*/\
+      ttmp=ppEnd;\
+    }\
+    \
+    tens = create_tensor_from_list_array_##type(l_a,dim);\
+  }\
+  return tens;\
+}\
+void append_array_chainlist_##type(array_chainlist_##type **list_a, type x){\
+    array_chainlist_##type *lis=malloc(sizeof(array_chainlist_##type));\
+    lis->x=x;\
+    lis->next=NULL;\
+  if(*list_a == NULL){\
+    lis->index=0;\
+    *list_a = lis;\
+  }\
+  else{\
+    array_chainlist_##type *tmp =*list_a;\
+    while(tmp->next) tmp=tmp->next;\
+    lis->index = tmp->index +1;\
+    tmp->next=lis;\
+  }\
+}\
+\
+tensor_##type * create_tensor_from_list_array_##type( array_chainlist_##type *l_a, dimension *part_dim){\
+  if(l_a){\
+    array_chainlist_##type *tmp =l_a;\
+    while(tmp->next) tmp=tmp->next;\
+    size_t miss_part_d=(tmp->index + 1)/part_dim->rank;\
+    dimension *dim=create_dim(part_dim->size + 1);\
+    if(endian){\
+      dim->perm[0]=miss_part_d;\
+      for(size_t i=0; i<part_dim->size;++i) dim->perm[i+1]=part_dim->perm[i];\
+    }else{\
+      size_t i=0;\
+      for(i=0; i<part_dim->size;++i) dim->perm[i]=part_dim->perm[i];\
+      dim->perm[i]=miss_part_d;\
+      \
+    }\
+    updateRankDim(dim);\
+    tensor_##type *tens= CREATE_TENSOR_##type(dim);\
+    tmp=l_a;\
+    while(tmp){\
+      (tens)->x[tmp->index]=tmp->x;\
+      tmp=tmp->next;\
+    }\
+    return tens;\
+  }\
+  return NULL;\
+}\
+\
+void free_array_chainlist_##type(array_chainlist_##type *l_a){\
+  array_chainlist_##type *tmp=l_a, *ttmp;\
+  while(tmp){\
+    ttmp = tmp;\
+    tmp = ttmp->next;\
+    free(ttmp);\
+  }\
+}\
+\
+
+
 
 GEN_FUNC_TENSOR(TYPE_FLOAT);
 GEN_FUNC_TENSOR(TYPE_DOUBLE);

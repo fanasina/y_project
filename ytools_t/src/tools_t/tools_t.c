@@ -50,8 +50,8 @@ long diff_timespec_nanoseconds(struct timespec time_stop, struct timespec time_s
 #define GEN_TO_STR_N(type,size,format)  \
   TYPE_STRING type##_TO_STR(type var){  \
     char *ret = malloc(size);                     \
-    int szret = sprintf(ret,format,var);            \
-    ret[szret]='\0';              \
+    /*int szret = */sprintf(ret,format,var);            \
+    /*ret[szret]='\0'*//*no need , already by default */;              \
     return ret;                         \
   }\
 
@@ -196,6 +196,33 @@ GENERATE_FUNCTION_ALL(TYPE_FLOAT)
 GENERATE_FUNCTION_ALL(TYPE_DOUBLE)
 GENERATE_FUNCTION_ALL(TYPE_L_DOUBLE)
 GENERATE_FUNCTION_ALL(TYPE_STRING)
+
+/* strto_type */
+  
+int strto_TYPE_INT(char *str, char **endptr){ 
+  return (int)strtol(str,endptr,10);
+}
+unsigned int strto_TYPE_U_INT(char *str, char **endptr){ 
+  return (unsigned int)strtoul(str,endptr,10);
+}
+long int strto_TYPE_L_INT(char *str, char **endptr){
+  return strtol(str,endptr,10);
+}
+unsigned long int strto_TYPE_U_L_INT(char *str, char **endptr){
+  return strtoul(str,endptr,10);
+}
+size_t strto_TYPE_SIZE_T(char *str, char **endptr){
+  return strtoul(str,endptr,10);
+}
+float strto_TYPE_FLOAT(char *str, char **endptr){
+  return strtof(str,endptr);
+}
+double strto_TYPE_DOUBLE(char *str, char **endptr){
+  return strtod(str,endptr);
+}
+long double strto_TYPE_L_DOUBLE(char *str, char **endptr){
+  return strtold(str,endptr);
+}
 
 
 /*
