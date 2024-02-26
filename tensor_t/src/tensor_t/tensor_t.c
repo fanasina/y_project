@@ -94,7 +94,8 @@ tensor_##type* init_copy_tensor_head_##type(tensor_##type *troot ,dimension *dim
     r_tens->dim = dim;\
     /*r_tens->x = troot->x + ((troot->dim)->rank - dim->rank);*/\
     r_tens->x = malloc(sizeof(type)*dim->rank);\
-    for(size_t dRank=(troot->dim)->rank - dim->rank, i=0; i<dim->rank;++i)\
+    size_t dRank=(troot->dim)->rank - dim->rank;\
+    for(size_t i=0; i<dim->rank;++i)\
       r_tens->x[i]=troot->x[i+dRank];\
     return r_tens;\
   }\
@@ -476,8 +477,8 @@ void split_copy_tensor_##type(tensor_##type *Troot, tensor_##type **Tpart1, tens
     if( rangeInPivot < (Troot->dim)->perm[pivotSplit]){\
       dimension *dpart1, *dpart2;\
       split_dim_part(Troot->dim, &dpart1, &dpart2, pivotSplit, rangeInPivot);\
-      *Tpart1 = init_tensor_head_##type(Troot, dpart1);\
-      *Tpart2 = init_tensor_tail_##type(Troot, dpart2);\
+      *Tpart1 = init_copy_tensor_head_##type(Troot, dpart1);\
+      *Tpart2 = init_copy_tensor_tail_##type(Troot, dpart2);\
     }\
   }\
 }\
@@ -1049,9 +1050,365 @@ tensor_##type * parseInput_withDim_to_tensor_##type(char *input){\
     }\
     \
     tens = create_tensor_from_list_array_##type(l_a,dim);\
+    free_dimension(dim);\
+    free_array_chainlist_##type(l_a);\
   }\
+  free_list_perm_in_dim(l_p);\
   return tens;\
 }\
+\
+\
+/*format_file: [*,dim1,dim2]((x,x,a)(x,a))... | example:[2,(2,3),4](((a0,b0,c0,)((a1,b1,c1))((a2,b2,c2,d2))((e0,f0,g0)(e1,f1,g1)(e2,f2,g2,h2))) ==[2,2,3][2,4]*/\
+void parseInputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_##type **Tpart2, char *input, size_t pivotSplit){\
+  /*tensor_##type *tens ;*/\
+  size_t len = strlen(input);\
+  list_perm_in_dim *l_p=NULL;\
+  size_t ss;\
+  char *ttmp=input;\
+  char *ppEnd="[";\
+  bool size_unknown=false; \
+  for(size_t i=0; i<len ; ++i){\
+    if(input[i]==']') break;\
+    if((input[i]=='*') ||(input[i]=='_')){ size_unknown =true; break;}\
+  }\
+  while(ppEnd && (ppEnd[0] !=']') ){\
+    ss = strtoul(ttmp, &ppEnd, 10);\
+    while(ttmp == ppEnd && ppEnd[0] !=']'){\
+      ttmp++;\
+      ss = strtoul(ttmp, &ppEnd, 10);\
+    }\
+    if(ppEnd !=ttmp )\
+      append_in_list_perm(&l_p,ss);\
+      /*printf("ss: %ld\n",ss);*/\
+    ttmp=ppEnd;\
+  }\
+  dimension *dim=create_dim_from_list_perm(l_p);\
+  /*printf("ppEnd = %s\n",ppEnd);*/\
+\
+  ttmp++; ppEnd++;\
+\
+  if(size_unknown == false){\
+    /*dimension *dim1 = create_dim(dim->size-1);\
+    dimension *ddim1 = create_dim(dim->size-2);\
+    dimension *ddim2 = create_dim(dim->size-2);\
+    dimension *dim2 = create_dim(2);\
+    */dimension *dim1 = create_dim(dim->size-pivotSplit);\
+    dimension *ddim1 = create_dim(dim->size-pivotSplit-1);\
+    dimension *ddim2 = create_dim(pivotSplit);\
+    dimension *dim2 = create_dim(pivotSplit+1);\
+    for(size_t i=0;i<dim1->size;++i) dim1->perm[i] = dim->perm[i];\
+    for(size_t i=0;i<ddim1->size;++i) ddim1->perm[i] = dim->perm[i+1];\
+    for(size_t i=0;i<ddim2->size;++i) ddim2->perm[i] = dim->perm[ dim->size - pivotSplit + i];\
+    dim2->perm[0] = dim->perm[0];\
+    for(size_t i=1;i<dim2->size;++i) dim2->perm[i] = ddim2->perm[i-1];\
+    /*dim2->perm[1] = dim->perm[dim->size - 1];*/\
+    updateRankDim(dim1);\
+    updateRankDim(ddim1);\
+    updateRankDim(ddim2);\
+    updateRankDim(dim2);\
+    *Tpart1 = CREATE_TENSOR_##type(dim1);\
+    *Tpart2 = CREATE_TENSOR_##type(dim2);\
+  \
+    size_t i1=0,i=0,j=0,i2=0;\
+    bool filled1=false,filled2=false;\
+    type x;\
+    while(ppEnd && (ppEnd[0] !='\0') && j<dim2->rank){\
+      x = strto_##type(ttmp, &ppEnd);\
+      while(ttmp == ppEnd && ppEnd[0] !='\0'){\
+        ttmp++;\
+        x = strto_##type(ttmp, &ppEnd);\
+      }\
+      if(ppEnd[0]!='\0'){\
+        if(!filled1){\
+          ++i1;\
+          (*Tpart1)->x[i++] = x;\
+          printf("++ x: %f, i1:%ld , rkn1: %ld\n",x,i1,ddim1->rank);\
+          if(i1 == ddim1->rank){\
+            filled1=true;\
+            i1=0;\
+            filled2=false;\
+          }\
+        }else{\
+          if(!filled2){\
+            ++i2;\
+            (*Tpart2)->x[j++] = x;\
+            printf("-----++ x: %f, i2:%ld , rknr: %ld\n",x,i2,ddim2->rank);\
+            if(i2 == ddim2->rank){\
+              filled2=true;\
+              i2=0;\
+              filled1=false;\
+            }\
+          }\
+          \
+        }\
+        /*printf("d: %lf\n",d);*/\
+      }\
+      ttmp=ppEnd;\
+    }\
+    free_dimension(ddim1);\
+    free_dimension(ddim2);\
+  }\
+  else{\
+    /*dimension *ddim1 = create_dim(dim->size-1);\
+    dimension *ddim2 = create_dim(1);\
+    for(size_t i=0;i<ddim1->size;++i) ddim1->perm[i] = dim->perm[i];\
+    ddim2->perm[0] = dim->perm[dim->size - 1];\
+    */dimension *ddim1 = create_dim(dim->size-pivotSplit);\
+    dimension *ddim2 = create_dim(pivotSplit);\
+    for(size_t i=0;i<ddim1->size;++i) ddim1->perm[i] = dim->perm[i];\
+    for(size_t i=0;i<ddim2->size;++i) ddim2->perm[i] = dim->perm[dim->size - pivotSplit + i];\
+    updateRankDim(ddim1);\
+    updateRankDim(ddim2);\
+    array_chainlist_##type *l_a1=NULL;\
+    array_chainlist_##type *l_a2=NULL;\
+    size_t i1=0,i=0,j=0,i2=0;\
+    bool filled1=false,filled2=false;\
+    type x;\
+    while(ppEnd && (ppEnd[0] !='\0')){\
+      x = strto_##type(ttmp, &ppEnd);\
+      while(ttmp == ppEnd && ppEnd[0] !='\0'){\
+        ttmp++;\
+        x = strto_##type(ttmp, &ppEnd);\
+      }\
+      /*if(ppEnd[0]!='\0')*/ \
+      if(ppEnd != ttmp){\
+        if(!filled1){\
+          ++i1;\
+          append_array_chainlist_##type(&l_a1, x);\
+          /*printf("++ x: %f, i1:%ld\n",x,i1);*/\
+          /*(*Tpart1)->x[i++] = x;*/\
+          if(i1 == ddim1->rank){\
+            filled1=true;\
+            i1=0;\
+            filled2=false;\
+          }\
+        }else{\
+          if(!filled2){\
+            ++i2;\
+            /*(*Tpart2)->x[j++] = x;*/\
+            append_array_chainlist_##type(&l_a2, x);\
+            /*printf("++ x: %f, i2:%ld\n",x,i2);*/\
+            if(i2 == ddim2->rank){\
+              filled2 = true;\
+              i2=0;\
+              filled1 = false;\
+            }\
+          }\
+          \
+        }\
+        /*printf("d: %lf\n",d);*/\
+      }\
+      /*printf("-- x: %f\n",x);*/\
+      ttmp=ppEnd;\
+    }\
+    \
+    /*tens = create_tensor_from_list_array_##type(l_a,dim);*/\
+    *Tpart1 = create_tensor_from_list_array_##type(l_a1,ddim1);\
+    *Tpart2 = create_tensor_from_list_array_##type(l_a2,ddim2);\
+    free_array_chainlist_##type(l_a1);\
+    free_array_chainlist_##type(l_a2);\
+    free_dimension(ddim1);\
+    free_dimension(ddim2);\
+  }\
+  free_dimension(dim);\
+  free_list_perm_in_dim(l_p);\
+}\
+\
+\
+/*format_file: [*,dim1,dim2]((x,x,a)(x,a))... | example:[2,(2,3),4](((a0,b0,c0,)((a1,b1,c1))((a2,b2,c2,d2))((e0,f0,g0)(e1,f1,g1)(e2,f2,g2,h2))) == with pivot 1 => [2,2,3][2,4]*/\
+void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_##type **Tpart2, char *file_name_input, size_t pivotSplit){\
+  size_t block_size=4;\
+  size_t block_count=2;\
+  char *input=malloc(block_size*block_count + 1);\
+  FILE *f_input;\
+  f_input=fopen(file_name_input,"r");\
+  if ( f_input == NULL ) {\
+    fprintf( stderr, "Cannot open file: %s for reading\n",file_name_input );\
+    exit( -1 );\
+  }\
+  bool size_unknown=false, breaked=false; \
+  while((block_count == fread(input, block_size, block_count, f_input)) && !breaked){\
+    input[block_count * block_size]='\0';\
+    size_t len = strlen(input);\
+    for(size_t i=0; i<len ; ++i){\
+      if(input[i]==']') {breaked = true; break;}\
+      if((input[i]=='*') ||(input[i]=='_')){ \
+        breaked=true;  size_unknown =true;\
+        break;}\
+    }\
+  }\
+  rewind(f_input);\
+  list_perm_in_dim *l_p=NULL;\
+  dimension *dim=NULL;\
+  size_t ss;\
+  char *ttmp;\
+  char *ppEnd="[";\
+  bool bracketsDown=false;\
+        size_t i1=0,i=0,j=0,i2=0;\
+        bool filled1=false,filled2=false;\
+        array_chainlist_##type *l_a1=NULL;\
+        array_chainlist_##type *l_a2=NULL;\
+        bool initDim=false;\
+        dimension *dim1 =NULL ;\
+        dimension *ddim1=NULL;\
+        dimension *ddim2=NULL;\
+        dimension *dim2=NULL ;\
+  bool Done=false;\
+  while(!Done){\
+    Done =  (block_count != fread(input, block_size, block_count, f_input)); \
+    input[block_size * block_count] = '\0';\
+    ttmp=input;\
+    if( !bracketsDown){\
+    while(strlen(ttmp) && strlen(ppEnd) && (*ppEnd !=']')  ){\
+      ss = strtoul(ttmp, &ppEnd, 10);\
+      while(ttmp == ppEnd && ppEnd[0] !=']'){\
+        ttmp++;\
+        ss = strtoul(ttmp, &ppEnd, 10);\
+      }\
+      if(ppEnd !=ttmp )\
+        append_in_list_perm(&l_p,ss);\
+      ttmp=ppEnd;\
+    }\
+    if(*ppEnd ==']'){\
+      dim=create_dim_from_list_perm(l_p);\
+      bracketsDown = true;\
+      ttmp++; ppEnd++;\
+    }\
+    \
+    }\
+    if(bracketsDown){\
+  \
+      if(size_unknown == false){\
+        \
+        if(!initDim){\
+          dim1 = create_dim(dim->size-pivotSplit);\
+          ddim1 = create_dim(dim->size-pivotSplit-1);\
+          ddim2 = create_dim(pivotSplit);\
+          dim2 = create_dim(pivotSplit+1);\
+          for(size_t i=0;i<dim1->size;++i) dim1->perm[i] = dim->perm[i];\
+          for(size_t i=0;i<ddim1->size;++i) ddim1->perm[i] = dim->perm[i+1];\
+          for(size_t i=0;i<ddim2->size;++i) ddim2->perm[i] = dim->perm[ dim->size - pivotSplit + i];\
+          dim2->perm[0] = dim->perm[0];\
+          for(size_t i=1;i<dim2->size;++i) dim2->perm[i] = ddim2->perm[i-1];\
+          updateRankDim(dim1);\
+          updateRankDim(ddim1);\
+          updateRankDim(ddim2);\
+          updateRankDim(dim2);\
+          *Tpart1 = CREATE_TENSOR_##type(dim1);\
+          *Tpart2 = CREATE_TENSOR_##type(dim2);\
+            initDim=true;\
+        }\
+      \
+        type x;\
+        while(strlen(ttmp) && j<dim2->rank){ \
+          x = strto_##type(ttmp, &ppEnd);\
+          while(ttmp == ppEnd && strlen(ttmp)){\
+            ttmp++;\
+            x = strto_##type(ttmp, &ppEnd);\
+          }\
+          if(ttmp != ppEnd){\
+            if(!filled1){\
+              ++i1;\
+              (*Tpart1)->x[i++] = x;\
+              if(i1 == ddim1->rank){\
+                filled1=true;\
+                i1=0;\
+                filled2=false;\
+              }\
+            }else{\
+              if(!filled2){\
+                ++i2;\
+                (*Tpart2)->x[j++] = x;\
+                if(i2 == ddim2->rank){\
+                  filled2=true;\
+                  i2=0;\
+                  filled1=false;\
+                }\
+              }\
+              \
+            }\
+          }\
+          ttmp=ppEnd;\
+        }\
+        if(Done){\
+          free_dimension(ddim1);\
+          free_dimension(ddim2);\
+        }\
+      }\
+      else{\
+        \
+        if(!initDim){\
+          ddim1 = create_dim(dim->size-pivotSplit);\
+          ddim2 = create_dim(pivotSplit);\
+          for(size_t i=0;i<ddim1->size;++i) ddim1->perm[i] = dim->perm[i];\
+          for(size_t i=0;i<ddim2->size;++i) ddim2->perm[i] = dim->perm[dim->size - pivotSplit + i];\
+          updateRankDim(ddim1);\
+          updateRankDim(ddim2);\
+          initDim=true;\
+        }\
+        type x=0;\
+        while(ttmp && strlen(ttmp) ){ \
+          x = strto_##type(ttmp, &ppEnd);\
+           while(ttmp == ppEnd && strlen(ttmp)){\
+            ttmp++;\
+            x = strto_##type(ttmp, &ppEnd);\
+          }\
+          if(ppEnd != ttmp){\
+            if(!filled1){\
+              ++i1;\
+              append_array_chainlist_##type(&l_a1, x);\
+              if(i1 == ddim1->rank){\
+                filled1=true;\
+                i1=0;\
+                filled2=false;\
+              }\
+            }else{\
+              if(!filled2){\
+                ++i2;\
+                append_array_chainlist_##type(&l_a2, x);\
+                if(i2 == ddim2->rank){\
+                  filled2 = true;\
+                  i2=0;\
+                  filled1 = false;\
+                }\
+              }\
+              \
+            }\
+          }\
+          ttmp=ppEnd;\
+        }\
+        \
+        if(Done){\
+          *Tpart1 = create_tensor_from_list_array_##type(l_a1,ddim1);\
+          *Tpart2 = create_tensor_from_list_array_##type(l_a2,ddim2);\
+          free_array_chainlist_##type(l_a1);\
+          free_array_chainlist_##type(l_a2);\
+          free_dimension(ddim1);\
+          free_dimension(ddim2);\
+        \
+        }\
+      }\
+    }\
+  }\
+    free_dimension(dim);\
+    free_list_perm_in_dim(l_p);\
+    free(input);\
+    fclose(f_input);\
+}\
+\
+tensor_##type ** formInput_to_array_tensor_##type(tensor_##type *tens){\
+  tensor_##type **re_tens=malloc((tens->dim)->perm[0]*sizeof(tensor_##type *));\
+  dimension *dim=create_dim((tens->dim)->size - 1);\
+  for(size_t i=0; i<dim->size; ++i) dim->perm[i]=(tens->dim)->perm[i+1];\
+  updateRankDim(dim);\
+  for(size_t i=0; i < (tens->dim)->perm[0];++i){\
+    re_tens[i]=CREATE_TENSOR_FROM_CPY_DIM_##type(dim);\
+    for(size_t j=0; j<dim->rank; ++j) (re_tens[i])->x[j] = tens->x[i*(dim->rank) + j ] ;\
+  }\
+  free_dimension(dim);\
+  return re_tens;\
+}\
+\
 void append_array_chainlist_##type(array_chainlist_##type **list_a, type x){\
     array_chainlist_##type *lis=malloc(sizeof(array_chainlist_##type));\
     lis->x=x;\
@@ -1104,7 +1461,43 @@ void free_array_chainlist_##type(array_chainlist_##type *l_a){\
   }\
 }\
 \
-
+tensor_##type * transpose_notOpt_tensor_##type(tensor_##type *org){\
+  size_t dimsz = (org->dim)->size; \
+  dimension *dim_tr=create_dim(dimsz);\
+  for(size_t i=0; i<dimsz; ++i) dim_tr->perm[i]=(org->dim)->perm[(dimsz-1)-i];\
+  updateRankDim(dim_tr);\
+  printDebug_dimension(dim_tr,"dim_tr");\
+  tensor_##type *tens_tr = CREATE_TENSOR_##type(dim_tr);\
+  size_t *coord = malloc((dimsz)*sizeof(size_t));\
+  size_t *coord_tr = malloc((dimsz)*sizeof(size_t));\
+  for(size_t i=0; i<dim_tr->rank; ++i){\
+    vCoordFromLin(coord,i,org->dim);\
+    for(size_t j=0; j<dimsz;++j)  coord_tr[j]=coord[dimsz-1-j]; \
+    tens_tr->x[LineFromCoord(coord_tr, dim_tr)] = org->x[i];\
+  }\
+  free(coord);\
+  free(coord_tr);\
+  return tens_tr;\
+}\
+\
+tensor_##type * permute_notOpt_tensor_##type(tensor_##type *org, dimension *dperm){\
+  size_t dimsz = (org->dim)->size; \
+  dimension *dim_tr=create_dim(dimsz);\
+  for(size_t i=0; i<dimsz; ++i) dim_tr->perm[i]=(org->dim)->perm[(dimsz-1)-i];\
+  updateRankDim(dim_tr);\
+  printDebug_dimension(dim_tr,"dim_tr");\
+  tensor_##type *tens_tr = CREATE_TENSOR_##type(dim_tr);\
+  size_t *coord = malloc((dimsz)*sizeof(size_t));\
+  size_t *coord_tr = malloc((dimsz)*sizeof(size_t));\
+  for(size_t i=0; i<dim_tr->rank; ++i){\
+    vCoordFromLin(coord,i,org->dim);\
+    for(size_t j=0; j<dimsz;++j)  coord_tr[j]=coord[dperm->perm[j]]; \
+    tens_tr->x[LineFromCoord(coord_tr, dim_tr)] = org->x[i];\
+  }\
+  free(coord);\
+  free(coord_tr);\
+  return tens_tr;\
+}\
 
 
 GEN_FUNC_TENSOR(TYPE_FLOAT);

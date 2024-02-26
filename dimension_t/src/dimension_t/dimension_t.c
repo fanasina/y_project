@@ -28,8 +28,16 @@ dimension *
 create_dim(size_t sz){
   return CREATE_PERMUTATION_TYPE_SIZE_T(sz);
 }
+dimension *
+create_reverse_dim(size_t sz){
+  dimension *dim = CREATE_PERMUTATION_TYPE_SIZE_T(sz);
+  for(size_t i=0;i<sz;++i) dim->perm[i]=sz-1-i;
+  updateRankDim(dim);
+  return dim;
+}
+
 void free_dimension(dimension *d){
-  free_permut_TYPE_SIZE_T(d);
+  if(d) free_permut_TYPE_SIZE_T(d);
 }
 
 dimension* sub_copy_minus_dim_head(dimension *root, size_t minusSubdim){

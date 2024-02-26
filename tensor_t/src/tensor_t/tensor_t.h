@@ -29,6 +29,7 @@ tensor_##type * sub_copy_tensor_tail_##type(tensor_##type *rootens, size_t sub_c
 void print_tensor_msg_##type(tensor_##type *T, char *msg);\
 size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withIndex);\
 void split_tensor_##type(tensor_##type *Troot, tensor_##type **Tpart1, tensor_##type **Tpart2, size_t pivotSplit, size_t rangeInPivot);\
+void split_copy_tensor_##type(tensor_##type *Troot, tensor_##type **Tpart1, tensor_##type **Tpart2, size_t pivotSplit, size_t rangeInPivot);\
 void tensorProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1); \
 void tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
@@ -39,6 +40,9 @@ void tensorContractnPro2dThread_##type(tensor_##type **MM, tensor_##type *M0, te
 void tensorContractnProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
 void init_random_x_##type(tensor_##type *M, type minR, type maxR,  int randomRange);\
 tensor_##type * parseInput_withDim_to_tensor_##type(char *input);\
+void parseInputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_##type **Tpart2, char *input, size_t pivotSplit);\
+void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_##type **Tpart2, char *file_name_input, size_t pivotSplit);\
+tensor_##type ** formInput_to_array_tensor_##type(tensor_##type *tens);\
 struct array_chainlist_##type{\
   size_t index;\
   type x;\
@@ -48,7 +52,8 @@ typedef struct array_chainlist_##type array_chainlist_##type;\
 void append_array_chainlist_##type(array_chainlist_##type **list_a, type x);\
 tensor_##type * create_tensor_from_list_array_##type( array_chainlist_##type *l_a, dimension *part_dim);\
 void free_array_chainlist_##type(array_chainlist_##type *l_a);\
-
+tensor_##type * transpose_notOpt_tensor_##type(tensor_##type *org);\
+tensor_##type * permute_notOpt_tensor_##type(tensor_##type *org, dimension *dperm);\
 
 
 GENERATE_TENSOR_TYPE(TYPE_FLOAT);

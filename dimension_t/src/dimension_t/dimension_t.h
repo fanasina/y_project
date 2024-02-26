@@ -17,6 +17,7 @@ long int decr(long int i) ;
 typedef struct PERMUTATION_TYPE_SIZE_T dimension ;
 
 dimension * create_dim(size_t size);
+dimension * create_reverse_dim(size_t size);
 dimension* init_dim(size_t *t, size_t sz);
 dimension* init_copy_dim(size_t *t, size_t sz);
 void free_dimension(dimension *d);
