@@ -20,7 +20,10 @@ dimension * create_dim(size_t size);
 dimension * create_reverse_dim(size_t size);
 dimension* init_dim(size_t *t, size_t sz);
 dimension* init_copy_dim(size_t *t, size_t sz);
+dimension* clone_dim(dimension *dim);
 void free_dimension(dimension *d);
+
+bool is_equal_dim(dimension *d0, dimension *d1);
 
 dimension* sub_minus_dim_head(dimension *t, size_t minusSubdim);
 dimension* sub_minus_dim_tail(dimension *t, size_t minusSubdim);
@@ -49,6 +52,7 @@ size_t* CoordFromLin(size_t line, dimension *dim);
 void vCoordFromLin(size_t *ret, size_t line, dimension *dim );
 
 void increment_dim_var(dimension *d);
+void decrement_dim_var(dimension *d);
 
 struct list_perm_in_dim{
   size_t index;

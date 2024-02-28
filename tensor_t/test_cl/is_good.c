@@ -86,8 +86,8 @@ TEST(tensorProd ){
   print_tensor_float(M1,"M1");
 
 
-  tensor_TYPE_FLOAT *M; 
-  tensor_TYPE_FLOAT *Mn; 
+  tensor_TYPE_FLOAT *M=NULL; 
+  tensor_TYPE_FLOAT *Mn=NULL; 
 
   tensorProd_TYPE_FLOAT(&M,M0,M1);
   tensorProdNotOpt_TYPE_FLOAT(&Mn,M0,M1);
@@ -131,8 +131,8 @@ TEST(tensorContractnProd_TYPE_FLOAT ){
   print_tensor_float(M0,"M0");
   print_tensor_float(M1,"M1");
 
-  tensor_TYPE_FLOAT *M;
-  tensor_TYPE_FLOAT *MnO;
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *MnO=NULL;
 
   tensorContractnProd_TYPE_FLOAT(&M, M0,M1,1);
   tensorContractnProdNotOpt_TYPE_FLOAT(&MnO, M0,M1,1);
@@ -180,8 +180,8 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
 //  print_tensor_float(M0,"M0");
 //  print_tensor_float(M1,"M1");
 
-  tensor_TYPE_FLOAT *M;
-  tensor_TYPE_FLOAT *MnO;
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *MnO=NULL;
 
   tensorContractnProd_TYPE_FLOAT(&M, M0,M1,2);
 //  print_tensor_float(M,"M");
@@ -231,8 +231,8 @@ TEST(cl_tensorContractnProd_TYPE_FLOAT2 ){
 //  print_tensor_float(M0,"M0");
 //  print_tensor_float(M1,"M1");
 
-  tensor_TYPE_FLOAT *M;
-  tensor_TYPE_FLOAT *MnO;
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *MnO=NULL;
 
   tensorContractnProdNotOpt_TYPE_FLOAT(&M, M0,M1,2);
 //  print_tensor_float(M,"M");
@@ -280,8 +280,8 @@ TEST(cl_tensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   tensorContractnProdNotOpt_TYPE_DOUBLE(&M, M0,M1,2);
   //tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
@@ -341,8 +341,8 @@ TEST(tensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
   //print_tensor_double(M,"M");
@@ -392,8 +392,8 @@ TEST(TensorProdCL){
 
 
 
-  tensor_TYPE_FLOAT *M; 
-  tensor_TYPE_FLOAT *Mn; 
+  tensor_TYPE_FLOAT *M=NULL; 
+  tensor_TYPE_FLOAT *Mn=NULL; 
 
   tensorProd_TYPE_FLOAT(&M,M0,M1);
   cl_tensorProd_TYPE_FLOAT(&Mn,M0,M1);
@@ -452,8 +452,8 @@ TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   size_t nbth=10;
 
@@ -523,8 +523,8 @@ TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   size_t nbth=15;
 
@@ -598,8 +598,8 @@ TEST(VS_thrd_tensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   size_t nbth=10;
 
@@ -675,8 +675,8 @@ TEST(VScltensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   size_t nbth = 10;
 
@@ -741,8 +741,8 @@ TEST(VScl2dtensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   size_t nbth = 10;
 
@@ -799,8 +799,8 @@ TEST(tensorProd_vs2d ){
   print_tensor_float(M1,"M1");*/
 
 
-  tensor_TYPE_FLOAT *M;
-  tensor_TYPE_FLOAT *Mn;
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *Mn=NULL;
 
   cl_tensorProd_TYPE_FLOAT(&M,M0,M1);
   tensorProd_TYPE_FLOAT(&Mn,M0,M1);
@@ -847,8 +847,8 @@ TEST(tensorProd_vs2d ){
   print_tensor_float(M1,"M1");*/
 
 
-  tensor_TYPE_FLOAT *M;
-  tensor_TYPE_FLOAT *Mn;
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *Mn=NULL;
 
   tensorProd_TYPE_FLOAT(&M,M0,M1);
   //cl2d_tensorProd_TYPE_FLOAT(&Mn,M0,M1,24,24);
@@ -896,8 +896,8 @@ TEST(tensorProd_vs2d_Endian ){
   print_tensor_float(M1,"M1");*/
 
 
-  tensor_TYPE_FLOAT *M;
-  tensor_TYPE_FLOAT *Mn;
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *Mn=NULL;
 
   cl_tensorProd_TYPE_FLOAT(&M,M0,M1);
   tensorProd_TYPE_FLOAT(&Mn,M0,M1);
@@ -942,8 +942,8 @@ TEST(tensorProd_vs2d_Endian ){
 
 
 
-  tensor_TYPE_FLOAT *M;
-  tensor_TYPE_FLOAT *Mn;
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *Mn=NULL;
 
   tensorProd_TYPE_FLOAT(&M,M0,M1);
   //cl2d_tensorProd_TYPE_FLOAT(&Mn,M0,M1,24,24);

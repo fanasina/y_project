@@ -61,6 +61,16 @@ long int decr(long int i) { return i - 1; }
     return r_tens;\
   }\
 \
+void _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(tensor_##type **M, dimension *dd){\
+    if(*M){ \
+      if(!is_equal_dim((*M)->dim, dd)){\
+        free_tensor_##type(*M);\
+        (*M)=CREATE_TENSOR_##type(dd);\
+      }else free_dimension(dd); /* because it is not used */\
+    }else{\
+      (*M)=CREATE_TENSOR_##type(dd);\
+    }\
+  }\
 tensor_##type* init_tensor_head_##type(tensor_##type *troot ,dimension *dim){\
     tensor_##type *r_tens=malloc(sizeof(tensor_##type));\
     updateRankDim(dim);\
@@ -107,6 +117,18 @@ tensor_##type* init_copy_tensor_head_##type(tensor_##type *troot ,dimension *dim
     r_tens->x = malloc(sizeof(type)*dim->rank);\
     return r_tens;\
   }\
+\
+tensor_##type* CLONE_TENSOR_##type(tensor_##type *tens){\
+  if(tens){\
+    tensor_##type *r_tens=malloc(sizeof(tensor_##type));\
+    r_tens->dim = clone_dim(tens->dim);\
+    r_tens->x = malloc(sizeof(type) * (tens->dim)->rank);\
+    for(size_t i=0; i<(tens->dim)->rank;++i)\
+      r_tens->x[i]=tens->x[i];\
+    return r_tens;\
+  }\
+  return NULL;\
+}\
 \
   void free_tensor_##type(tensor_##type *  tens){\
     if(tens){\
@@ -486,7 +508,7 @@ void split_copy_tensor_##type(tensor_##type *Troot, tensor_##type **Tpart1, tens
 void tensorProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1) {  \
   dimension *dd;  \
     add_dimension(&dd, M0->dim, M1->dim); \
-    (*MM)=CREATE_TENSOR_##type(dd);  \
+    _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);  \
   tensor_##type *M = *MM; \
     size_t* coord;  \
     coord = malloc(sizeof(size_t)*(dd->size));  \
@@ -512,7 +534,7 @@ void tensorProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##typ
 void tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1) {  \
     dimension *dd;  \
     add_dimension(&dd, M0->dim, M1->dim); \
-    (*MM)=CREATE_TENSOR_##type(dd);  \
+    _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);  \
     tensor_##type *M = *MM; \
     size_t m_idx;\
     for(size_t i=0; i<M0->dim->rank; ++i){\
@@ -567,7 +589,7 @@ void tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor_##
     add_dimension(&dd, dSub0, dSub1);\
   /*printDebug_dimension(dd,"dd");*/\
     updateRankDim(dd);\
-    *MM = CREATE_TENSOR_##type(dd);\
+    _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);\
     tensor_##type *M= *MM;\
 \
    \
@@ -625,7 +647,7 @@ void* runProd_thread_##type(void *arg){\
 void tensorProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t nbthread) {  \
     dimension *dd;  \
     add_dimension(&dd, M0->dim, M1->dim); \
-    (*MM)=CREATE_TENSOR_##type(dd);  \
+    _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);  \
     tensor_##type *M = *MM; \
     \
     \
@@ -687,7 +709,7 @@ void* runProd_thread2d_##type(void *arg){\
 void tensorProdThrea2d_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t nbthread) {  \
     dimension *dd;  \
     add_dimension(&dd, M0->dim, M1->dim); \
-    (*MM)=CREATE_TENSOR_##type(dd);  \
+    _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);  \
     tensor_##type *M = *MM; \
     \
     \
@@ -779,7 +801,7 @@ void tensorContractnProdThread_##type(tensor_##type** MM, tensor_##type *M0, ten
     dimension *dd;\
     add_dimension(&dd, dSub0, dSub1);\
     updateRankDim(dd);\
-    *MM = CREATE_TENSOR_##type(dd);\
+    _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);\
     tensor_##type *M= *MM;\
 \
 \
@@ -876,7 +898,7 @@ void tensorContractnPro2dThread_##type(tensor_##type** MM, tensor_##type *M0, te
     dimension *dd;\
     add_dimension(&dd, dSub0, dSub1);\
     updateRankDim(dd);\
-    *MM = CREATE_TENSOR_##type(dd);\
+    _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);\
     tensor_##type *M= *MM;\
 \
 \
@@ -942,7 +964,7 @@ void tensorContractnProdNotOpt_##type(tensor_##type** MM, tensor_##type *M0, ten
     add_dimension(&dd, dSub0, dSub1);\
   /*printDebug_dimension(dd,"dd");*/\
     updateRankDim(dd);\
-    *MM = CREATE_TENSOR_##type(dd);\
+    _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);\
     tensor_##type *M= *MM;\
 \
     size_t* coord;\
@@ -1202,7 +1224,6 @@ void parseInputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_#
       ttmp=ppEnd;\
     }\
     \
-    /*tens = create_tensor_from_list_array_##type(l_a,dim);*/\
     *Tpart1 = create_tensor_from_list_array_##type(l_a1,ddim1);\
     *Tpart2 = create_tensor_from_list_array_##type(l_a2,ddim2);\
     free_array_chainlist_##type(l_a1);\
@@ -1396,7 +1417,7 @@ void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, te
     fclose(f_input);\
 }\
 \
-tensor_##type ** formInput_to_array_tensor_##type(tensor_##type *tens){\
+tensor_##type ** fromInput_to_array_tensor_##type(tensor_##type *tens){\
   tensor_##type **re_tens=malloc((tens->dim)->perm[0]*sizeof(tensor_##type *));\
   dimension *dim=create_dim((tens->dim)->size - 1);\
   for(size_t i=0; i<dim->size; ++i) dim->perm[i]=(tens->dim)->perm[i+1];\
@@ -1498,6 +1519,231 @@ tensor_##type * permute_notOpt_tensor_##type(tensor_##type *org, dimension *dper
   free(coord_tr);\
   return tens_tr;\
 }\
+struct arg_1Update_##type{\
+  type *M0x;\
+  size_t beginRange;\
+  size_t endRange;\
+  type (*func)(type);\
+};\
+void* run1UpdatCalcfunc_thread_##type(void *arg){\
+  struct arg_1Update_##type *arg_t = arg;\
+    for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
+        arg_t->M0x[i] = arg_t->func(arg_t->M0x[i]);\
+   }\
+}\
+\
+void update_1tensor_func_##type(tensor_##type *M0, type (*func)(type), size_t nbthread){\
+    \
+  pthread_t *thrd = malloc(nbthread * sizeof(pthread_t));\
+  struct arg_1Update_##type **arg_th = malloc( nbthread * sizeof(struct arg_1Update_##type *));\
+\
+  for(size_t i = 0; i < nbthread; ++i){\
+    arg_th[i]=malloc(sizeof(struct arg_1Update_##type));\
+    arg_th[i]->M0x=M0->x;\
+    arg_th[i]->func=func;\
+    arg_th[i]->beginRange = i*(M0->dim->rank)/nbthread ;\
+    arg_th[i]->endRange = (i+1)*(M0->dim->rank)/nbthread ;\
+    \
+    pthread_create(&thrd[i], NULL, run1UpdatCalcfunc_thread_##type, (void*)arg_th[i]);\
+  }\
+\
+  for(size_t i=0; i< nbthread; ++i){\
+    pthread_join(thrd[i], NULL);\
+    free(arg_th[i]);\
+  }\
+\
+  free(thrd);\
+  free(arg_th);\
+}  \
+\
+struct arg_2Update_##type{\
+  type *M0x;\
+  type *M1x;\
+  size_t beginRange;\
+  size_t endRange;\
+  type (*func)(type);\
+};\
+void* run2UpdatCalcfunc_thread_##type(void *arg){\
+  struct arg_2Update_##type *arg_t = arg;\
+    for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
+        arg_t->M0x[i] = arg_t->func(arg_t->M1x[i]);\
+   }\
+}\
+\
+void update_2tensor_func_##type(tensor_##type *M0, tensor_##type *M1, type (*func)(type), size_t nbthread){\
+  if ( is_equal_dim(M0->dim,M1->dim)){ \
+    pthread_t *thrd = malloc(nbthread * sizeof(pthread_t));\
+    struct arg_2Update_##type **arg_th = malloc( nbthread * sizeof(struct arg_2Update_##type *));\
+  \
+    for(size_t i = 0; i < nbthread; ++i){\
+      arg_th[i]=malloc(sizeof(struct arg_2Update_##type));\
+      arg_th[i]->M0x=M0->x;\
+      arg_th[i]->M1x=M1->x;\
+      arg_th[i]->func=func;\
+      arg_th[i]->beginRange = i*(M0->dim->rank)/nbthread ;\
+      arg_th[i]->endRange = (i+1)*(M0->dim->rank)/nbthread ;\
+      \
+      pthread_create(&thrd[i], NULL, run2UpdatCalcfunc_thread_##type, (void*)arg_th[i]);\
+    }\
+  \
+    for(size_t i=0; i< nbthread; ++i){\
+      pthread_join(thrd[i], NULL);\
+      free(arg_th[i]);\
+    }\
+  \
+    free(thrd);\
+    free(arg_th);\
+  }\
+}  \
+\
+struct arg_3Update_##type{\
+  type *M0x;\
+  type *M1x;\
+  type *M2x;\
+  size_t beginRange;\
+  size_t endRange;\
+  type (*func)(type, type);\
+};\
+void* run3UpdatCalcfunc_thread_##type(void *arg){\
+  struct arg_3Update_##type *arg_t = arg;\
+    for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
+        arg_t->M0x[i] = arg_t->func(arg_t->M1x[i], arg_t->M2x[i]);\
+   }\
+}\
+\
+void update_3tensor_func_##type(tensor_##type *M0, tensor_##type *M1, tensor_##type *M2, type (*func)(type,type), size_t nbthread){\
+  if ( is_equal_dim(M0->dim,M1->dim) && (is_equal_dim(M0->dim, M2->dim))){  \
+    pthread_t *thrd = malloc(nbthread * sizeof(pthread_t));\
+    struct arg_3Update_##type **arg_th = malloc( nbthread * sizeof(struct arg_3Update_##type *));\
+  \
+    for(size_t i = 0; i < nbthread; ++i){\
+      arg_th[i]=malloc(sizeof(struct arg_3Update_##type));\
+      arg_th[i]->M0x=M0->x;\
+      arg_th[i]->M1x=M1->x;\
+      arg_th[i]->M2x=M2->x;\
+      arg_th[i]->func=func;\
+      arg_th[i]->beginRange = i*(M0->dim->rank)/nbthread ;\
+      arg_th[i]->endRange = (i+1)*(M0->dim->rank)/nbthread ;\
+      \
+      pthread_create(&thrd[i], NULL, run3UpdatCalcfunc_thread_##type, (void*)arg_th[i]);\
+    }\
+  \
+    for(size_t i=0; i< nbthread; ++i){\
+      pthread_join(thrd[i], NULL);\
+      free(arg_th[i]);\
+    }\
+  \
+    free(thrd);\
+    free(arg_th);\
+  }\
+}  \
+\
+\
+struct arg_4Update_##type{\
+  type *M0x;\
+  type *M1x;\
+  type *M2x;\
+  size_t beginRange;\
+  size_t endRange;\
+  type (*func)(type, type,  type(*f1)(type));\
+  type(*f1)(type);\
+};\
+void* run4UpdatCalcfunc_thread_##type(void *arg){\
+  struct arg_4Update_##type *arg_t = arg;\
+    for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
+        arg_t->M0x[i] = arg_t->func(arg_t->M1x[i], arg_t->M2x[i], arg_t->f1);\
+   }\
+}\
+\
+void update_4tensor_func_##type(tensor_##type *M0, tensor_##type *M1, tensor_##type *M2, \
+    type (*func)(type, type,  type(*f1)(type)),\
+    type(*f1)(type),\
+    size_t nbthread){\
+  /*printf(" rankM0=%ld , rank M2:%ld ; iseq :%d \n",(M0->dim)->rank,(M2->dim)->rank,is_equal_dim(M0->dim,M2->dim) );\
+*/\
+   /* printDebug_dimension(M0->dim," dim M0 in update4 ");  \
+    printDebug_dimension(M2->dim," dim M2 in update4 ");  \
+  */if ( is_equal_dim(M0->dim, M1->dim) /*&& (is_equal_dim(M0->dim, M2->dim))*/){  \
+    /*printDebug_dimension(M0->dim," dim M0 in update4 ");  \
+    */pthread_t *thrd = malloc(nbthread * sizeof(pthread_t));\
+    struct arg_4Update_##type **arg_th = malloc( nbthread * sizeof(struct arg_4Update_##type *));\
+  \
+    for(size_t i = 0; i < nbthread; ++i){\
+      arg_th[i]=malloc(sizeof(struct arg_4Update_##type));\
+      arg_th[i]->M0x=M0->x;\
+      arg_th[i]->M1x=M1->x;\
+      arg_th[i]->M2x=M2->x;\
+      arg_th[i]->func=func;\
+      arg_th[i]->f1=f1;\
+      arg_th[i]->beginRange = i*(M0->dim->rank)/nbthread ;\
+      arg_th[i]->endRange = (i+1)*(M0->dim->rank)/nbthread ;\
+      \
+      pthread_create(&thrd[i], NULL, run4UpdatCalcfunc_thread_##type, (void*)arg_th[i]);\
+    }\
+  \
+    for(size_t i=0; i< nbthread; ++i){\
+      pthread_join(thrd[i], NULL);\
+      free(arg_th[i]);\
+    }\
+  \
+    free(thrd);\
+    free(arg_th);\
+  }\
+}  \
+\
+struct arg_5Update_##type{\
+  type *M0x;\
+  type *M1x;\
+  type *M2x;\
+  type *M3x;\
+  size_t beginRange;\
+  size_t endRange;\
+  type (*func)(type, type, type, type(*f1)(type), type (*f2)(type,type) );\
+  type(*f1)(type);\
+  type (*f2)(type,type);\
+};\
+void* run5UpdatCalcfunc_thread_##type(void *arg){\
+  struct arg_5Update_##type *arg_t = arg;\
+    for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
+        arg_t->M0x[i] = arg_t->func(arg_t->M1x[i], arg_t->M2x[i], arg_t->M3x[i], arg_t->f1, arg_t->f2);\
+   }\
+}\
+\
+void update_5tensor_func_##type(tensor_##type *M0, tensor_##type *M1, tensor_##type *M2, tensor_##type *M3 , \
+    type (*func) (type, type, type, type(*f1)(type), type (*f2)(type,type)), \
+    type(*f1)(type), \
+    type (*f2)(type,type), \
+    size_t nbthread){\
+  if ( is_equal_dim(M0->dim,M1->dim) && (is_equal_dim(M0->dim, M2->dim))&& (is_equal_dim(M0->dim, M3->dim))){  \
+    pthread_t *thrd = malloc(nbthread * sizeof(pthread_t));\
+    struct arg_5Update_##type **arg_th = malloc( nbthread * sizeof(struct arg_5Update_##type *));\
+    /*printDebug_dimension(M0->dim," dim M0 in update5 "); */ \
+    for(size_t i = 0; i < nbthread; ++i){\
+      arg_th[i]=malloc(sizeof(struct arg_5Update_##type));\
+      arg_th[i]->M0x=M0->x;\
+      arg_th[i]->M1x=M1->x;\
+      arg_th[i]->M2x=M2->x;\
+      arg_th[i]->M3x=M3->x;\
+      arg_th[i]->func=func;\
+      arg_th[i]->f1=f1;\
+      arg_th[i]->f2=f2;\
+      arg_th[i]->beginRange = i*(M0->dim->rank)/nbthread ;\
+      arg_th[i]->endRange = (i+1)*(M0->dim->rank)/nbthread ;\
+      \
+      pthread_create(&thrd[i], NULL, run5UpdatCalcfunc_thread_##type, (void*)arg_th[i]);\
+    }\
+  \
+    for(size_t i=0; i< nbthread; ++i){\
+      pthread_join(thrd[i], NULL);\
+      free(arg_th[i]);\
+    }\
+  \
+    free(thrd);\
+    free(arg_th);\
+  }\
+}  \
+\
+
 
 
 GEN_FUNC_TENSOR(TYPE_FLOAT);

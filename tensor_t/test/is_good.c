@@ -544,8 +544,8 @@ TEST(tensorProd ){
   print_tensor_float(M1,"M1");
 
 
-  tensor_TYPE_FLOAT *M; 
-  tensor_TYPE_FLOAT *Mn; 
+  tensor_TYPE_FLOAT *M=NULL; 
+  tensor_TYPE_FLOAT *Mn=NULL; 
 
   tensorProd_TYPE_FLOAT(&M,M0,M1);
   tensorProdNotOpt_TYPE_FLOAT(&Mn,M0,M1);
@@ -603,8 +603,8 @@ TEST(tensorContractnProd_TYPE_FLOAT ){
   print_tensor_float(M0,"M0");
   print_tensor_float(M1,"M1");
 
-  tensor_TYPE_FLOAT *M;
-  tensor_TYPE_FLOAT *MnO;
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *MnO=NULL;
 
   tensorContractnProd_TYPE_FLOAT(&M, M0,M1,2);
   tensorContractnProdNotOpt_TYPE_FLOAT(&MnO, M0,M1,2);
@@ -664,8 +664,8 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
 //  print_tensor_float(M0,"M0");
 //  print_tensor_float(M1,"M1");
 
-  tensor_TYPE_FLOAT *M;
-  tensor_TYPE_FLOAT *MnO;
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *MnO=NULL;
 
   tensorContractnProd_TYPE_FLOAT(&M, M0,M1,2);
 //  print_tensor_float(M,"M");
@@ -717,8 +717,8 @@ TEST(tensorContractnProd_TYPE_DOUBLE_2_1 ){
   print_tensor_double(M0,"M0");
   print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,1);
   //print_tensor_double(M,"M");
@@ -774,8 +774,8 @@ TEST(tensorContractnProd_TYPE_DOUBLE_2_2 ){
   print_tensor_double(M0,"M0");
   print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,1);
   //print_tensor_double(M,"M");
@@ -836,8 +836,8 @@ TEST(tensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
   //print_tensor_double(M,"M");
@@ -897,8 +897,8 @@ TEST(VStensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
   //print_tensor_double(M,"M");
@@ -959,8 +959,8 @@ TEST(Pthread_tensorContractnPro2d_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   size_t nbthread = 5;
 
@@ -1017,8 +1017,8 @@ TEST(contract_dim1){
   print_tensor_double(M0,"M0");
   print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   size_t nbthread = 5;
 
@@ -1085,8 +1085,8 @@ TEST(Pthread_tensorContractnProd_TYPE_DOUBLE2 ){
   //print_tensor_double(M0,"M0");
   //print_tensor_double(M1,"M1");
 
-  tensor_TYPE_DOUBLE *M;
-  tensor_TYPE_DOUBLE *MnO;
+  tensor_TYPE_DOUBLE *M=NULL;
+  tensor_TYPE_DOUBLE *MnO=NULL;
 
   size_t nbthread = 5;
 
@@ -1146,8 +1146,8 @@ TEST(tensorProd_vs ){
   for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
 
 
-  tensor_TYPE_FLOAT *M; 
-  tensor_TYPE_FLOAT *Mn; 
+  tensor_TYPE_FLOAT *M=NULL; 
+  tensor_TYPE_FLOAT *Mn=NULL; 
 
   tensorProd_TYPE_FLOAT(&M,M0,M1);
   //tensorProdNotOpt_TYPE_FLOAT(&Mn,M0,M1);
@@ -1201,8 +1201,8 @@ TEST(tensorProd_vsThread ){
 
 
 
-  tensor_TYPE_FLOAT *M; 
-  tensor_TYPE_FLOAT *Mn; 
+  tensor_TYPE_FLOAT *M=NULL; 
+  tensor_TYPE_FLOAT *Mn=NULL; 
 
   size_t nbthread = 5;
 
@@ -1258,8 +1258,8 @@ TEST(tensorProd_vsThread2d ){
   for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
 
 
-  tensor_TYPE_FLOAT *M; 
-  tensor_TYPE_FLOAT *Mn; 
+  tensor_TYPE_FLOAT *M=NULL; 
+  tensor_TYPE_FLOAT *Mn=NULL; 
 
   size_t nbthread = 5;
 
@@ -1379,7 +1379,7 @@ TEST(parseInputOutput_unknownpart_to_tensor){
                "((0,0,0,1,2)"\
                "(0,0,0,2,4)) ";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parseInputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , input, 1);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from input" );
@@ -1401,7 +1401,7 @@ TEST(parseInputOutput_knownpart_to_tensor){
                "((0,0,0,1,2)"\
                "(0,0,0,2,4)) ";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parseInputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , input, 1);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from input" );
@@ -1423,7 +1423,7 @@ TEST(parseInputOutput_unknownpart2dimInput_to_tensor){
                "((0,0,0),(8,8,8),1,2)"\
                "(0,0,0),(8,8,8),2,4)) ";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parseInputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , input, 1);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from input" );
@@ -1445,7 +1445,7 @@ TEST(parseInputOutput_knownpart2dimInput_to_tensor){
                "((0,0,0),(8,8,8),1,2)"\
                "(0,0,0),(8,8,8),2,4)) ";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parseInputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , input, 1);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from input" );
@@ -1468,7 +1468,7 @@ TEST(parseInputOutput_unknownpart1dimInput_2output_to_tensor){
                "((0,0,0),(8,8,8)8,1,2)"\
                "(0,0,0),(8,8,8)8,2,4)) ";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parseInputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , input, 2);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from input" );
@@ -1491,7 +1491,7 @@ TEST(parseInputOutput_knownpart1dimInput_2output_to_tensor){
                "((0,0,0),(8,8,8)8,1,2)"\
                "(0,0,0),(8,8,8)8,2,4)) ";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parseInputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , input, 2);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from input" );
@@ -1514,7 +1514,7 @@ TEST(parseInputOutput_unknownpart1dimInput_1output_to_tensor){
                "((0,0,0),(8,8,8)8,1,2)"\
                "(0,0,0),(8,8,8)8,2,4)) ";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parseInputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , input, 1);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from input" );
@@ -1537,7 +1537,7 @@ TEST(parseInputOutput_knownpart1dimInput_1output_to_tensor){
                "((0,0,0),(8,8,8)8,1,5)"\
                "(0,0,0),(8,8,8)8,2,4)) ";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parseInputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , input, 1);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from input" );
@@ -1553,7 +1553,7 @@ TEST(parseInputOutput_file_knownpart1dimInput_1output_to_tensor){
   endian=true;
   char *inputfile="input.txt";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parse_file_InputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , inputfile, 1);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from inputfile" );
@@ -1571,7 +1571,7 @@ TEST(parseInputOutput_file_knownpart1dimInput_1output_to_tensor){
   endian=true;
   char *inputfile="unkinput.txt";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parse_file_InputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , inputfile, 1);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from inputfile" );
@@ -1589,14 +1589,14 @@ TEST(array_from_parseInputOutput_file_knownpart1dimInput_1output_to_tensor){
   endian=true;
   char *inputfile="unkinput.txt";
 
-  tensor_TYPE_FLOAT *t0,*t1;
+  tensor_TYPE_FLOAT *t0=NULL,*t1=NULL;
   parse_file_InputOutput_withDim_to_tensors_TYPE_FLOAT(&t0,&t1 , inputfile, 1);
 
   print_tensor_msg_TYPE_FLOAT(t0," t0 from inputfile" );
   print_tensor_msg_TYPE_FLOAT(t1," t1 from inputfile" );
 
-  tensor_TYPE_FLOAT **arrt0 =  formInput_to_array_tensor_TYPE_FLOAT(t0);
-  tensor_TYPE_FLOAT **arrt1 =  formInput_to_array_tensor_TYPE_FLOAT(t1);
+  tensor_TYPE_FLOAT **arrt0 =  fromInput_to_array_tensor_TYPE_FLOAT(t0);
+  tensor_TYPE_FLOAT **arrt1 =  fromInput_to_array_tensor_TYPE_FLOAT(t1);
 
 
   size_t sz0=(t0->dim)->perm[0];
@@ -1622,8 +1622,33 @@ TEST(array_from_parseInputOutput_file_knownpart1dimInput_1output_to_tensor){
   free_tensor_TYPE_FLOAT(t1);
 }
 
+float func2(float x){
+  return x*x+1;
+}
+
+TEST(update_func_){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=2;
+  d0->perm[1]=3;
+  d0->perm[2]=4;
 
 
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  init_random_x_TYPE_FLOAT(M0,2.7,5.4,50001);
+
+  print_tensor_float(M0, "init M0 random");
+  
+  update_1tensor_func_TYPE_FLOAT(M0, func2, 5); 
+
+  print_tensor_float(M0, "x*x+1 M0 random");
+}
 
 
 

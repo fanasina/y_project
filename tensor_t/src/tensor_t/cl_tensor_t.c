@@ -181,7 +181,7 @@
 void cl_tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1) {  \
     dimension *dd;  \
     add_dimension(&dd, M0->dim, M1->dim); \
-    (*MM)=CREATE_TENSOR_##type(dd);  \
+     _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);  \
     tensor_##type *M = *MM; \
     char *file_cl_src = "../src/kernel_ProdTensor.cl"; \
     char *func_cl_nameEndian = "prodTensorLin_" #type; \
@@ -235,7 +235,7 @@ void cl_tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor
     dimension *dd;\
     add_dimension(&dd, dSub0, dSub1);\
     updateRankDim(dd);\
-    *MM = CREATE_TENSOR_##type(dd);\
+     _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);\
     tensor_##type *M= *MM;\
     char *file_cl_src = "../src/kernel_ProdContractnTensor.cl"; \
     /*char *func_cl_name = "prodContractnTensorLin_" #type;*/ \
@@ -272,7 +272,7 @@ void cl_tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor
 void cl2d_tensorProd_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t div0Wsz, size_t div1Wsz) {  \
     dimension *dd;  \
     add_dimension(&dd, M0->dim, M1->dim); \
-    (*MM)=CREATE_TENSOR_##type(dd);  \
+     _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);  \
     tensor_##type *M = *MM; \
     char *file_cl_src = "../src/kernel_2d_ProdTensor.cl"; \
     /*char *func_cl_name = "prodTensor2dLin_" #type;*/ \
@@ -324,7 +324,7 @@ void cl2d_tensorContractnProd_##type(tensor_##type **MM, tensor_##type *M0, tens
     dimension *dd;\
     add_dimension(&dd, dSub0, dSub1);\
     updateRankDim(dd);\
-    *MM = CREATE_TENSOR_##type(dd);\
+     _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);\
     tensor_##type *M= *MM;\
     char *file_cl_src = "../src/kernel_2d_ProdContractnTensor.cl"; \
     char *func_cl_nameEndian = "prodContractnTensor2dLin_" #type; \

@@ -28,6 +28,11 @@ dimension *
 create_dim(size_t sz){
   return CREATE_PERMUTATION_TYPE_SIZE_T(sz);
 }
+
+dimension* clone_dim(dimension *dim){
+  return init_copy_dim(dim->perm,dim->size);
+}
+
 dimension *
 create_reverse_dim(size_t sz){
   dimension *dim = CREATE_PERMUTATION_TYPE_SIZE_T(sz);
@@ -38,6 +43,15 @@ create_reverse_dim(size_t sz){
 
 void free_dimension(dimension *d){
   if(d) free_permut_TYPE_SIZE_T(d);
+}
+
+bool is_equal_dim(dimension *d0, dimension *d1){
+  if(d0->size != d1->size) return false;
+  if(d0->rank != d1->rank) return false;
+  for(size_t i=0;i<d0->size; ++i)
+    if(d0->perm[i] != d1->perm[i]) return false;
+
+  return true;
 }
 
 dimension* sub_copy_minus_dim_head(dimension *root, size_t minusSubdim){
@@ -157,6 +171,16 @@ void increment_dim_var(dimension *d){
   }
   else{
     (d->perm[d->size - 1])++;
+  }
+}
+
+
+void decrement_dim_var(dimension *d){
+  if(endian){
+    (d->perm[0])--;
+  }
+  else{
+    (d->perm[d->size - 1])--;
   }
 }
 
