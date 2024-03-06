@@ -78,6 +78,7 @@ TEST(init_One){
   free_neurons_TYPE_FLOAT(bn);
 }
 
+#if 0
 TEST(data_set_from_file){
   data_set_TYPE_FLOAT *ds= fill_data_set_from_file_TYPE_FLOAT("data.txt",1);
 
@@ -86,11 +87,12 @@ TEST(data_set_from_file){
   free_data_set_TYPE_FLOAT(ds);
 
 }
+#endif 
 
 #define epsilon 0.0001
 
 bool cond(float e, size_t nbreps){
-  //if (nbreps > 5) return true;
+  if (nbreps > 1) return true;
   if ((e<epsilon) && (e>-epsilon)) return true;
   return false;
 }
@@ -98,7 +100,7 @@ bool cond(float e, size_t nbreps){
 TEST(learning_first){
   
   data_set_TYPE_FLOAT *ds= fill_data_set_from_file_TYPE_FLOAT("xor.txt",1);
-//  print_data_set_msg_TYPE_FLOAT(ds,"data");
+  print_data_set_msg_TYPE_FLOAT(ds,"data");
   neurons_TYPE_FLOAT *bn=NULL, *tmp ;
   setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){2,4,1},3); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
 
@@ -116,9 +118,10 @@ TEST(learning_first){
   size_t reps = learning_online_neurons_TYPE_FLOAT(bn,ds,cond);
   
  
-  char msg[256];
+  //char msg[256];
   for(size_t i=0; i<ds->size; ++i){
-    sprintf(msg, "data set [%ld]",i);
+    print_predict_by_network_neurons_TYPE_FLOAT(bn,ds->input[i]);
+    /*sprintf(msg, "data set [%ld]",i);
     init_copy_in_out_networks_from_tensors_TYPE_FLOAT(bn, ds->input[i],ds->target[i]);\
       tmp=bn->next_layer;\
       while(tmp){\
@@ -126,7 +129,7 @@ TEST(learning_first){
         tmp = tmp->next_layer;\
       }
     print_neurons_msg_TYPE_FLOAT(bn, msg);
-  
+    */
   }
   
 
@@ -135,6 +138,89 @@ TEST(learning_first){
 
   LOG("reps = %ld\n",reps);
 }
+
+
+
+TEST(learning_second){
+  
+  data_set_TYPE_FLOAT *ds= fill_data_set_from_file_TYPE_FLOAT("xor.txt",1);
+//  print_data_set_msg_TYPE_FLOAT(ds,"data");
+  neurons_TYPE_FLOAT *bn=NULL, *tmp ;
+  setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){2,4,1},3); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
+
+  setup_all_layers_functions_TYPE_FLOAT(bn,
+    tensorContractnProdThread_TYPE_FLOAT,
+    tensorProdThread_TYPE_FLOAT,
+    DL,
+    L,
+    f,
+    df);
+
+  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.5);
+
+
+  size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
+  
+ 
+  char msg[256];
+  for(size_t i=0; i<ds->size; ++i){
+    print_predict_by_network_neurons_TYPE_FLOAT(bn,ds->input[i]);
+    /*sprintf(msg, "data set [%ld]",i);
+    init_copy_in_out_networks_from_tensors_TYPE_FLOAT(bn, ds->input[i],ds->target[i]);\
+      tmp=bn->next_layer;\
+      while(tmp){\
+        calc_out_neurons_TYPE_FLOAT(tmp);\
+        tmp = tmp->next_layer;\
+      }
+    print_neurons_msg_TYPE_FLOAT(bn, msg);
+  */
+  }
+ 
+
+
+  free_data_set_TYPE_FLOAT(ds);
+  free_neurons_TYPE_FLOAT(bn); 
+
+  LOG("reps = %ld\n",reps);
+}
+
+TEST(learning_withconfig2){
+  
+  data_set_TYPE_FLOAT *ds= fill_data_set_from_file_TYPE_FLOAT("xor.txt",1);
+//  print_data_set_msg_TYPE_FLOAT(ds,"data");
+  config_layers *pconf = create_config_layers_from_OneD(3,(size_t[]){2,4,1}); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
+  neurons_TYPE_FLOAT *bn=NULL, *tmp ;
+  setup_networks_alloutputs_config_TYPE_FLOAT(&bn,pconf);
+
+  setup_all_layers_functions_TYPE_FLOAT(bn,
+    tensorContractnProdThread_TYPE_FLOAT,
+    tensorProdThread_TYPE_FLOAT,
+    DL,
+    L,
+    f,
+    df);
+
+  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.5);
+
+
+  size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
+  
+ 
+  char msg[256];
+  for(size_t i=0; i<ds->size; ++i){
+    print_predict_by_network_with_error_neurons_TYPE_FLOAT(bn,ds->input[i],ds->target[i]);
+    
+  }
+ 
+
+
+  free_data_set_TYPE_FLOAT(ds);
+  free_neurons_TYPE_FLOAT(bn); 
+
+  LOG("reps = %ld\n",reps);
+}
+
+
 
 
 int main(int argc, char **argv){

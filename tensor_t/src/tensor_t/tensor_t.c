@@ -386,10 +386,14 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
     printf(" |#%ld]: %s, ",i,val);\
     free(val); val=NULL;\
     if(coord[begin]==(T->dim)->perm[begin]-1){\
+      size_t count=0;\
       for(long int j=begin; cond(j,end); j = iter(j)){\
-        if(coord[j]==(T->dim)->perm[j]-1) printf(")");\
+        if(coord[j]==(T->dim)->perm[j]-1) {\
+          printf(")"); ++count;\
+        }\
         else break;\
       }\
+      if(count == (T->dim)->size-1) printf("\n ");\
     }\
   }\
   \
@@ -468,10 +472,12 @@ size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withInde
     free(val); val = NULL;\
     (*tensorContent)[cur++]=',';\
     if(coord[begin]==(T->dim)->perm[begin]-1){\
+      size_t count=0;\
       for(long int j=begin; cond(j,end); j = iter(j)){\
-        if(coord[j]==(T->dim)->perm[j]-1) /*printf(")"); */ (*tensorContent)[cur++]=')';\
+        if(coord[j]==(T->dim)->perm[j]-1) {/*printf(")"); */ (*tensorContent)[cur++]=')'; ++count;}\
         else break;\
       }\
+      if(count == (T->dim)->size-1) {(*tensorContent)[cur++]='\n'; (*tensorContent)[cur++]=' ';}\
     }\
   }\
   \
@@ -1238,9 +1244,10 @@ void parseInputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_#
 \
 /*format_file: [*,dim1,dim2]((x,x,a)(x,a))... | example:[2,(2,3),4](((a0,b0,c0,)((a1,b1,c1))((a2,b2,c2,d2))((e0,f0,g0)(e1,f1,g1)(e2,f2,g2,h2))) == with pivot 1 => [2,2,3][2,4]*/\
 void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_##type **Tpart2, char *file_name_input, size_t pivotSplit){\
-  size_t block_size=4;\
-  size_t block_count=2;\
+  size_t block_size=2;\
+  size_t block_count=4;\
   char *input=malloc(block_size*block_count + 1);\
+  char *iinput=malloc(block_size*block_count + 256);\
   FILE *f_input;\
   f_input=fopen(file_name_input,"r");\
   if ( f_input == NULL ) {\
@@ -1248,15 +1255,28 @@ void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, te
     exit( -1 );\
   }\
   bool size_unknown=false, breaked=false; \
-  while((block_count == fread(input, block_size, block_count, f_input)) && !breaked){\
-    input[block_count * block_size]='\0';\
-    size_t len = strlen(input);\
-    for(size_t i=0; i<len ; ++i){\
-      if(input[i]==']') {breaked = true; break;}\
-      if((input[i]=='*') ||(input[i]=='_')){ \
-        breaked=true;  size_unknown =true;\
-        break;}\
+  bool Done=false;\
+  int retfread = 0, curIn=0;\
+  while(!Done){\
+    retfread = fread(input, block_size, block_count, f_input) ;\
+    Done = (retfread != block_count);\
+    /*input[retfread*block_size]='\0';\
+    */for(curIn=0; curIn<retfread*block_size; ++curIn) iinput[curIn]=input[curIn];\
+    while(!Done && ( ((iinput[curIn-1] >='0') && (iinput[curIn-1] <='9'))||(iinput[curIn-1] =='.')||(iinput[curIn-1] =='E')||(iinput[curIn-1] =='e'))){\
+      retfread = fread(input, 1, 1, f_input) ;\
+      Done = (retfread != 1);\
+      iinput[curIn++]=input[0];\
     }\
+    iinput[curIn]='\0';\
+    size_t len = strlen(iinput);\
+    for(size_t i=0; i<len ; ++i){\
+      if(iinput[i]==']') {breaked = true; break;}\
+      if((iinput[i]=='*') ||(iinput[i]=='_')){ \
+        breaked=true;  size_unknown =true;\
+        break;\
+      }\
+    }\
+    Done = breaked;\
   }\
   rewind(f_input);\
   list_perm_in_dim *l_p=NULL;\
@@ -1274,11 +1294,19 @@ void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, te
         dimension *ddim1=NULL;\
         dimension *ddim2=NULL;\
         dimension *dim2=NULL ;\
-  bool Done=false;\
+  Done=false;\
   while(!Done){\
-    Done =  (block_count != fread(input, block_size, block_count, f_input)); \
-    input[block_size * block_count] = '\0';\
-    ttmp=input;\
+    retfread = fread(input, block_size, block_count, f_input) ;\
+    Done = (retfread != block_count);\
+    /*input[retfread*block_size]='\0';\
+    */for(curIn=0; curIn<retfread*block_size; ++curIn) iinput[curIn]=input[curIn];\
+    while(!Done && (((iinput[curIn-1] >='0') && (iinput[curIn-1] <='9'))||(iinput[curIn-1] =='.')||(iinput[curIn-1] =='E')||(iinput[curIn-1] =='e'))){\
+      retfread = fread(input, 1, 1, f_input) ;\
+      Done = (retfread != 1);\
+      iinput[curIn++] = *input;\
+    }\
+    iinput[curIn]='\0';\
+    ttmp=iinput;\
     if( !bracketsDown){\
     while(strlen(ttmp) && strlen(ppEnd) && (*ppEnd !=']')  ){\
       ss = strtoul(ttmp, &ppEnd, 10);\
@@ -1290,7 +1318,7 @@ void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, te
         append_in_list_perm(&l_p,ss);\
       ttmp=ppEnd;\
     }\
-    if(*ppEnd ==']'){\
+    if( *ppEnd ==']'){\
       dim=create_dim_from_list_perm(l_p);\
       bracketsDown = true;\
       ttmp++; ppEnd++;\
@@ -1367,7 +1395,7 @@ void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, te
           updateRankDim(ddim2);\
           initDim=true;\
         }\
-        type x=0;\
+        type x= 0;\
         while(ttmp && strlen(ttmp) ){ \
           x = strto_##type(ttmp, &ppEnd);\
            while(ttmp == ppEnd && strlen(ttmp)){\
@@ -1414,6 +1442,7 @@ void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, te
     free_dimension(dim);\
     free_list_perm_in_dim(l_p);\
     free(input);\
+    free(iinput);\
     fclose(f_input);\
 }\
 \

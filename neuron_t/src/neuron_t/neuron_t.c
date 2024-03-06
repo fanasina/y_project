@@ -1,8 +1,43 @@
 #include "neuron_t/neuron_t.h"
 
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+
+#define ABSMAX(X, Y) ((((X) > (Y)) || ((-X) > (Y))  ) ? (X) : (Y))
 
 #define PR_LINE printf("===================================================== \n");
 
+config_layers *create_config_layers(size_t nb_layers, size_t *sz_layers, size_t **array_dim_in_layers){
+  config_layers *pconf=malloc(sizeof(config_layers));
+   pconf->nb_layers=nb_layers;
+   pconf->sz_layers=malloc(nb_layers * sizeof(size_t));
+   pconf->array_dim_in_layers=malloc(nb_layers*sizeof(size_t*));
+   for(size_t i=0; i<nb_layers; ++i){
+    pconf->sz_layers[i]=sz_layers[i];
+    pconf->array_dim_in_layers[i]=malloc(sz_layers[i]*sizeof(size_t));
+    for(size_t j=0; j<sz_layers[i];++j)
+      pconf->array_dim_in_layers[i][j]=array_dim_in_layers[i][j];
+   }
+   return pconf;
+}
+config_layers *create_config_layers_from_OneD(size_t nb_layers, size_t *array_dim_in_layers){
+   config_layers *pconf=malloc(sizeof(config_layers));
+   pconf->nb_layers=nb_layers;
+   pconf->sz_layers=malloc(nb_layers * sizeof(size_t));
+   pconf->array_dim_in_layers=malloc(nb_layers*sizeof(size_t*));
+   for(size_t i=0; i<nb_layers; ++i){
+    pconf->sz_layers[i]=1;
+    pconf->array_dim_in_layers[i]=malloc(sizeof(size_t));
+    pconf->array_dim_in_layers[i][0]=array_dim_in_layers[i];
+   }
+   return pconf;
+}
+
+void free_config_layers(config_layers *pconf){
+  for(size_t i=0; i<pconf->nb_layers;++i) free(pconf->array_dim_in_layers[i]);
+  free(pconf->array_dim_in_layers);
+  free(pconf->sz_layers);
+  free(pconf);
+} 
 
 #define GEN_NEURONS_F_(type)\
   \
@@ -73,17 +108,20 @@ void calc_delta_neurons_##type(neurons_##type *nr){\
   }\
 }\
 void update_weight_neurons_##type(neurons_##type *nr){\
-  tensor_##type *tmp_e_w=NULL;\
+  nr->TensorProduct(&(nr->weight_out), nr->input, nr->delta_out, nr->nb_prod_thread);\
+  /*tensor_##type *tmp_e_w=NULL;\
   nr->TensorProduct(&(tmp_e_w), nr->input, nr->delta_out, nr->nb_prod_thread);\
-  /*print_tensor_msg_##type(nr->input," nr input  update wei");*/\
+  *//*print_tensor_msg_##type(nr->input," nr input  update wei");*/\
   /*print_tensor_msg_##type(nr->delta_out," nr delta_out  update wei");*/\
   /*print_tensor_msg_##type(tmp_e_w," tmp_e_w  update wei");*/\
   \
   for(size_t i = 0; i<(nr->weight_in)->dim->rank; ++i){\
-    (nr->weight_in)->x[i]= (nr->weight_in)->x[i] - nr->learning_rate *tmp_e_w->x[i] ;\
+    /*(nr->weight_in)->x[i]= (nr->weight_in)->x[i] - nr->learning_rate *tmp_e_w->x[i] ;\
+    */(nr->weight_in)->x[i]= (nr->weight_in)->x[i] - nr->learning_rate * (nr->weight_out)->x[i] ;\
   }\
   /*print_tensor_msg_##type(nr->weight_in," weight_in  updated ");*/\
-  free_tensor_##type(tmp_e_w);\
+  /*free_tensor_##type(tmp_e_w);\
+  */\
 }\
 void init_in_out_all_networks_##type(neurons_##type *nr, tensor_##type *in, tensor_##type *out){\
   if(((nr->input)->dim)->rank == (in->dim)->rank)\
@@ -113,7 +151,6 @@ void link_layers_##type(neurons_##type *nPrev, neurons_##type *nNext ){\
   }\
   for(size_t i=0;i<((nNext->bias)->dim)->rank;++i) (nNext->bias)->x[i]=1;\
 }\
-\
 \
 \
 void setup_networks_alloutputs_##type(neurons_##type **base_nr, size_t **array_dim_in_layers, size_t *sz_layers, size_t nb_layers){\
@@ -154,7 +191,7 @@ void setup_networks_alloutputs_##type(neurons_##type **base_nr, size_t **array_d
           dimension *d_w_in;  \
           add_dimension(&d_w_in, (ttmp_l->input)->dim, ((ttmp_l->output)->dim)); \
           ttmp_l->weight_in = CREATE_TENSOR_##type(d_w_in);\
-          for(size_t i=0;i<((ttmp_l->weight_in)->dim)->rank;++i) (ttmp_l->weight_in)->x[i]=0.01;\
+          for(size_t i=0;i<((ttmp_l->weight_in)->dim)->rank;++i) (ttmp_l->weight_in)->x[i]=0.5;\
           /*init_random_x_##type(ttmp_l->weight_in,0,1,5000);\
           */\
       }\
@@ -171,7 +208,7 @@ void setup_networks_alloutputs_##type(neurons_##type **base_nr, size_t **array_d
         dimension *d_w_in;  \
         add_dimension(&d_w_in, (tmp_l->input)->dim, ((tmp_l->output)->dim)); \
         tmp_l->weight_in = CREATE_TENSOR_##type(d_w_in);\
-        for(size_t i=0;i<((tmp_l->weight_in)->dim)->rank;++i) (tmp_l->weight_in)->x[i]=0.01;\
+        for(size_t i=0;i<((tmp_l->weight_in)->dim)->rank;++i) (tmp_l->weight_in)->x[i]=0.5;\
         /*init_random_x_##type(tmp_l->weight_in,0,1,5000);\
         */\
       }\
@@ -183,6 +220,93 @@ void setup_networks_alloutputs_##type(neurons_##type **base_nr, size_t **array_d
  \
 \
   }\
+}\
+\
+\
+void setup_networks_layers_without_weights_##type(neurons_##type **base_nr, size_t **array_dim_in_layers, size_t *sz_layers, size_t nb_layers){\
+  neurons_##type *tmp_l=NULL, *ttmp_l=NULL;\
+  for(size_t l=0; l<nb_layers; ++l){\
+    tmp_l = malloc(sizeof(neurons_##type)); \
+    if(l==0){\
+      *base_nr = tmp_l ;\
+    }else{\
+      ttmp_l->next_layer = tmp_l ;\
+    }\
+    tmp_l->id_layer= l;\
+    tmp_l->input = NULL; \
+    tmp_l->net = NULL; \
+    tmp_l->output = NULL; \
+    tmp_l->target = NULL; \
+    tmp_l->weight_in = NULL; \
+    tmp_l->weight_out = NULL; \
+    tmp_l->delta_out = NULL; \
+    tmp_l->bias = NULL;  \
+    tmp_l->prev_layer = ttmp_l;\
+    tmp_l->next_layer = NULL;\
+    \
+    if(ttmp_l != NULL){\
+      dimension *dim=init_copy_dim(array_dim_in_layers[l-1],sz_layers[l-1]);\
+      increment_dim_var(dim);\
+      tmp_l->input = CREATE_TENSOR_##type(dim);\
+      for(size_t i=0;i<((tmp_l->input)->dim)->rank;++i) (tmp_l->input)->x[i]=(type)l;\
+      \
+      link_layers_##type(ttmp_l,tmp_l);\
+      if(l>1 ){\
+          dimension *dim_out = (ttmp_l->output)->dim;\
+          for(size_t i=0;i<dim_out->rank; ++i) (ttmp_l->output)->x[i]=(type)(l-1);\
+          ttmp_l->net = CREATE_TENSOR_FROM_CPY_DIM_##type(dim_out);\
+          for(size_t i=0;i<dim_out->rank; ++i) (ttmp_l->net)->x[i]=(type)(l-1);\
+          ttmp_l->delta_out = CREATE_TENSOR_FROM_CPY_DIM_##type(dim_out); \
+          for(size_t i=0;i< dim_out->rank; ++i) (ttmp_l->delta_out)->x[i]=(type)(l-1);\
+          /*dimension *d_w_in;  \
+          add_dimension(&d_w_in, (ttmp_l->input)->dim, ((ttmp_l->output)->dim)); \
+          ttmp_l->weight_in = CREATE_TENSOR_##type(d_w_in);\
+          for(size_t i=0;i<((ttmp_l->weight_in)->dim)->rank;++i) (ttmp_l->weight_in)->x[i]=0.01;\
+          *//*init_random_x_##type(ttmp_l->weight_in,0,1,5000);\
+          */\
+      }\
+      if(l==nb_layers-1) {\
+        dimension *dim_out=init_copy_dim(array_dim_in_layers[l],sz_layers[l]);\
+        tmp_l->output = CREATE_TENSOR_##type(dim_out);\
+        for(size_t i=0;i<((tmp_l->output)->dim)->rank;++i) (tmp_l->output)->x[i]=(type)l;\
+        tmp_l->target = CREATE_TENSOR_FROM_CPY_DIM_##type(dim_out);\
+        for(size_t i=0;i<((tmp_l->target)->dim)->rank;++i) (tmp_l->target)->x[i]=(type)(l);\
+        tmp_l->net = CREATE_TENSOR_FROM_CPY_DIM_##type(dim_out);\
+        for(size_t i=0;i<((tmp_l->net)->dim)->rank;++i) (tmp_l->net)->x[i]=(type)(l);\
+        tmp_l->delta_out = CREATE_TENSOR_FROM_CPY_DIM_##type(dim_out); \
+        for(size_t i=0;i<((tmp_l->delta_out)->dim)->rank;++i) (tmp_l->delta_out)->x[i]=(type)(l);\
+        /*dimension *d_w_in;  \
+        add_dimension(&d_w_in, (tmp_l->input)->dim, ((tmp_l->output)->dim)); \
+        tmp_l->weight_in = CREATE_TENSOR_##type(d_w_in);\
+        for(size_t i=0;i<((tmp_l->weight_in)->dim)->rank;++i) (tmp_l->weight_in)->x[i]=0.01;\
+        *//*init_random_x_##type(tmp_l->weight_in,0,1,5000);\
+        */\
+      }\
+     \
+    }\
+\
+    ttmp_l = tmp_l;\
+    \
+ \
+\
+  }\
+}\
+\
+\
+void setup_weights_neurons_##type(neurons_##type *base, bool randomize, type minR, type maxR,  int randomRange){\
+  neurons_##type *tmp_l=base->next_layer;\
+  while(tmp_l){\
+    dimension *d_w_in;  \
+    add_dimension(&d_w_in, (tmp_l->input)->dim, ((tmp_l->output)->dim)); \
+    tmp_l->weight_in = CREATE_TENSOR_##type(d_w_in);\
+    if(randomize){\
+        init_random_x_##type(tmp_l->weight_in,minR, maxR, randomRange);\
+    }else{\
+        for(size_t i=0;i<((tmp_l->weight_in)->dim)->rank;++i) (tmp_l->weight_in)->x[i]=maxR;\
+    }\
+    tmp_l = tmp_l->next_layer;\
+  }\
+  \
 }\
 \
 void setup_networks_alloutputs_config_##type(neurons_##type **base_nr, config_layers *lconf){\
@@ -269,49 +393,74 @@ void init_copy_in_out_networks_from_tensors_##type(neurons_##type *nr, tensor_##
 \
 void init_in_out_networks_from_tensors_##type(neurons_##type *nr, tensor_##type *input, tensor_##type *target, neurons_##type *base){\
   if(is_equal_dim((base->output)->dim , input->dim)){\
-    nr->output = input ;\
+    for(size_t i=0;i<(input->dim)->rank;++i) (nr->output)->x[i]=input->x[i];\
+    /*nr->output = input ;*/\
   }\
   neurons_##type *tmp=nr;\
   while(tmp->next_layer) tmp=tmp->next_layer;\
   \
-  if(is_equal_dim((base->target)->dim, target->dim)){\
-      tmp->target = target; \
+  if(is_equal_dim((tmp->target)->dim, target->dim)){\
+    for(size_t i=0; i< (target->dim)->rank; ++i) {\
+      (tmp->target)->x[i] = target->x[i]; \
+      /*tmp->target = target;*/ \
+    }\
   }\
 }\
-neurons_##type * clone_neurons_base_from_input_target_tensors_##type(neurons_##type *base_nr, tensor_##type *input, tensor_##type *target){\
-  neurons_##type *nr = malloc(sizeof(neurons_##type));\
-  neurons_##type *tmpnr = nr, *tmpbs=base_nr, *prevLayer = NULL;\
-  while(tmpbs){\
-    tmpnr->id_layer = tmpbs->id_layer;\
-    tmpnr->nb_prod_thread = tmpbs->nb_prod_thread;\
-    tmpnr->learning_rate = tmpbs->learning_rate;\
-    tmpnr->input  = CLONE_TENSOR_##type(tmpbs->input); \
-    tmpnr->net  = CLONE_TENSOR_##type(tmpbs->net); \
-    tmpnr->weight_in  = CLONE_TENSOR_##type(tmpbs->weight_in); \
-    tmpnr->bias  = CLONE_TENSOR_##type(tmpbs->bias); \
-    tmpnr->weight_out  = CLONE_TENSOR_##type(tmpbs->weight_out); \
-    tmpnr->delta_out  = CLONE_TENSOR_##type(tmpbs->delta_out); \
-    tmpnr->prev_layer = prevLayer;\
-    if(prevLayer)  {\
-      prevLayer->next_layer = tmpnr;\
-      tmpnr->output  = CLONE_TENSOR_##type(tmpbs->output); \
-    }else{\
-      tmpnr->output = NULL;\
-    }\
-    tmpnr->target  = NULL;\
-    prevLayer = tmpnr;\
-    tmpnr->TensorContraction = tmpbs->TensorContraction;\
-    tmpnr->TensorProduct = tmpbs->TensorProduct;\
-    tmpnr->dL = tmpbs->dL;\
-    tmpnr->L = tmpbs->L;\
-    tmpnr->f_act = tmpbs->f_act;\
-    tmpnr->d_f_act = tmpbs->d_f_act;\
-    if(tmpbs->next_layer) tmpnr->next_layer = malloc(sizeof(neurons_##type));\
-    else tmpnr->next_layer =NULL;\
-    tmpbs=tmpbs->next_layer;\
-    tmpnr=tmpnr->next_layer;\
+void setup_networks_layers_without_weights_from_config_##type(neurons_##type **base, config_layers *pconf){\
+  setup_networks_layers_without_weights_##type(base, pconf->array_dim_in_layers, pconf->sz_layers, pconf->nb_layers);\
+}\
+void unlink_all_weigth_in_neurons_##type(neurons_##type *nr){\
+  while(nr){\
+    nr->weight_in=NULL;\
+    nr=nr->next_layer;\
   }\
-  return nr;\
+}\
+void free_cloneuronset_##type(cloneuronset_##type *clnrnst){\
+  for(size_t i=0; i < clnrnst->nb_clone; ++i) {\
+    unlink_all_weigth_in_neurons_##type(clnrnst->cloneurons[i]);\
+    free_neurons_##type(clnrnst->cloneurons[i]);\
+  }\
+  free_config_layers(clnrnst->conf);\
+}\
+void link_cloneuronset_weight_in_funcs_params_from_base_##type(cloneuronset_##type *clnrnst){\
+  neurons_##type **tmp_c=malloc(clnrnst->nb_clone * sizeof(neurons_##type *));\
+  for(size_t c=0; c<clnrnst->nb_clone; ++c){\
+    tmp_c[c]=clnrnst->cloneurons[c];\
+  }\
+  neurons_##type *tmp_b=clnrnst->base;\
+  while(tmp_b){\
+    for(size_t c=0; c<clnrnst->nb_clone; ++c){\
+      tmp_c[c]->weight_in = tmp_b->weight_in;\
+      tmp_c[c]->L = tmp_b->L;\
+      tmp_c[c]->dL = tmp_b->dL;\
+      tmp_c[c]->f_act = tmp_b->f_act;\
+      tmp_c[c]->d_f_act = tmp_b->d_f_act;\
+      tmp_c[c]->TensorContraction = tmp_b->TensorContraction;\
+      tmp_c[c]->TensorProduct = tmp_b->TensorProduct;\
+      tmp_c[c]->learning_rate = tmp_b->learning_rate;\
+      tmp_c[c]->nb_prod_thread = tmp_b->nb_prod_thread;\
+      tmp_c[c]->nb_calc_thread = tmp_b->nb_calc_thread;\
+      tmp_c[c]->id_layer = tmp_b->id_layer;\
+    }\
+    for(size_t c=0; c<clnrnst->nb_clone; ++c){\
+      tmp_c[c]=tmp_c[c]->next_layer;\
+    }\
+    tmp_b=tmp_b->next_layer;\
+    \
+  }\
+  free(tmp_c);\
+}\
+cloneuronset_##type * create_cloneuronset_from_base_conf_##type(neurons_##type *base, config_layers *conf, size_t nb_clone){\
+  cloneuronset_##type *clnrnst = malloc(sizeof(cloneuronset_##type));\
+  clnrnst->nb_clone = nb_clone;\
+  clnrnst->conf=conf;\
+  clnrnst->base=base;\
+  clnrnst->cloneurons = malloc(nb_clone*sizeof(neurons_##type*));\
+  for(size_t c=0; c<nb_clone; ++c){\
+    setup_networks_layers_without_weights_from_config_##type(&(clnrnst->cloneurons[c]), conf);\
+  }\
+  link_cloneuronset_weight_in_funcs_params_from_base_##type(clnrnst);\
+  return clnrnst;\
 }\
 \
 void print_neurons_msg_##type(neurons_##type *nr, char *msg){\
@@ -427,15 +576,244 @@ size_t learning_online_neurons_##type(neurons_##type *base, data_set_##type *dat
   printf(" ### reps : %ld \n",nbreps);\
   return nbreps;\
 }\
-size_t learning_set_cloneurons_##type(set_cloneurons_##type *clon, data_set_##type *dataset, neurons_##type *base, bool (*condition)(type, size_t)){\
+size_t learning_online2_neurons_##type(neurons_##type *base, data_set_##type *dataset, bool (*condition)(type,size_t)){\
+  neurons_##type *tmp=NULL, *ttmp;\
   size_t nbreps=0;\
   type err=0;\
+  bool ending=false;\
   do{\
+    for(size_t i=0; i<dataset->size && !ending; ++i){\
+      init_copy_in_out_networks_from_tensors_##type(base, dataset->input[i],dataset->target[i]);\
+      tmp=base->next_layer;\
+      while(tmp){\
+        calc_out_neurons_##type(tmp);\
+        ttmp = tmp;\
+        tmp = tmp->next_layer;\
+      }\
+      while(ttmp != base){\
+        calc_delta_neurons_##type(ttmp);\
+        update_weight_neurons_##type(ttmp);\
+        ttmp = ttmp->prev_layer;\
+      }\
+      err = ABSMAX(err,error_out_##type(base));\
+      ending = condition(err, nbreps++);\
+    }\
+\
+  }while(!ending);\
     \
-  }while(!condition(err,nbreps++));\
+  \
+  printf(" ### reps : %ld, err:%f \n",nbreps,err);\
   return nbreps;\
 }\
-  
+\
+void print_predict_by_network_neurons_##type(neurons_##type *base, tensor_##type *input){\
+    for(size_t i=0; i<(input->dim)->rank; ++i) (base->output)->x[i]=input->x[i];\
+      neurons_##type * tmp=base->next_layer;\
+      while(tmp){\
+        calc_out_neurons_##type(tmp);\
+        if(tmp->next_layer==NULL){\
+          print_tensor_msg_##type(tmp->output,"retult");\
+          \
+        }\
+        tmp = tmp->next_layer;\
+      }\
+\
+  print_tensor_msg_##type(input,"from input:");\
+  \
+}\
+\
+void print_predict_by_network_with_error_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type *target){\
+  init_copy_in_out_networks_from_tensors_##type(base, input, target);\
+      neurons_##type * tmp=base->next_layer;\
+      while(tmp){\
+        calc_out_neurons_##type(tmp);\
+        if(tmp->next_layer==NULL){\
+          print_tensor_msg_##type(tmp->output,"retult");\
+          \
+        }\
+        tmp = tmp->next_layer;\
+      }\
+\
+\
+  printf(" error : %f\n", error_out_##type(base));\
+  print_tensor_msg_##type(input,"from input:");\
+  \
+}\
+\
+void only_update_weight_neurons_##type(neurons_##type *nr){\
+  for(size_t i = 0; i<(nr->weight_in)->dim->rank; ++i){\
+    /*(nr->weight_in)->x[i]= (nr->weight_in)->x[i] - nr->learning_rate *tmp_e_w->x[i] ;\
+    */(nr->weight_in)->x[i]= (nr->weight_in)->x[i] - nr->learning_rate * (nr->weight_out)->x[i] ;\
+  }\
+}\
+\
+void update_cloneuronesets_weight_in_base_##type(cloneuronset_##type * clnrnst){\
+  type sumDw=0;\
+  size_t nb_clone=clnrnst->nb_clone;\
+  neurons_##type **tmp_c=malloc(nb_clone*sizeof(neurons_##type *));\
+  for(size_t c=0; c<nb_clone; ++c)\
+    tmp_c[c] = (clnrnst->cloneurons[c])->next_layer;\
+  neurons_##type *tmp=(clnrnst->base)->next_layer;\
+  while(tmp){\
+    for(size_t i=0; i<((tmp->weight_in)->dim)->rank; ++i){\
+      sumDw=0;\
+      for(size_t c=0; c<nb_clone; ++c){\
+        sumDw += ((tmp_c[c])->weight_out)->x[i];\
+      }\
+      (tmp->weight_in)->x[i] += ((-1) * (tmp->learning_rate) * sumDw) / nb_clone ;\
+    }\
+    for(size_t c=0; c<nb_clone; ++c){\
+      tmp_c[c]=(tmp_c[c])->next_layer;\
+    }\
+    tmp=tmp->next_layer;\
+  }\
+  free(tmp_c);\
+}\
+\
+type clon_error_batch_##type(cloneuronset_##type * clnrnst){\
+  \
+  type err=0;\
+  type sumErrP=0;\
+  size_t nb_clone=clnrnst->nb_clone;\
+  neurons_##type **tmp_c=malloc(nb_clone*sizeof(neurons_##type *));\
+  for(size_t c=0; c<nb_clone; ++c)\
+    tmp_c[c] = (clnrnst->cloneurons[c])->next_layer;\
+  neurons_##type *tmp=(clnrnst->base)->next_layer;\
+  while(tmp){\
+    if(tmp->next_layer==NULL){\
+      for(size_t i=0; i<((tmp->target)->dim)->rank; ++i){\
+        sumErrP=0;\
+        for(size_t c=0; c<nb_clone; ++c){\
+          sumErrP += (tmp_c[c])->L(((tmp_c[c])->target)->x[i],((tmp_c[c])->output)->x[i]);\
+        }\
+        err += sumErrP/nb_clone;\
+      }\
+      break;\
+    }\
+    for(size_t c=0; c<nb_clone; ++c){\
+      tmp_c[c]=(tmp_c[c])->next_layer;\
+    }\
+    tmp=tmp->next_layer;\
+  }\
+  free(tmp_c);\
+  \
+  return err / (((tmp->target)->dim)->rank);\
+}\
+\
+struct arg_learnCloneuronset_##type{\
+  size_t id_th;\
+  sem_t *semaphore_datas;\
+  sem_t *semaphore_learn;\
+  size_t *id_datas;\
+  bool *ending;\
+  neurons_##type *base_c;\
+  data_set_##type *dataset;\
+};\
+void* run_learnCloneuronset_thread_##type(void *arg){\
+  struct arg_learnCloneuronset_##type *arg_t = arg;\
+  size_t id_th = arg_t->id_th;\
+  sem_t *semaphore_datas = arg_t->semaphore_datas;\
+  sem_t *semaphore_learn = arg_t->semaphore_learn;\
+  size_t *id_datas = arg_t->id_datas;\
+  bool *ending = arg_t->ending;\
+  neurons_##type *base_c = arg_t->base_c;\
+  data_set_##type *dataset = arg_t->dataset;\
+  neurons_##type *tmp, *ttmp;\
+  while(!(*ending)){\
+    sem_wait(semaphore_datas);\
+    if(!(*ending)) break;\
+    init_copy_in_out_networks_from_tensors_##type(base_c, dataset->input[id_datas[id_th]],dataset->target[id_datas[id_th]]);\
+      tmp=base_c->next_layer;\
+      while(tmp){\
+        calc_out_neurons_##type(tmp);\
+        ttmp = tmp;\
+        tmp = tmp->next_layer;\
+      }\
+      while(ttmp != base_c){\
+        calc_delta_neurons_##type(ttmp);\
+        /*update_weight_neurons_##type(ttmp);\
+        */\
+        ttmp->TensorProduct(&(ttmp->weight_out), ttmp->input, ttmp->delta_out, ttmp->nb_prod_thread);\
+        ttmp = ttmp->prev_layer;\
+      }\
+    sem_post(semaphore_learn);\
+  }\
+  sem_post(semaphore_learn);\
+}\
+\
+size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##type *dataset, neurons_##type *base, bool (*condition)(type, size_t)){\
+  size_t nbreps=0;\
+  size_t curData=0;\
+  type err=0;\
+  bool *ending=malloc(sizeof(bool));\
+  *ending=false;\
+  size_t nb_clone = clnrnst->nb_clone;\
+  sem_t *semaphore_datas=malloc(sizeof(sem_t));\
+  sem_t *semaphore_learn=malloc(sizeof(sem_t));\
+  sem_init(semaphore_datas,0,0);\
+  sem_init(semaphore_learn,0,0);\
+  size_t *id_datas = malloc(nb_clone * sizeof(size_t));\
+    \
+  pthread_t *thrd = malloc(nb_clone * sizeof(pthread_t));\
+  struct arg_learnCloneuronset_##type **arg_th = malloc( nb_clone * sizeof(struct arg_learnCloneuronset_##type *));\
+\
+  for(size_t i = 0; i < nb_clone; ++i){\
+    arg_th[i]=malloc(sizeof(struct arg_learnCloneuronset_##type));\
+    arg_th[i]->id_th=i;\
+    arg_th[i]->semaphore_datas=semaphore_datas;\
+    arg_th[i]->semaphore_learn=semaphore_learn;\
+    arg_th[i]->ending=ending;\
+    arg_th[i]->base_c = clnrnst->cloneurons[i] ;\
+    arg_th[i]->dataset = dataset ;\
+    \
+    pthread_create(&thrd[i], NULL, run_learnCloneuronset_thread_##type, (void*)arg_th[i]);\
+  }\
+\
+  \
+  while(!(*ending)){\
+    for(size_t c=0; c<nb_clone; ++c){\
+      id_datas[c]=curData;\
+      curData = (curData + 1) % (dataset->size);\
+      \
+    }\
+    for(size_t c=0; c<nb_clone; ++c){\
+      sem_post(semaphore_datas);\
+    }\
+    /* ============ ============= ============ */\
+    \
+    for(size_t c=0; c<nb_clone; ++c){\
+      sem_wait(semaphore_learn);\
+    }\
+    \
+    update_cloneuronesets_weight_in_base_##type(clnrnst);\
+    err = clon_error_batch_##type(clnrnst);\
+    *ending = condition(err, nbreps++) ;\
+  }\
+  \
+  printf("reps batch learning : %ld\n",nbreps);\
+    for(size_t c=0; c<nb_clone; ++c){\
+      sem_post(semaphore_datas);\
+    }\
+  \
+  \
+  for(size_t i=0; i< nb_clone; ++i){\
+    pthread_join(thrd[i], NULL);\
+    free(arg_th[i]);\
+  }\
+\
+  free(thrd);\
+  free(arg_th);\
+  sem_destroy(semaphore_datas);\
+  sem_destroy(semaphore_learn);\
+  free(semaphore_datas);\
+  free(semaphore_learn);\
+  free(ending);\
+  free(id_datas);\
+  return err;\
+}  \
+\
+
+ 
   
   
 GEN_NEURONS_F_(TYPE_FLOAT)

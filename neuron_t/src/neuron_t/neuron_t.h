@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <semaphore.h>
 
 //#include "tools_t/tools_t.h"
 #include "tensor_t/tensor_t.h"
@@ -13,6 +14,10 @@ struct config_layers{
    size_t **array_dim_in_layers;
 };
 typedef struct config_layers config_layers; 
+config_layers *create_config_layers(size_t nb_layers, size_t *sz_layers, size_t **array_dim_in_layers);
+config_layers *create_config_layers_from_OneD(size_t nb_layers, size_t *array_dim_in_layers);
+void free_config_layers(config_layers *pconf);
+
 
 #define GEN_NEURON_(type)\
 \
@@ -55,6 +60,8 @@ void init_in_out_networks_from_tensors_##type(neurons_##type *nr, tensor_##type 
 void init_in_out_all_networks_##type(neurons_##type *nr, tensor_##type *in, tensor_##type *out);\
 void setup_networks_alloutputs_##type(neurons_##type **base_nr, size_t **array_dim_in_layers, size_t *sz_layers, size_t nb_layers);\
 void setup_networks_alloutputs_config_##type(neurons_##type **base_nr, config_layers *lconf);\
+void setup_networks_layers_without_weights_##type(neurons_##type **base_nr, size_t **array_dim_in_layers, size_t *sz_layers, size_t nb_layers);\
+void setup_networks_layers_without_weights_from_config_##type(neurons_##type **base, config_layers *pconf);\
 void setup_networks_OneD_##type(neurons_##type **base_nr, size_t *array_dim_in_layers, size_t nb_layers);\
 void init_in_out_all_networks_OneD_##type(neurons_##type *nr, type *in, size_t sz_in, type *out, size_t sz_out);\
 void print_neurons_msg_##type(neurons_##type *nr, char * msg);\
@@ -85,15 +92,21 @@ data_set_##type*  fill_data_set_from_file_##type(char * file_input, size_t pivot
 void print_data_set_msg_##type(data_set_##type *ds, char *msg);\
 \
 size_t learning_online_neurons_##type(neurons_##type *base, data_set_##type *dataset, bool (*condition)(type, size_t));\
+size_t learning_online2_neurons_##type(neurons_##type *base, data_set_##type *dataset, bool (*condition)(type, size_t));\
 \
-struct set_cloneurons_##type{\
+void print_predict_by_network_neurons_##type(neurons_##type *base, tensor_##type *input);\
+void print_predict_by_network_with_error_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type *target);\
+\
+struct cloneuronset_##type{\
   size_t nb_clone;\
   config_layers *conf;\
   neurons_##type *base;\
   neurons_##type **cloneurons;\
 };\
-typedef struct set_cloneurons_##type set_cloneurons_##type;\
-size_t learning_set_cloneurons_##type(set_cloneurons_##type *clon, data_set_##type *dataset, neurons_##type *base, bool (*condition)(type, size_t));\
+typedef struct cloneuronset_##type cloneuronset_##type;\
+void free_cloneuronset_##type(cloneuronset_##type *clnrnst);\
+cloneuronset_##type * create_cloneuronset_from_base_conf_##type(neurons_##type *base, config_layers *conf, size_t nb_clone);\
+size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##type *dataset, neurons_##type *base, bool (*condition)(type, size_t));\
 
 GEN_NEURON_(TYPE_FLOAT)
 GEN_NEURON_(TYPE_DOUBLE)
