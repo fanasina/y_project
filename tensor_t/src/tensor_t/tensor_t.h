@@ -29,6 +29,7 @@ tensor_##type * sub_copy_minus_tensor_tail_##type(tensor_##type *rootens, size_t
 tensor_##type * sub_copy_tensor_head_##type(tensor_##type *rootens, size_t sub_copydim, size_t rankInDim); \
 tensor_##type * sub_copy_tensor_tail_##type(tensor_##type *rootens, size_t sub_copydim, size_t rankInDim); \
 void print_tensor_msg_##type(tensor_##type *T, char *msg);\
+void fprint_tensor_##type(char *file_name, tensor_##type *T);\
 size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withIndex);\
 void split_tensor_##type(tensor_##type *Troot, tensor_##type **Tpart1, tensor_##type **Tpart2, size_t pivotSplit, size_t rangeInPivot);\
 void split_copy_tensor_##type(tensor_##type *Troot, tensor_##type **Tpart1, tensor_##type **Tpart2, size_t pivotSplit, size_t rangeInPivot);\
@@ -71,7 +72,10 @@ void update_5tensor_func_##type(tensor_##type *M0, tensor_##type *M1, tensor_##t
     type(*f1)(type), \
     type (*f2)(type,type), \
     size_t nbthread);\
-
+void update_6tensor_func_##type(tensor_##type *M0, tensor_##type *M1,  \
+    type (*func)(type, type, type),\
+    type scalar,\
+    size_t nbthread);\
 
 
 GENERATE_TENSOR_TYPE(TYPE_FLOAT);

@@ -1626,7 +1626,7 @@ float func2(float x){
   return x*x+1;
 }
 
-TEST(update_func_){
+TEST(print_tensor){
   dimension *d0=create_dim(3);
 
   d0->perm[0]=2;
@@ -1648,7 +1648,35 @@ TEST(update_func_){
   update_1tensor_func_TYPE_FLOAT(M0, func2, 5); 
 
   print_tensor_float(M0, "x*x+1 M0 random");
+  free_tensor_TYPE_FLOAT(M0);
 }
+
+TEST(rec_in_file_tensor){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=2;
+  d0->perm[1]=3;
+  d0->perm[2]=4;
+
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  init_random_x_TYPE_FLOAT(M0,2.7,5.4,50001);
+
+  print_tensor_float(M0, "init M0 random");
+  
+  update_1tensor_func_TYPE_FLOAT(M0, func2, 5); 
+
+  fprint_tensor_TYPE_FLOAT(".ffrec_randomTens.txt",M0);
+  free_tensor_TYPE_FLOAT(M0);
+}
+
+
 
 
 

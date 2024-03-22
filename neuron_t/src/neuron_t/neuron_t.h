@@ -8,6 +8,8 @@
 //#include "tools_t/tools_t.h"
 #include "tensor_t/tensor_t.h"
 
+extern bool randomizeInitWeight;
+
 struct config_layers{
    size_t nb_layers;
    size_t *sz_layers;
@@ -23,9 +25,14 @@ void free_config_layers(config_layers *pconf);
 \
 struct neurons_##type {/* layer */\
   size_t id_layer;\
+  size_t iteration_step;\
   size_t nb_prod_thread;\
   size_t nb_calc_thread;\
+  type initial_learning_rate;\
   type learning_rate;\
+  type decay_rate;\
+  size_t drop_rate;\
+  void (*update_learning_rate)(struct neurons_##type *N); \
   tensor_##type *input; \
   tensor_##type *net; /* output tensor_prodContract */\
   tensor_##type *output; \
@@ -50,6 +57,10 @@ struct func_act_##type {\
   type (*deriv_func_act)(type x); /* derivate func act */\
 };\
 \
+void do_not_update_learnig_rate_##type(neurons_##type *N);\
+void time_based_update_learning_rate_##type(neurons_##type *nr);\
+void step_based_update_learning_rate_##type(neurons_##type *nr);\
+void setup_learning_rate_params_neurons_##type(neurons_##type *base,type initial_learning_rate, type decay_rate, size_t drop_rate, void (*update_learning_rate)(neurons_##type *));\
 /*void calc_net_neurons_##type(neurons_##type *nr);*/\
 void calc_out_neurons_##type(neurons_##type *nr);\
 void calc_delta_neurons_##type(neurons_##type *nr);\
@@ -58,11 +69,12 @@ void update_weight_neurons_##type(neurons_##type *nr);\
 void init_copy_in_out_networks_from_tensors_##type(neurons_##type *nr, tensor_##type *input, tensor_##type *target);\
 void init_in_out_networks_from_tensors_##type(neurons_##type *nr, tensor_##type *input, tensor_##type *target, neurons_##type *base);\
 void init_in_out_all_networks_##type(neurons_##type *nr, tensor_##type *in, tensor_##type *out);\
-void setup_networks_alloutputs_##type(neurons_##type **base_nr, size_t **array_dim_in_layers, size_t *sz_layers, size_t nb_layers);\
-void setup_networks_alloutputs_config_##type(neurons_##type **base_nr, config_layers *lconf);\
+void setup_networks_alloutputs_GLOBAL_rdm01_##type(neurons_##type **base_nr, size_t **array_dim_in_layers, size_t *sz_layers, size_t nb_layers);\
+void setup_networks_alloutputs_##type(neurons_##type **base_nr, size_t **array_dim_in_layers, size_t *sz_layers, size_t nb_layers, bool randomize, type minR, type maxR,  int randomRange);\
+void setup_networks_alloutputs_config_##type(neurons_##type **base_nr, config_layers *lconf, bool randomize, type minR, type maxR,  int randomRange);\
 void setup_networks_layers_without_weights_##type(neurons_##type **base_nr, size_t **array_dim_in_layers, size_t *sz_layers, size_t nb_layers);\
 void setup_networks_layers_without_weights_from_config_##type(neurons_##type **base, config_layers *pconf);\
-void setup_networks_OneD_##type(neurons_##type **base_nr, size_t *array_dim_in_layers, size_t nb_layers);\
+void setup_networks_OneD_##type(neurons_##type **base_nr, size_t *array_dim_in_layers, size_t nb_layers, bool randomize, type minR, type maxR,  int randomRange);\
 void init_in_out_all_networks_OneD_##type(neurons_##type *nr, type *in, size_t sz_in, type *out, size_t sz_out);\
 void print_neurons_msg_##type(neurons_##type *nr, char * msg);\
 \
@@ -106,7 +118,7 @@ struct cloneuronset_##type{\
 typedef struct cloneuronset_##type cloneuronset_##type;\
 void free_cloneuronset_##type(cloneuronset_##type *clnrnst);\
 cloneuronset_##type * create_cloneuronset_from_base_conf_##type(neurons_##type *base, config_layers *conf, size_t nb_clone);\
-size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##type *dataset, neurons_##type *base, bool (*condition)(type, size_t));\
+size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##type *dataset, bool (*condition)(type, size_t));\
 
 GEN_NEURON_(TYPE_FLOAT)
 GEN_NEURON_(TYPE_DOUBLE)

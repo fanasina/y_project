@@ -40,7 +40,7 @@ float df(float x){
 TEST(init_One){
   //endian=false;
   neurons_TYPE_FLOAT *bn=NULL, *tmp=NULL, *ttmp=NULL;
-  setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){3,5,2},3);
+  setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){3,5,2},3,false,0,1,5000);
   init_in_out_all_networks_OneD_TYPE_FLOAT(bn,(float[]){1.2,0.5,1.3},3,(float[]){0.1,0.8},2);
 
   
@@ -92,17 +92,18 @@ TEST(data_set_from_file){
 #define epsilon 0.0001
 
 bool cond(float e, size_t nbreps){
-  if (nbreps > 1) return true;
+  if (nbreps > 20000) return true;
   if ((e<epsilon) && (e>-epsilon)) return true;
   return false;
 }
 
 TEST(learning_first){
-  
+   bool rec_randomizeInitWeight = randomizeInitWeight;
+   randomizeInitWeight =false;
   data_set_TYPE_FLOAT *ds= fill_data_set_from_file_TYPE_FLOAT("xor.txt",1);
   print_data_set_msg_TYPE_FLOAT(ds,"data");
   neurons_TYPE_FLOAT *bn=NULL, *tmp ;
-  setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){2,4,1},3); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
+  setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){2,4,1},3,false,0,1,5000); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
 
   setup_all_layers_functions_TYPE_FLOAT(bn,
     tensorContractnProdThread_TYPE_FLOAT,
@@ -112,7 +113,7 @@ TEST(learning_first){
     f,
     df);
 
-  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.5);
+  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.1);
 
 
   size_t reps = learning_online_neurons_TYPE_FLOAT(bn,ds,cond);
@@ -120,7 +121,8 @@ TEST(learning_first){
  
   //char msg[256];
   for(size_t i=0; i<ds->size; ++i){
-    print_predict_by_network_neurons_TYPE_FLOAT(bn,ds->input[i]);
+    print_predict_by_network_with_error_neurons_TYPE_FLOAT(bn,ds->input[i],ds->target[i]);
+    //print_predict_by_network_neurons_TYPE_FLOAT(bn,ds->input[i]);
     /*sprintf(msg, "data set [%ld]",i);
     init_copy_in_out_networks_from_tensors_TYPE_FLOAT(bn, ds->input[i],ds->target[i]);\
       tmp=bn->next_layer;\
@@ -137,16 +139,19 @@ TEST(learning_first){
   free_neurons_TYPE_FLOAT(bn); 
 
   LOG("reps = %ld\n",reps);
+  randomizeInitWeight = rec_randomizeInitWeight;
 }
 
 
 
 TEST(learning_second){
+   bool rec_randomizeInitWeight = randomizeInitWeight;
+   randomizeInitWeight =false;
   
   data_set_TYPE_FLOAT *ds= fill_data_set_from_file_TYPE_FLOAT("xor.txt",1);
 //  print_data_set_msg_TYPE_FLOAT(ds,"data");
   neurons_TYPE_FLOAT *bn=NULL, *tmp ;
-  setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){2,4,1},3); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
+  setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){2,4,1},3,false,0,1,5000); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
 
   setup_all_layers_functions_TYPE_FLOAT(bn,
     tensorContractnProdThread_TYPE_FLOAT,
@@ -156,7 +161,7 @@ TEST(learning_second){
     f,
     df);
 
-  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.5);
+  setup_all_layers_params_TYPE_FLOAT(bn, 5, 3 ,  0.1);
 
 
   size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
@@ -164,7 +169,8 @@ TEST(learning_second){
  
   char msg[256];
   for(size_t i=0; i<ds->size; ++i){
-    print_predict_by_network_neurons_TYPE_FLOAT(bn,ds->input[i]);
+    print_predict_by_network_with_error_neurons_TYPE_FLOAT(bn,ds->input[i],ds->target[i]);
+    //print_predict_by_network_neurons_TYPE_FLOAT(bn,ds->input[i]);
     /*sprintf(msg, "data set [%ld]",i);
     init_copy_in_out_networks_from_tensors_TYPE_FLOAT(bn, ds->input[i],ds->target[i]);\
       tmp=bn->next_layer;\
@@ -182,15 +188,19 @@ TEST(learning_second){
   free_neurons_TYPE_FLOAT(bn); 
 
   LOG("reps = %ld\n",reps);
+  randomizeInitWeight = rec_randomizeInitWeight;
 }
 
 TEST(learning_withconfig2){
+   bool rec_randomizeInitWeight = randomizeInitWeight;
+   randomizeInitWeight =false;
   
   data_set_TYPE_FLOAT *ds= fill_data_set_from_file_TYPE_FLOAT("xor.txt",1);
 //  print_data_set_msg_TYPE_FLOAT(ds,"data");
   config_layers *pconf = create_config_layers_from_OneD(3,(size_t[]){2,4,1}); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
   neurons_TYPE_FLOAT *bn=NULL, *tmp ;
-  setup_networks_alloutputs_config_TYPE_FLOAT(&bn,pconf);
+  //setup_networks_alloutputs_config_GLOBAL_rdm01_TYPE_FLOAT(setup_networks_alloutputs_config_TYPE_FLOAT(&bn,pconf);bn,pconf);
+     setup_networks_alloutputs_config_TYPE_FLOAT(&bn,pconf,false,0,1,5000);
 
   setup_all_layers_functions_TYPE_FLOAT(bn,
     tensorContractnProdThread_TYPE_FLOAT,
@@ -200,7 +210,7 @@ TEST(learning_withconfig2){
     f,
     df);
 
-  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.5);
+  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.1);
 
 
   size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
@@ -218,7 +228,108 @@ TEST(learning_withconfig2){
   free_neurons_TYPE_FLOAT(bn); 
 
   LOG("reps = %ld\n",reps);
+  randomizeInitWeight = rec_randomizeInitWeight;
 }
+
+
+TEST(learning_cloneuroneset){
+   bool rec_randomizeInitWeight = randomizeInitWeight;
+   randomizeInitWeight =false;
+  
+  data_set_TYPE_FLOAT *ds= fill_data_set_from_file_TYPE_FLOAT("xor.txt",1);
+//  print_data_set_msg_TYPE_FLOAT(ds,"data");
+  config_layers *pconf = create_config_layers_from_OneD(3,(size_t[]){2,4,1}); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
+  neurons_TYPE_FLOAT *bn=NULL, *tmp ;
+  //setup_networks_alloutputs_config_GLOBAL_rdm01_TYPE_FLOAT(setup_networks_alloutputs_config_TYPE_FLOAT(&bn,pconf);bn,pconf);
+     setup_networks_alloutputs_config_TYPE_FLOAT(&bn,pconf,false,0,1,5000);
+
+  setup_all_layers_functions_TYPE_FLOAT(bn,
+    tensorContractnProdThread_TYPE_FLOAT,
+    tensorProdThread_TYPE_FLOAT,
+    DL,
+    L,
+    f,
+    df);
+
+  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.1);
+
+  //print_neurons_msg_TYPE_FLOAT(bn,"before create clones");
+
+  cloneuronset_TYPE_FLOAT *clnrnst = create_cloneuronset_from_base_conf_TYPE_FLOAT(bn, pconf, 3);
+
+//  size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
+  size_t reps = learning_cloneuronset_TYPE_FLOAT(clnrnst, ds,cond);
+  
+ 
+  char msg[256];
+  for(size_t i=0; i<ds->size; ++i){
+    print_predict_by_network_with_error_neurons_TYPE_FLOAT(bn,ds->input[i],ds->target[i]);
+    
+  }
+ 
+
+  free_cloneuronset_TYPE_FLOAT(clnrnst);
+
+  free_data_set_TYPE_FLOAT(ds);
+  free_neurons_TYPE_FLOAT(bn); 
+
+  LOG("reps = %ld\n",reps);
+  randomizeInitWeight = rec_randomizeInitWeight;
+
+}
+
+
+TEST(learning_cloneuroneset_LEARN_RATE){
+   bool rec_randomizeInitWeight = randomizeInitWeight;
+   randomizeInitWeight =false;
+  
+  data_set_TYPE_FLOAT *ds= fill_data_set_from_file_TYPE_FLOAT("xor.txt",1);
+//  print_data_set_msg_TYPE_FLOAT(ds,"data");
+  config_layers *pconf = create_config_layers_from_OneD(3,(size_t[]){2,4,1}); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
+  neurons_TYPE_FLOAT *bn=NULL, *tmp ;
+  //setup_networks_alloutputs_config_GLOBAL_rdm01_TYPE_FLOAT(setup_networks_alloutputs_config_TYPE_FLOAT(&bn,pconf);bn,pconf);
+     setup_networks_alloutputs_config_TYPE_FLOAT(&bn,pconf,false,0,1,5000);
+
+  setup_all_layers_functions_TYPE_FLOAT(bn,
+    tensorContractnProdThread_TYPE_FLOAT,
+    tensorProdThread_TYPE_FLOAT,
+    DL,
+    L,
+    f,
+    df);
+
+  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.4);
+  float initRate=0.6;
+  float decayRate=0.85; /* halving*/
+  size_t dropRate = 100;
+//  setup_learning_rate_params_neurons_TYPE_FLOAT(bn, initRate, decayRate, dropRate, time_based_update_learning_rate_TYPE_FLOAT);
+  setup_learning_rate_params_neurons_TYPE_FLOAT(bn, initRate, decayRate, dropRate, step_based_update_learning_rate_TYPE_FLOAT);
+
+  //print_neurons_msg_TYPE_FLOAT(bn,"before create clones");
+
+  cloneuronset_TYPE_FLOAT *clnrnst = create_cloneuronset_from_base_conf_TYPE_FLOAT(bn, pconf, 3);
+
+//  size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
+  size_t reps = learning_cloneuronset_TYPE_FLOAT(clnrnst, ds,cond);
+  
+ 
+  char msg[256];
+  for(size_t i=0; i<ds->size; ++i){
+    print_predict_by_network_with_error_neurons_TYPE_FLOAT(bn,ds->input[i],ds->target[i]);
+    
+  }
+ 
+
+  free_cloneuronset_TYPE_FLOAT(clnrnst);
+
+  free_data_set_TYPE_FLOAT(ds);
+  free_neurons_TYPE_FLOAT(bn); 
+
+  LOG("reps = %ld\n",reps);
+  randomizeInitWeight = rec_randomizeInitWeight;
+
+}
+
 
 
 

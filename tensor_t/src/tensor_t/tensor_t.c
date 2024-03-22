@@ -402,6 +402,63 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
   free(dimsg);\
 }\
 \
+\
+void fprint_tensor_##type(char *file_name, tensor_##type *T) {\
+  size_t j=0,k=0;\
+  long int *coord = malloc(sizeof(long int)*(T->dim)->size); \
+  char *val=NULL;\
+  FILE *fileWrite = fopen(file_name, "w");\
+  if(fileWrite == NULL) {\
+    printf("error while opening %s\n",file_name);\
+    exit(1);\
+  }\
+  long int begin , end, beginIter, endIter ;\
+  long int (*iter)(long int) ;\
+  bool (*cond)(long int, long int) ; \
+  if (endian ) {\
+        begin = (T->dim->size) - 1; end = 0;\
+        iter = decr; cond = isGreatEqThan; \
+        /*fprintf(fileWrite,"endian(=true): the bigest index varies first, e.g:  [x0,x1,x2,...,xn] xn is the bigest index \n");*/\
+  }else{\
+        begin = 0 ; end = (T->dim->size) - 1; \
+        iter = incr; cond = isLessEqThan; \
+        /*fprintf(fileWrite,"endian(=false): the lowest index varies first, e.g:  [x0,x1,x2,...,xn] x0 is the lowest index \n");*/\
+  }\
+    fprintf(fileWrite,"[");\
+  for(size_t i=0; i<(T->dim)->size; ++i)\
+    fprintf(fileWrite," %ld,", (T->dim)->perm[i]);\
+    fprintf(fileWrite,"] \n");\
+\
+  for(long int i=0;i<(T->dim)->rank;++i){\
+    vCoordFromLin(coord,i,T->dim);\
+    if(coord[begin]==0){\
+      for(long int j=begin; cond(j,end); j= iter(j) ){\
+        if(coord[j]==0) fprintf(fileWrite,"(");\
+        else break;\
+      }\
+    }\
+    /*fprintf(fileWrite," [");\
+    for(size_t k=0; k<(T->dim)->size;++k) fprintf(fileWrite," %ld,",coord[k]);\
+    */val=type##_TO_STR(T->x[i]);\
+    fprintf(fileWrite," %s, ",val);\
+    free(val); val=NULL;\
+    if(coord[begin]==(T->dim)->perm[begin]-1){\
+      size_t count=0;\
+      for(long int j=begin; cond(j,end); j = iter(j)){\
+        if(coord[j]==(T->dim)->perm[j]-1) {\
+          fprintf(fileWrite,")"); ++count;\
+        }\
+        else break;\
+      }\
+      if(count == (T->dim)->size-1) fprintf(fileWrite,"\n ");\
+    }\
+  }\
+  \
+  free(coord);\
+  fprintf(fileWrite,"\n");\
+  fclose(fileWrite);\
+}\
+\
 size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withIndex) {\
   if(*tensorContent != NULL) {\
     free(*tensorContent);\
@@ -1772,7 +1829,57 @@ void update_5tensor_func_##type(tensor_##type *M0, tensor_##type *M1, tensor_##t
   }\
 }  \
 \
-
+\
+struct arg_6Update_##type{\
+  type *M0x;\
+  type *M1x;\
+  size_t beginRange;\
+  size_t endRange;\
+  type (*func)(type, type, type);\
+  type scalar;\
+};\
+void* run6UpdatCalcfunc_thread_##type(void *arg){\
+  struct arg_6Update_##type *arg_t = arg;\
+    for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
+        arg_t->M0x[i] = arg_t->func(arg_t->M0x[i], arg_t->M1x[i], arg_t->scalar);\
+   }\
+}\
+\
+void update_6tensor_func_##type(tensor_##type *M0, tensor_##type *M1, \
+    type (*func)(type, type, type),\
+    type scalar,\
+    size_t nbthread){\
+  /*printf(" rankM0=%ld , rank M2:%ld ; iseq :%d \n",(M0->dim)->rank,(M2->dim)->rank,is_equal_dim(M0->dim,M2->dim) );\
+*/\
+   /* printDebug_dimension(M0->dim," dim M0 in update6 ");  \
+    printDebug_dimension(M2->dim," dim M2 in update6 ");  \
+  */if ( is_equal_dim(M0->dim, M1->dim) /*&& (is_equal_dim(M0->dim, M2->dim))*/){  \
+    /*printDebug_dimension(M0->dim," dim M0 in update6 ");  \
+    */pthread_t *thrd = malloc(nbthread * sizeof(pthread_t));\
+    struct arg_6Update_##type **arg_th = malloc( nbthread * sizeof(struct arg_6Update_##type *));\
+  \
+    for(size_t i = 0; i < nbthread; ++i){\
+      arg_th[i]=malloc(sizeof(struct arg_6Update_##type));\
+      arg_th[i]->M0x=M0->x;\
+      arg_th[i]->M1x=M1->x;\
+      arg_th[i]->func=func;\
+      arg_th[i]->scalar=scalar;\
+      arg_th[i]->beginRange = i*(M0->dim->rank)/nbthread ;\
+      arg_th[i]->endRange = (i+1)*(M0->dim->rank)/nbthread ;\
+      \
+      pthread_create(&thrd[i], NULL, run6UpdatCalcfunc_thread_##type, (void*)arg_th[i]);\
+    }\
+  \
+    for(size_t i=0; i< nbthread; ++i){\
+      pthread_join(thrd[i], NULL);\
+      free(arg_th[i]);\
+    }\
+  \
+    free(thrd);\
+    free(arg_th);\
+  }\
+}  \
+\
 
 
 GEN_FUNC_TENSOR(TYPE_FLOAT);
