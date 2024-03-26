@@ -353,14 +353,14 @@ tensor_##type* CLONE_TENSOR_##type(tensor_##type *tens){\
   }\
   \
 void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
-  size_t j=0,k=0;\
-  long int *coord = malloc(sizeof(long int)*(T->dim)->size); \
+  /*size_t j=0 ,k=0*/;\
+  size_t *coord = malloc(sizeof(long int)*(T->dim)->size); \
   char *val=NULL;\
   char *dimsg=malloc(512);\
   sprintf(dimsg,"(%s)->dim",msg);\
   printDebug_dimension(T->dim,dimsg);\
   printf("%s\n",msg);\
-  long int begin , end, beginIter, endIter ;\
+  long int begin , end /*, beginIter , endIter*/ ;\
   long int (*iter)(long int) ;\
   bool (*cond)(long int, long int) ; \
   if (endian ) {\
@@ -404,15 +404,15 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
 \
 \
 void fprint_tensor_##type(char *file_name, tensor_##type *T) {\
-  size_t j=0,k=0;\
-  long int *coord = malloc(sizeof(long int)*(T->dim)->size); \
+  /*size_t j=0,k=0;*/\
+  size_t *coord = malloc(sizeof(long int)*(T->dim)->size); \
   char *val=NULL;\
   FILE *fileWrite = fopen(file_name, "w");\
   if(fileWrite == NULL) {\
     printf("error while opening %s\n",file_name);\
     exit(1);\
   }\
-  long int begin , end, beginIter, endIter ;\
+  long int begin , end /*, beginIter, endIter*/ ;\
   long int (*iter)(long int) ;\
   bool (*cond)(long int, long int) ; \
   if (endian ) {\
@@ -427,7 +427,7 @@ void fprint_tensor_##type(char *file_name, tensor_##type *T) {\
     fprintf(fileWrite,"[");\
   for(size_t i=0; i<(T->dim)->size; ++i)\
     fprintf(fileWrite," %ld,", (T->dim)->perm[i]);\
-    fprintf(fileWrite,"] \n");\
+  fprintf(fileWrite,"] \n");\
 \
   for(long int i=0;i<(T->dim)->rank;++i){\
     vCoordFromLin(coord,i,T->dim);\
@@ -468,9 +468,9 @@ size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withInde
   /*printf("malloc %ld char\n",sz);*/\
   *tensorContent = malloc(sz )  ;\
   size_t cur=0;\
-  long int *coord = malloc(sizeof(long int)*(T->dim)->size); \
+  size_t *coord = malloc(sizeof(long int)*(T->dim)->size); \
   char *val=NULL;\
-  long int begin , end, beginIter, endIter ;\
+  long int begin , end /*, beginIter, endIter*/ ;\
   long int (*iter)(long int) ;\
   bool (*cond)(long int, long int) ; \
   if (endian ) {\
@@ -705,6 +705,7 @@ void* runProd_thread_##type(void *arg){\
         }\
         arg_t->Mx[i] = arg_t->M0x[a0_id] * arg_t->M1x[a1_id];\
    }\
+  return 0;\
 }\
 \
 void tensorProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t nbthread) {  \
@@ -767,6 +768,7 @@ void* runProd_thread2d_##type(void *arg){\
         arg_t->Mx[k] = arg_t->M0x[i] * arg_t->M1x[j];\
       }\
    }\
+  return 0;\
 }\
 \
 void tensorProdThrea2d_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t nbthread) {  \
@@ -836,6 +838,7 @@ void* runProdContract_thread_##type(void *arg){\
             arg_t->Mx[i] += arg_t->M0x[n0_id] * arg_t->M1x[n1_id];\
         }\
     }\
+  return 0;\
 }\
 /* M[x0,x1,x3..xn] X M[y0,y1,y3..ym] = M[z0,z1...zp] (deep = l > 0) /exists 1<= l<...<l=n /  xl = y0,x{l+1}=y1, x{n}=yl  et zi=xi i<n-l et zj=y{j-(n-l)} j>=n-l alor p=n+m-2l\
  M[x0,x1,x3..xl x{l+1}...xn] X M[xn,x{n-1},x{n-2}...xl y{l+1} ..ym] = M[x0,x1..xly{l+1}...y{n+m-2l}] (deep = l > 0)\
@@ -933,6 +936,7 @@ void* runPro2dContract_thread_##type(void *arg){\
         }\
       }\
     }\
+  return 0;\
 }\
 /* M[x0,x1,x3..xn] X M[y0,y1,y3..ym] = M[z0,z1...zp] (deep = l > 0) /exists 1<= l<...<l=n /  xl = y0,x{l+1}=y1, x{n}=yl  et zi=xi i<n-l et zj=y{j-(n-l)} j>=n-l alor p=n+m-2l\
  M[x0,x1,x3..xl x{l+1}...xn] X M[xn,x{n-1},x{n-2}...xl y{l+1} ..ym] = M[x0,x1..xly{l+1}...y{n+m-2l}] (deep = l > 0)\
@@ -1246,7 +1250,7 @@ void parseInputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_#
     updateRankDim(ddim2);\
     array_chainlist_##type *l_a1=NULL;\
     array_chainlist_##type *l_a2=NULL;\
-    size_t i1=0,i=0,j=0,i2=0;\
+    size_t i1=0, /*i=0,j=0, */ i2=0;\
     bool filled1=false,filled2=false;\
     type x;\
     while(ppEnd && (ppEnd[0] !='\0')){\
@@ -1616,6 +1620,7 @@ void* run1UpdatCalcfunc_thread_##type(void *arg){\
     for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
         arg_t->M0x[i] = arg_t->func(arg_t->M0x[i]);\
    }\
+  return 0;\
 }\
 \
 void update_1tensor_func_##type(tensor_##type *M0, type (*func)(type), size_t nbthread){\
@@ -1654,6 +1659,7 @@ void* run2UpdatCalcfunc_thread_##type(void *arg){\
     for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
         arg_t->M0x[i] = arg_t->func(arg_t->M1x[i]);\
    }\
+  return 0;\
 }\
 \
 void update_2tensor_func_##type(tensor_##type *M0, tensor_##type *M1, type (*func)(type), size_t nbthread){\
@@ -1695,6 +1701,7 @@ void* run3UpdatCalcfunc_thread_##type(void *arg){\
     for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
         arg_t->M0x[i] = arg_t->func(arg_t->M1x[i], arg_t->M2x[i]);\
    }\
+  return 0;\
 }\
 \
 void update_3tensor_func_##type(tensor_##type *M0, tensor_##type *M1, tensor_##type *M2, type (*func)(type,type), size_t nbthread){\
@@ -1739,6 +1746,7 @@ void* run4UpdatCalcfunc_thread_##type(void *arg){\
     for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
         arg_t->M0x[i] = arg_t->func(arg_t->M1x[i], arg_t->M2x[i], arg_t->f1);\
    }\
+  return 0;\
 }\
 \
 void update_4tensor_func_##type(tensor_##type *M0, tensor_##type *M1, tensor_##type *M2, \
@@ -1793,6 +1801,7 @@ void* run5UpdatCalcfunc_thread_##type(void *arg){\
     for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
         arg_t->M0x[i] = arg_t->func(arg_t->M1x[i], arg_t->M2x[i], arg_t->M3x[i], arg_t->f1, arg_t->f2);\
    }\
+  return 0;\
 }\
 \
 void update_5tensor_func_##type(tensor_##type *M0, tensor_##type *M1, tensor_##type *M2, tensor_##type *M3 , \
@@ -1843,6 +1852,7 @@ void* run6UpdatCalcfunc_thread_##type(void *arg){\
     for (size_t i = arg_t->beginRange; i < arg_t->endRange; i++) {\
         arg_t->M0x[i] = arg_t->func(arg_t->M0x[i], arg_t->M1x[i], arg_t->scalar);\
    }\
+  return 0;\
 }\
 \
 void update_6tensor_func_##type(tensor_##type *M0, tensor_##type *M1, \

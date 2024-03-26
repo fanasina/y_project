@@ -893,6 +893,7 @@ void* run_learnCloneuronset_thread_##type(void *arg){\
     sem_post(semaphore_learn);\
   }\
   sem_post(semaphore_learn);\
+  return 0;\
 }\
 \
 size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##type *dataset,  bool (*condition)(type, size_t)){\

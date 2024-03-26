@@ -173,7 +173,7 @@ size_t TabToPlaceNotab_##type(const PERMUTATION_##type *p){\
   size_t sz = p->size;\
   PERMUTATION_TYPE_SIZE_T *t_p = TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(p);\
   size_t *tb= t_p->perm;\
-  size_t mx = sz - 1;\
+  /*size_t mx = sz - 1;*/\
   size_t q = 0;\
   size_t pl;\
   for (long int i = 0; i < sz; i++) {\
@@ -199,7 +199,7 @@ PERMUTATION_TYPE_SIZE_T * PlaceToTab_##type(PERMUTATION_##type *p, size_t pl){\
   /*PERMUTATION_TYPE_SIZE_T *t_p = CREATE_PERMUTATION_TYPE_SIZE_T(sz);*/\
   PERMUTATION_TYPE_SIZE_T *t_p = TRANSLATE_TO_SET_THEORIC_SIZE_T_##type(p);\
   type *save_perm = malloc(sz*sizeof(type));\
-  long int *tb= t_p->perm;\
+  size_t *tb= t_p->perm;\
   size_t a = pl;\
   size_t pltbi;\
   for (long int i = 0;i < sz;i++) {\

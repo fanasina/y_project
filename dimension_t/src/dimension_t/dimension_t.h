@@ -5,7 +5,6 @@
 
 extern bool endian;
 
-
 bool isLessEqThan(long int a, long int b) ;
 bool isLessThan(long int a, long int b) ;
 bool isGreatEqThan(long int a, long int b)  ;

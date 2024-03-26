@@ -212,7 +212,7 @@ void printDebug_dimension(dimension *d,char *msg){
   printf("(%s)->size = %ld | (%s)->rank = %ld \n[",msg,d->size,msg,d->rank);
   for(size_t i=0; i<d->size; ++i)
     printf(" %ld,", d->perm[i]);
-    printf("] \n");
+  printf("] \n");
     //printf("[%ld: %ld] |", i,d->perm[i]);
  /* if(endian)
     printf("\nendian (true): the bigest index varies first, e.g:  [x0,x1,x2,...,xn] xn is the bigest index\n");
