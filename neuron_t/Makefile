@@ -70,10 +70,9 @@ $(DEPS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
 update_headers: $(PROJECT_LIB)
-	for file_h in $(DEPS); do 
-		cd ${file_h}/src 
-		#cp --parents "$$file_h/include/" include_neurons/;  done
-		cp --parents "*/*.h" "$(INCLUDE_HEADERS_NEURONS)/" ;  
+	for file_h in $(DEPS); do \
+		cd "$$file_h/src" ; \
+		cp --parents */*.h $(INCLUDE_HEADERS_NEURONS)/ ; \
 	done
 
 
