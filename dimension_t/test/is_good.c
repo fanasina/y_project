@@ -161,6 +161,48 @@ TEST(Coord_linear){
   free(coord);
 }
 
+TEST(signedCoord_linear){
+  dimension *D=create_dim(4);
+  D->perm[0]=2;
+  D->perm[1]=3;
+  D->perm[2]=5;
+  D->perm[3]=6;
+
+  updateRankDim(D);
+
+  long line=-255;
+  long *coord = signedCoordFromLin(line,D);
+
+  for(size_t i=0; i<D->size; ++i){
+    LOG("coo[%ld]=%ld\n",i,coord[i]);
+  }
+  
+  EXPECT_EQ(line, signedLineFromCoord(coord, D));  
+  free_dimension(D);
+  free(coord);
+}
+
+TEST(signedCoord_linearSuccessif){
+  dimension *D=create_dim(3);
+  D->perm[0]=2;
+  D->perm[1]=3;
+  D->perm[2]=2;
+
+  updateRankDim(D);
+
+  for(long line=-4; line < 4; ++line){
+    long *coord = signedCoordFromLin(line,D);
+
+    for(size_t i=0; i<D->size; ++i){
+      LOG("coo[%ld]=%ld\n",i,coord[i]);
+    }
+  
+    EXPECT_EQ(line, signedLineFromCoord(coord, D));  
+    free(coord);
+  }
+    free_dimension(D);
+}
+
 TEST(sprint_dim){
   dimension *D=create_dim(4);
   D->perm[0]=2;

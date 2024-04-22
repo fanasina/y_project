@@ -275,7 +275,7 @@ void updateRankDim(dimension *dim){
   for(size_t i=0; i<dim->size; ++i)
     dim->rank *=dim->perm[i];
 }
-
+/*
 size_t LineFromCoord(size_t *coo, dimension *dim){
     long int begin = 0;
     long int end = dim->size - 1;
@@ -327,6 +327,77 @@ size_t* CoordFromLin(size_t line, dimension *dim){
     vCoordFromLin(ret,line,dim);
     return ret;
 }
+*/
+
+/* signed  */
+long int signedLineFromCoord(long int *coo, dimension *dim){
+    long int begin = 0;
+    long int end = dim->size - 1;
+    long int (*iter)(long int); iter = &incr;
+    bool (*cond)(long int, long int); cond = &isLessEqThan;
+
+    if (endian) {
+        begin = dim->size - 1; end = 0;
+        iter = &decr; cond = &isGreatEqThan;
+    }
+
+    long int pp = 1;
+    long int sm = 0;
+    for (long int i = begin; cond(i, end); i = iter(i)) {
+        sm += (coo[i] * pp);
+        pp *= dim->perm[i];
+    }
+    return sm;
+
+}
+
+void signedvCoordFromLin(long int *ret, long int line, dimension *dim ){
+    
+    long int begin = 0, end = dim->size - 1;
+    long int (*iter)(long int) = incr;
+    bool (*cond)(long int, long int) = isLessThan;
+    if (endian == false) {
+        //if (endian) {
+        begin = dim->size - 1; end = 0;
+        iter = decr; cond = isGreatThan;
+    }
+    //prlong intf("to coor begin = %d end = %d \n", begin, end);
+
+    long int sm = line;
+    long int pp = dim->rank;
+    for (long int i = begin; cond(i, end); i = iter(i)) {
+        //prlong intf(" i: %d ", i);
+        pp /= dim->perm[i];
+        ret[i] = sm / pp;
+        sm %= pp;
+        //prlong intf("sm[%d] = %d , pp=%d ; ", i, sm, pp);
+    }
+    ret[end] = sm;
+}
+
+long int* signedCoordFromLin(long int line, dimension *dim){
+    long int *ret;
+    ret=malloc(dim->size*sizeof(long int));
+    vCoordFromLin(ret,line,dim);
+    return ret;
+}
+
+/* */
+/* unsigned */
+size_t LineFromCoord(size_t *coo, dimension *dim) {
+  return signedLineFromCoord(coo,dim);
+}
+
+void vCoordFromLin(size_t *ret, size_t line, dimension *dim ){
+  signedvCoordFromLin(ret, line, dim);
+}
+
+size_t* CoordFromLin(size_t line, dimension *dim){
+  return signedCoordFromLin(line, dim);
+}
+
+
+/* */
 
 void append_in_list_perm(list_perm_in_dim **list_p, size_t perm){
     list_perm_in_dim *lis=malloc(sizeof(list_perm_in_dim));
