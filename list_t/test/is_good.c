@@ -74,6 +74,99 @@ TEST(remove){
   
 }
 
+/*
+struct test_c {
+  int value;
+  double *Q;
+};
+
+*/
+
+//#include "test_c.c"
+
+struct test_c {
+  int value;
+  double *Q;
+};
+
+typedef struct test_c test_c;
+
+//GEN_LIST_ALL(test_c);
+
+//GENERATE_LIST_ALL(test_c);
+
+TEST(list_TYPE_PTR){
+   struct main_list_TYPE_PTR * var_list_ptr = create_var_list_TYPE_PTR();
+
+   test_c * t0 = malloc(sizeof(test_c));
+   test_c * t1 = malloc(sizeof(test_c));
+   test_c * t2 = malloc(sizeof(test_c));
+
+   t0->value = 0;
+   t1->value = 1;
+   t2->value = 2;
+
+   push_back_list_TYPE_PTR(var_list_ptr,t0);
+   push_back_list_TYPE_PTR(var_list_ptr,t1);
+   push_back_list_TYPE_PTR(var_list_ptr,t2);
+
+   for(move_current_to_index_list_TYPE_PTR(var_list_ptr, 0); var_list_ptr->current_list; increment_list_TYPE_PTR(var_list_ptr))
+    LOG("cur %ld : %d : size :%ld \n", var_list_ptr->current_index, ((test_c*)((var_list_ptr->current_list)->value))->value, var_list_ptr->size);
+    
+
+   free_all_var_list_TYPE_PTR(var_list_ptr);
+
+}
+
+LIST_T(test_c)
+
+TEST(list_struct_test_c){
+   struct main_list_test_c * var_list_ptr = create_var_list_test_c();
+
+   test_c t0, t1, t2;
+
+   t0.value = 0;
+   t1.value = 1;
+   t2.value = 2;
+
+   push_back_list_test_c(var_list_ptr,t0);
+   push_back_list_test_c(var_list_ptr,t1);
+   push_back_list_test_c(var_list_ptr,t2);
+
+   for(move_current_to_index_list_test_c(var_list_ptr, 0); var_list_ptr->current_list; increment_list_test_c(var_list_ptr))
+    LOG("cur %ld : %d : size :%ld \n", var_list_ptr->current_index, ((var_list_ptr->current_list)->value).value, var_list_ptr->size);
+    
+
+   free_all_var_list_test_c(var_list_ptr);
+
+}
+
+
+
+/*
+TEST(list_struct_test_c){
+   struct main_list_TYPE_PTR * var_list_ptr = create_var_list_TYPE_PTR();
+
+   test_c * t0 = malloc(sizeof(test_c));
+   test_c * t1 = malloc(sizeof(test_c));
+   test_c * t2 = malloc(sizeof(test_c));
+
+   t0->value = 0;
+   t1->value = 1;
+   t2->value = 2;
+
+   push_back_list_TYPE_PTR(var_list_ptr,t0);
+   push_back_list_TYPE_PTR(var_list_ptr,t1);
+   push_back_list_TYPE_PTR(var_list_ptr,t2);
+
+   for(move_current_to_index_list_TYPE_PTR(var_list_ptr, 0); var_list_ptr->current_list; increment_list_TYPE_PTR(var_list_ptr))
+    LOG("cur %ld : %d : size :%ld \n", var_list_ptr->current_index, ((test_c*)((var_list_ptr->current_list)->value))->value, var_list_ptr->size);
+    
+
+   free_all_var_list_TYPE_PTR(var_list_ptr);
+
+}
+*/
 
 int main(int argc, char **argv){
   

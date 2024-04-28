@@ -1,19 +1,10 @@
 
 #include "list_t/list_t.h"
 
+#if 0
+
 #define GEN_LIST_ALL(type)\
-  /*struct list_##type {\
-    type value;\
-    struct list_##type *preview;\
-    struct list_##type *next;\
-  };\
-  struct main_list_##type {\
-    struct list_##type *begin_list;\
-    struct list_##type *current_list;\
-    size_t current_index;\
-    struct list_##type *end_list;\
-    size_t size;\
-  };*/\
+ \
   struct main_list_##type *create_var_list_##type(){\
     struct main_list_##type *ret_var_list = malloc(sizeof(struct main_list_##type));\
     ret_var_list->begin_list = NULL;\
@@ -141,8 +132,8 @@
     var_list->current_list = (var_list->current_list)->preview;\
     --(var_list->current_index);\
   }\
-
-
+  
+#endif
 
 GEN_LIST_ALL(TYPE_CHAR)
 GEN_LIST_ALL(TYPE_U_CHAR)
