@@ -3,7 +3,7 @@
 
 #if 0
 
-#define GEN_LIST_ALL(type)\
+#define GEN_LIST_ALL_L(type)\
  \
   struct main_list_##type *create_var_list_##type(){\
     struct main_list_##type *ret_var_list = malloc(sizeof(struct main_list_##type));\
@@ -134,6 +134,7 @@
   }\
   
 #endif
+
 
 GEN_LIST_ALL(TYPE_CHAR)
 GEN_LIST_ALL(TYPE_U_CHAR)

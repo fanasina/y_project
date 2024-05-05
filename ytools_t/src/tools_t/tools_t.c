@@ -120,7 +120,8 @@ long int PRECISION_TYPE_L_DOUBLE  = 100000000000000;
     PRINT_DEBUG_(" diff = %s a=%s b=%s PRECISION : %ld\n",str_diff, str_a, str_b, PRECISION_##type);\
     free(str_diff); free(str_a); free(str_b);\
     */if ((diff < 1) && (diff > -1) ) return 0;                       \
-    return diff;                                                    \
+    if (diff <= -1) return -1;                                                    \
+    return 1;                                                    \
   }                                                                 \
                                                                     \
   void COPY_ARRAY_##type(type *dst, const type *src, size_t size){  \

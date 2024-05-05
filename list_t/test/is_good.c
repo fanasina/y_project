@@ -49,6 +49,8 @@ TEST(insert){
 TEST(remove){
   struct main_list_TYPE_INT * var_list_int = create_var_list_TYPE_INT();
 
+remove_all_list_in_TYPE_INT(var_list_int);
+
   for(int i=0; i<5; ++i)
     push_back_list_TYPE_INT(var_list_int, i);
 
@@ -74,6 +76,35 @@ TEST(remove){
   
 }
 
+TEST(remove_All){
+  struct main_list_TYPE_INT * var_list_int = create_var_list_TYPE_INT();
+
+  for(int i=0; i<5; ++i)
+    push_back_list_TYPE_INT(var_list_int, i);
+
+  for(int i=0; i<10; ++i)
+    insert_into_list_TYPE_INT(var_list_int, i, -2*i+1);
+
+  for(int i=var_list_int->size; i< 25; ++i)
+    insert_into_list_TYPE_INT(var_list_int, i, 3*i+1);
+  
+  for(move_current_to_index_list_TYPE_INT(var_list_int, 0); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
+    LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
+
+  remove_all_list_in_TYPE_INT(var_list_int);
+  for(int i=0; i<5; ++i)
+    push_back_list_TYPE_INT(var_list_int, 10*i);
+
+
+  
+  LOG("%s"," =============== \n");
+
+  for(move_current_to_index_list_TYPE_INT(var_list_int, 0); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
+    LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
+  
+  free_all_var_list_TYPE_INT(var_list_int);
+  
+}
 /*
 struct test_c {
   int value;
@@ -115,6 +146,9 @@ TEST(list_TYPE_PTR){
     
 
    free_all_var_list_TYPE_PTR(var_list_ptr);
+   free(t0);
+   free(t1);
+   free(t2);
 
 }
 

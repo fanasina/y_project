@@ -22,9 +22,12 @@
   void push_back_list_##type(struct main_list_##type *var_list, type value);\
   void push_front_list_##type(struct main_list_##type *var_list, type value);\
   size_t move_current_to_index_list_##type(struct main_list_##type *var_list, size_t index);\
+  size_t move_current_to_begin_list_##type(struct main_list_##type *var_list);\
+  size_t move_current_to_end_list_##type(struct main_list_##type *var_list);\
   void insert_into_list_##type(struct main_list_##type *var_list, size_t index, type value );\
   void remove_index_from_list_##type(struct main_list_##type *var_list, size_t index );\
   void free_all_var_list_##type(struct main_list_##type *var_list);\
+  void remove_all_list_in_##type(struct main_list_##type *var_list);\
   void increment_list_##type(struct main_list_##type * var_list);\
   void decrement_list_##type(struct main_list_##type * var_list);\
 
@@ -43,7 +46,11 @@ GENERATE_LIST_ALL(TYPE_STRING)
 
 GENERATE_LIST_ALL(TYPE_PTR)
 
+#define FOR_LIST_FORM_BEGIN(type, var_list)\
+  for(move_current_to_begin_list_##type(var_list); var_list->current_list; increment_list_##type(var_list))
 
+#define FOR_LIST_FORM_END(type, var_list)\
+  for(move_current_to_end_list_##type(var_list); var_list->current_list; decrement_list_##type(var_list))
 
 
 #define GEN_LIST_ALL(type)\
@@ -117,6 +124,18 @@ GENERATE_LIST_ALL(TYPE_PTR)
     var_list->current_index = index;\
     return index;\
   }\
+  size_t move_current_to_begin_list_##type(struct main_list_##type *var_list){\
+    if(var_list->begin_list == NULL) return 0;\
+    var_list->current_list = var_list->begin_list;\
+    var_list->current_index = 0;\
+    return 0;\
+  }\
+  size_t move_current_to_end_list_##type(struct main_list_##type *var_list){\
+    if(var_list->end_list == NULL) return 0;\
+    var_list->current_list = var_list->end_list;\
+    var_list->current_index = var_list->size - 1;\
+    return var_list->current_index;\
+  }\
   void insert_into_list_##type(struct main_list_##type *var_list, size_t index, type value ){\
     struct list_##type * list_to_add = malloc(sizeof(struct list_##type));\
     list_to_add->value = value;\
@@ -158,13 +177,21 @@ GENERATE_LIST_ALL(TYPE_PTR)
       \
     }\
   }\
-  void free_all_var_list_##type(struct main_list_##type *var_list){\
+  void remove_all_list_in_##type(struct main_list_##type *var_list){\
     struct list_##type *tmp = var_list->begin_list;\
     while(tmp){\
       var_list->current_list = tmp;\
       tmp = tmp->next;\
       free(var_list->current_list);\
     }\
+    var_list->begin_list = NULL;\
+    var_list->current_list = NULL;\
+    var_list->end_list = NULL;\
+    var_list->size = 0;\
+    var_list->current_index = 0;\
+  }\
+  void free_all_var_list_##type(struct main_list_##type *var_list){\
+    remove_all_list_in_##type(var_list);\
     free(var_list);\
   }\
   void increment_list_##type(struct main_list_##type * var_list){\
