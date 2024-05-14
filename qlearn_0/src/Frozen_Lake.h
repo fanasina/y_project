@@ -11,7 +11,7 @@
 #define ACTION_COUNT 4
 /* Down(0), Left(1), Right(2), Up(3) */
 enum Action { DOWN, LEFT, RIGHT, UP };
-enum MoveAction { MOVE_DOWN = -2, MOVE_LEFT = -1, MOVE_RIGHT = 1, MOVE_UP = 2 };
+//enum MoveAction { MOVE_DOWN = -2, MOVE_LEFT = -1, MOVE_RIGHT = 1, MOVE_UP = 2 };
 
 #define CONTENT_COUNT 5 
 /* Empty(0), Start(1), Carrot(2), Block(3), Fox(4) */
@@ -22,6 +22,7 @@ enum Reward { REWARD_MOVES_OUT=-10, REWARD_OUT=-1, REWARD_EMPTY=-1, REWARD_CARRO
 struct game_params {
   size_t limit_game_number;
   dimension *dim;
+  long int *add_move;
   size_t limit_FOX_number;
   size_t limit_BLOCK_number;
   size_t limit_CARROT_number;
@@ -37,6 +38,7 @@ struct delay_params {
 struct game_status {
   long int startRankPosition;
   long int rabbitRankPosition;
+  long int rabbitOldRankPosition;
   bool endGame;
   long int reward;
   long int final_reward;

@@ -1,7 +1,6 @@
 
-#include "rabbit_learn.h"
+#include "Frozen_Lake.h"
 
-int ADD_MOVE[ACTION_COUNT]={ MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, MOVE_UP };
 char * action_name ="DLRU";
 char * content_name ="ESCBF";
 
@@ -35,6 +34,17 @@ struct game_params * create_game_params (
   gm_param->limit_EPISODES_number = limit_EPISODES_number;
   gm_param->limit_MOVE_number = limit_MOVE_number;
   
+  gm_param->add_move = malloc(ACTION_COUNT * sizeof(long int));
+/*
+  gm_param->add_move[DOWN] = signedLineFromCoord((long int []){0,-1}, dim);
+  gm_param->add_move[LEFT] = signedLineFromCoord((long int []){-1,0}, dim);
+  gm_param->add_move[RIGHT] = signedLineFromCoord((long int []){1,0}, dim);
+  gm_param->add_move[UP] = signedLineFromCoord((long int []){0,1}, dim);
+*/
+  gm_param->add_move[DOWN] = dim->perm[0];
+  gm_param->add_move[LEFT] = -1;
+  gm_param->add_move[RIGHT] = 1;
+  gm_param->add_move[UP] = -1*dim->perm[0];
   return gm_param;
 }
 
@@ -57,6 +67,7 @@ struct delay_params * create_delay_params (
 }
 
 void reset_game_status(struct game_status * status){
+  status->rabbitOldRankPosition = status->startRankPosition ;
   status->rabbitRankPosition = status->startRankPosition ;
   status->endGame = false;
   status->count_MOVES = 0;
@@ -82,11 +93,11 @@ struct game_status * create_game_status(){
 
 long int generate_game(struct game *gm){
   struct game_params *params = gm->params;
-  struct game_status *status;
+  struct game_status *status = gm->status;
   dimension *dim = params->dim;
   for(long int i=0; i<(params->dim)->rank; ++i){
     (gm->cells[i]).rankPosition = i;
-    (gm->cells[i]).content = 0;
+    (gm->cells[i]).content = EMPTY; //0
     for(long int j=0; j < ACTION_COUNT; ++j)
       (gm->cells[i]).Q[j] = 0;
   }
@@ -101,6 +112,7 @@ long int generate_game(struct game *gm){
   (gm->cells[random]).content = START;
   
   (status)->startRankPosition = random;
+  (status)->rabbitOldRankPosition = random;
   (status)->rabbitRankPosition = random;
 
   return (status->startRankPosition);
@@ -117,6 +129,8 @@ struct game * create_game(
   gm->cells = create_game_cells(params->dim);
   gm->delay = delay; // create_delay_params(10000000, 2000000);
   gm->status = create_game_status();
+
+
   generate_game(gm);
 
   return gm; 
@@ -133,10 +147,33 @@ void free_game(struct game *gm){
   }
   free(gm->cells);
   free_dimension((gm->params)->dim);
+  free((gm->params)->add_move);
   free(gm->params);
   free(gm->qlearnParams);
   free(gm->delay);
   free(gm->status);
+  free(gm);
+}
+
+long int function_add_move(struct game *gm, enum Action action){
+  struct game_status * status = gm->status;
+  dimension *dim = (gm->params)->dim;
+
+  if(action == UP && (status->rabbitRankPosition / dim->perm[0]) == 0){
+    return dim->rank * -1;
+  }
+  if(action == DOWN && (status->rabbitRankPosition / dim->perm[0]) == dim->perm[1]-1){
+    return dim->rank ;
+  }
+  if(action == LEFT && (status->rabbitRankPosition % dim->perm[0]) == 0){
+    return dim->rank * -1;
+  }
+  if(action == RIGHT && (status->rabbitRankPosition % dim->perm[0]) == dim->perm[1]-1){
+    return dim->rank;
+  }
+
+  return (gm->params)->add_move[action];
+  
 }
 
 void move_game(struct game *gm, enum Action action){
@@ -145,9 +182,11 @@ void move_game(struct game *gm, enum Action action){
   struct cell * cells = gm->cells;
   
   ++(status->count_MOVES);
-  long int newRankPosition = status->rabbitRankPosition + ADD_MOVE[action];
+  long int newRankPosition = status->rabbitRankPosition + function_add_move(gm, action);
 
-  if (newRankPosition < 0 || newRankPosition >= (params->dim)->rank) status->reward = REWARD_OUT;
+  if (newRankPosition < 0 || newRankPosition >= (params->dim)->rank) {
+    status->reward = REWARD_OUT;
+  }
   else if (status->count_MOVES > params->limit_MOVE_number) {
     status->rabbitRankPosition = newRankPosition;              
     status->endGame =  true;
@@ -252,10 +291,10 @@ void mainQlearning_game(struct game *gm){
   double proba_explor;
   srand(time(NULL));
 
-  for(size_t k=0 ; k < params->limit_game_number; ++k){
-    for(size_t episode = 0; episode < params->limit_EPISODES_number; ++episode){
-      reset_game_status(status);
+  for(long int k=0 ; k < params->limit_game_number; ++k){
       generate_game(gm);
+    for(long int episode = 0; episode < params->limit_EPISODES_number; ++episode){
+      reset_game_status(status);
 
       while(!(status->endGame)){
         random = rand() % NUMBER_EPISODE2;
@@ -268,19 +307,21 @@ void mainQlearning_game(struct game *gm){
           action = ARG_MAX_ARRAY_TYPE_DOUBLE( cells[status->rabbitRankPosition].Q, ACTION_COUNT  );
           printf("greedy action ");
         }
-
+        
+        status->rabbitOldRankPosition = status->rabbitRankPosition;
         move_game(gm, action);
 
-  printf("action = %d rbPos = %ld, rwds = %ld, final_rwrd=%ld\n",action, status->rabbitRankPosition,status->reward, status->final_reward);
+  printf("ik=%ld, episode = %ld , action = %d rbPos = %ld, rwds = %ld, final_rwrd=%ld\n",k,episode,action, status->rabbitRankPosition,status->reward, status->final_reward);
         // update Q array on the action of the state
-         cells[status->rabbitRankPosition].Q[action] =  cells[status->rabbitRankPosition].Q[action] + (qlearnParams->learning_rate * (status->reward + qlearnParams->discount_factor * MAX_ARRAY_TYPE_DOUBLE(cells[status->rabbitRankPosition].Q, ACTION_COUNT) -         cells[status->rabbitRankPosition].Q[action]));
+         cells[status->rabbitOldRankPosition].Q[action] =  cells[status->rabbitOldRankPosition].Q[action] + (qlearnParams->learning_rate * (status->reward + qlearnParams->discount_factor * MAX_ARRAY_TYPE_DOUBLE(cells[status->rabbitRankPosition].Q, ACTION_COUNT) -         cells[status->rabbitOldRankPosition].Q[action]));
+         //cells[status->rabbitRankPosition].Q[action] =  cells[status->rabbitRankPosition].Q[action] + (qlearnParams->learning_rate * (status->reward + qlearnParams->discount_factor * MAX_ARRAY_TYPE_DOUBLE(cells[status->rabbitRankPosition].Q, ACTION_COUNT) -         cells[status->rabbitRankPosition].Q[action]));
         //cells[status->rabbitRankPosition].Q[action] =  (1 - qlearnParams->learning_rate) * cells[status->rabbitRankPosition].Q[action] + (qlearnParams->learning_rate * (status->reward + qlearnParams->discount_factor * MAX_ARRAY_TYPE_DOUBLE(cells[status->rabbitRankPosition].Q, ACTION_COUNT )));
          
         status->final_reward += status->reward;
 
         print_game_dim2(gm);
       
-        usleep((gm->delay)->delay_between_episodes);
+  //      usleep((gm->delay)->delay_between_episodes);
         
       }
       push_back_list_TYPE_L_INT(list_final_rewards, status->final_reward);
@@ -290,7 +331,7 @@ void mainQlearning_game(struct game *gm){
       printf(" %ld ",(list_final_rewards->current_list)->value);
     }
     remove_all_list_in_TYPE_L_INT(list_final_rewards);
-    usleep((gm->delay)->delay_between_games);
+ //   usleep((gm->delay)->delay_between_games);
   }
   free(list_final_rewards);
 }
