@@ -59,7 +59,7 @@ struct delay_params * create_delay_params (
   size_t delay_between_games
 );
 
-struct qlearning_params (
+struct qlearning_params * create_qlearning_params (
   double learning_rate,
   double discount_factor,
   double exploration_factor

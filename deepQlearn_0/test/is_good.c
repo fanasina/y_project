@@ -20,6 +20,7 @@
 #include "neuron_t/neuron_t.h"
 
 #include "vehicle.h"
+#include "learn_to_drive.h"
 
 TEST(create_coordenate){
   struct coordinate * coord = create_coordinate(3);
@@ -199,6 +200,11 @@ TEST(first_vehicle){
 
   free_vehicle(vhcl);
 
+
+}
+
+TEST(reward_list){
+  struct reward_lists * l_reward = create_reward_lists ();
 }
 
 int main(int argc, char **argv){
@@ -206,5 +212,5 @@ int main(int argc, char **argv){
 
   run_all_tests_args(argc, argv);
 
-  return 0;
+return 0;
 }
