@@ -1,6 +1,6 @@
 #include "neuron_t/neuron_t.h"
 
-#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
+//#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
 
 #define ABSMAX(X, Y) ((((X) > (Y)) || ((-X) > (Y))  ) ? (X) : (Y))
 
@@ -826,6 +826,16 @@ void update_cloneuronesets_weight_in_base_##type(cloneuronset_##type * clnrnst){
     tmp=tmp->prev_layer;\
   }*/\
   free(tmp_c);\
+}\
+\
+void copy_weight_in_neurons_##type(neurons_##type *dst_nrns, neurons_##type *src_nrns){\
+  neurons_##type *tmp_src = src_nrns;\
+  neurons_##type *tmp_dst = dst_nrns;\
+  while(tmp_src){\
+    copy_tensor_##type(tmp_dst->weight_in,tmp_src->weight_in);\
+    tmp_src = tmp_src->next_layer;\
+    tmp_dst = tmp_dst->next_layer;\
+  }\
 }\
 \
 type clon_error_batch_##type(cloneuronset_##type * clnrnst){\

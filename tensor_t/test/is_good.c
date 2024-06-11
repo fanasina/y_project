@@ -1676,6 +1676,35 @@ TEST(rec_in_file_tensor){
   free_tensor_TYPE_FLOAT(M0);
 }
 
+TEST(copy_tensor){
+  dimension *d0=create_dim(3);
+
+  d0->perm[0]=2;
+  d0->perm[1]=3;
+  d0->perm[2]=4;
+
+
+  updateRankDim(d0);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_FROM_CPY_DIM_TYPE_FLOAT(d0);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+
+  init_random_x_TYPE_FLOAT(M0,2.7,5.4,50001);
+  init_random_x_TYPE_FLOAT(M1,2.7,5.4,50001);
+
+  print_tensor_float(M0, "init M0 random");
+
+  copy_tensor_TYPE_FLOAT(M1, M0);
+  print_tensor_float(M1, "M1 copy of M0");
+  
+  free_tensor_TYPE_FLOAT(M0);
+  free_tensor_TYPE_FLOAT(M1);
+}
+
+
 
 
 

@@ -433,6 +433,15 @@ dimension * create_dim_from_list_perm( list_perm_in_dim *l_p){
   return NULL;
 }
 
+dimension * create_binary_dim(size_t dimension_size){
+  dimension * dim = create_dim(dimension_size);
+  for(size_t i=0; i<dimension_size; ++i)
+    dim->perm[i]=2;
+  updateRankDim(dim);
+  return dim;
+}
+
+
 void free_list_perm_in_dim(list_perm_in_dim *l_p){
   list_perm_in_dim *tmp=l_p, *ttmp;
   while(tmp){

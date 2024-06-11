@@ -95,6 +95,8 @@ void gotoxy(int x, int y);
 #define FOREACH(array, size, function)\
   for(size_t _ind = 0; _ind < size; ++_ind) function(array[_ind]);
 
+#define MIN(X, Y) (((Y) < (X)) ? (Y) : (X))
+#define MAX(X, Y) (((Y) > (X)) ? (Y) : (X))
 
 #define GENERATE_ALL(type)\
   int COMPARE_N_##type(const void *,const    void*);\

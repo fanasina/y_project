@@ -130,6 +130,13 @@ tensor_##type* CLONE_TENSOR_##type(tensor_##type *tens){\
   return NULL;\
 }\
 \
+void copy_tensor_##type(tensor_##type * dst, tensor_##type * src){\
+ if(dst!=NULL && src!=NULL && dst->dim->rank == src->dim->rank){ \
+   for(size_t i=0; i<(dst->dim)->rank;++i)\
+      dst->x[i]=src->x[i];\
+ }\
+}\
+\
   void free_tensor_##type(tensor_##type *  tens){\
     if(tens){\
       free_dimension(tens->dim);\

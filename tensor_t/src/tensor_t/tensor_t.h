@@ -20,6 +20,7 @@ tensor_##type* CREATE_TENSOR_FROM_CPY_DIM_##type(dimension *dim);\
 void _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(tensor_##type **M, dimension *dd);\
 tensor_##type* CLONE_TENSOR_##type(tensor_##type *tens);\
 void free_tensor_##type(tensor_##type *  tens); \
+void copy_tensor_##type(tensor_##type * dst, tensor_##type * src);\
 tensor_##type * sub_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
 tensor_##type * sub_minus_tensor_tail_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
 tensor_##type * sub_tensor_head_##type(tensor_##type *rootens, size_t subdim, size_t rankInDim); \

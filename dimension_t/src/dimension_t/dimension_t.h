@@ -70,6 +70,8 @@ typedef struct list_perm_in_dim list_perm_in_dim;
 void append_in_list_perm(list_perm_in_dim **list_p, size_t perm);
 dimension * create_dim_from_list_perm( list_perm_in_dim *l_p);
 
+dimension * create_binary_dim(size_t dimension_size);
+
 void free_list_perm_in_dim(list_perm_in_dim *l_p);
 
 #endif /* __DIMENSION_T__H__ */

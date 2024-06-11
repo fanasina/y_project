@@ -65,6 +65,7 @@ void setup_learning_rate_params_neurons_##type(neurons_##type *base,type initial
 void calc_out_neurons_##type(neurons_##type *nr);\
 void calc_delta_neurons_##type(neurons_##type *nr);\
 void update_weight_neurons_##type(neurons_##type *nr);\
+void copy_weight_in_neurons_##type(neurons_##type *dst_nrns, neurons_##type *src_nrns);\
 /*void setup_networks_##type(neurons_##type **base_nr, size_t **array_dim_in_layers, size_t *tab_sz_layers, size_t nb_layers);*/\
 void init_copy_in_out_networks_from_tensors_##type(neurons_##type *nr, tensor_##type *input, tensor_##type *target);\
 void init_in_out_networks_from_tensors_##type(neurons_##type *nr, tensor_##type *input, tensor_##type *target, neurons_##type *base);\
