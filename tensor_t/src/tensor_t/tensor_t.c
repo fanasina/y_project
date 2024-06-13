@@ -130,11 +130,16 @@ tensor_##type* CLONE_TENSOR_##type(tensor_##type *tens){\
   return NULL;\
 }\
 \
-void copy_tensor_##type(tensor_##type * dst, tensor_##type * src){\
- if(dst!=NULL && src!=NULL && dst->dim->rank == src->dim->rank){ \
-   for(size_t i=0; i<(dst->dim)->rank;++i)\
-      dst->x[i]=src->x[i];\
- }\
+int copy_tensor_##type(tensor_##type * dst, tensor_##type * src){\
+  if(dst!=NULL && src!=NULL){ \
+    int diff = dst->dim->rank - src->dim->rank;\
+    if(diff == 0) \
+      for(size_t i=0; i<(src->dim)->rank;++i)\
+        dst->x[i]=src->x[i];\
+    return diff;\
+    \
+  }\
+  return -1;\
 }\
 \
   void free_tensor_##type(tensor_##type *  tens){\

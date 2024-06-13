@@ -115,14 +115,29 @@ long int PRECISION_TYPE_L_DOUBLE  = 100000000000000;
 
 #define GENERATE_FUNCTION_NUMERIC(type)\
   int COMPARE_N_##type(const void *a, const  void *b){              \
-    type diff = (*(type*)a - *(type*)b) * PRECISION_##type;           \
+    type diff = 0;\
+     if((*(type*)a > *(type*)b)){           \
+      diff =(*(type*)a - *(type*)b) * PRECISION_##type;           \
+    /*char *str_diff = type##_TO_STR(diff), *str_a = type##_TO_STR(*(type*)a), *str_b = type##_TO_STR(*(type*)b);\
+    PRINT_DEBUG_(" diff = %s a=%s b=%s PRECISION : %ld\n",str_diff, str_a, str_b, PRECISION_##type);\
+    free(str_diff); free(str_a); free(str_b);\
+     */ \
+      if(diff >= 1) return 1;\
+      return 0;\
+     }else{\
+      diff =(*(type*)b - *(type*)a) * PRECISION_##type;           \
     /*char *str_diff = type##_TO_STR(diff), *str_a = type##_TO_STR(*(type*)a), *str_b = type##_TO_STR(*(type*)b);\
     PRINT_DEBUG_(" diff = %s a=%s b=%s PRECISION : %ld\n",str_diff, str_a, str_b, PRECISION_##type);\
     free(str_diff); free(str_a); free(str_b);\
     */\
-    if (diff <= -1) return -1;                                                    \
+      if(diff >= 1) return -1;\
+      return 0;\
+     }\
+    \
+    /*if (diff <= -1) return -1;                                                    \
     if (diff >= 1) return 1;                                                    \
     return 0;                                                    \
+  */\
   }                                                                 \
                                                                     \
   void COPY_ARRAY_##type(type *dst, const type *src, size_t size){  \

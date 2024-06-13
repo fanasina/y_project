@@ -326,7 +326,7 @@ void print2D_blocks_indexOne_withPoint(struct blocks *blk, float scale_x, float 
         if(in)
           printf("%d",in);
         else 
-          printf(" ");
+          printf("."); //printf(" ");
         printf("\033[0;37m"); // white
       }
       printf("\n");
@@ -478,7 +478,7 @@ void step(struct vehicle *v, int action){
   status->reward = 0;
   status->done =false;
   struct blocks * path = v->path;
-    printf(" center : %f vs %f direction: %f\n",v->sensor->value[CENTER], LIMIT_DISTANCE, v->direction);
+    //printf(" center : %f vs %f direction: %f\n",v->sensor->value[CENTER], LIMIT_DISTANCE, v->direction);
   if( v->sensor->value[CENTER]<= LIMIT_DISTANCE ){
     status->reward = REWARD_STOP;
     status->done = true;

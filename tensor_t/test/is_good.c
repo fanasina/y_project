@@ -1705,6 +1705,58 @@ TEST(copy_tensor){
 }
 
 
+TEST(tensorContractnProd_TYPE_DOUBLE_2_2 ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+#if VALGRIND_
+  d0->perm[0]=1;
+  d0->perm[1]=2; //3;
+  d0->perm[2]=3; //3;
+
+  d1->perm[0]=2;
+  d1->perm[1]=3; //3;
+  d1->perm[2]=1; //3;
+
+#else
+
+  d0->perm[0]=1;
+  d0->perm[1]=22; //3;
+  d0->perm[2]=52; //3;
+  d1->perm[0]=52;
+  d1->perm[1]=22; //3;
+  d1->perm[2]=1; //3;
+
+#endif
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=2 ;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=3;
+
+  print_tensor_double(M0,"M0");
+  print_tensor_double(M1,"M1");
+
+  tensor_TYPE_DOUBLE *M=NULL;
+
+  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
+
+  print_tensor_double(M,"M");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+
+  free_tensor_TYPE_DOUBLE(M);
+  free_tensor_TYPE_DOUBLE(M0);
+  free_tensor_TYPE_DOUBLE(M1);
+
+}
+
 
 
 

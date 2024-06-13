@@ -165,7 +165,7 @@ TEST(first_vehicle){
   copy_coordinate(path->upper_bound_block[0], (float[]){2,7});
   copy_coordinate(path->lower_bound_block[1], (float[]){2,0});
   copy_coordinate(path->upper_bound_block[1], (float[]){4,2});
-  copy_coordinate(path->lower_bound_block[2], (float[]){4,1});
+  copy_coordinate(path->lower_bound_block[2], (float[]){4,0.5});
   copy_coordinate(path->upper_bound_block[2], (float[]){8,3});
   copy_coordinate(path->lower_bound_block[3], (float[]){8,0});
   copy_coordinate(path->upper_bound_block[3], (float[]){16,2});
@@ -204,7 +204,9 @@ TEST(first_vehicle){
 }
 
 TEST(reward_list){
-  struct reward_lists * l_reward = create_reward_lists ();
+  struct status_qlearning * l_reward = create_status_qlearning();
+
+  free_status_qlearning(l_reward);
 }
 
 int main(int argc, char **argv){

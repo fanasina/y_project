@@ -747,6 +747,19 @@ size_t learning_online2_neurons_##type(neurons_##type *base, data_set_##type *da
   return nbreps;\
 }\
 \
+void calculate_output_by_network_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type **output_link){\
+  for(size_t i=0; i<(input->dim)->rank; ++i) (base->output)->x[i]=input->x[i];\
+  neurons_##type * tmp=base->next_layer;\
+  while(tmp){\
+    calc_out_neurons_##type(tmp);\
+    if(tmp->next_layer==NULL){\
+      /*print_tensor_msg_##type(tmp->output,"retult");*/\
+      *output_link = tmp->output;\
+    }\
+    tmp = tmp->next_layer;\
+  }\
+\
+}\
 void print_predict_by_network_neurons_##type(neurons_##type *base, tensor_##type *input){\
     for(size_t i=0; i<(input->dim)->rank; ++i) (base->output)->x[i]=input->x[i];\
       neurons_##type * tmp=base->next_layer;\

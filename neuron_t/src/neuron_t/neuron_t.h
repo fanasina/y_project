@@ -106,7 +106,7 @@ void print_data_set_msg_##type(data_set_##type *ds, char *msg);\
 \
 size_t learning_online_neurons_##type(neurons_##type *base, data_set_##type *dataset, bool (*condition)(type, size_t));\
 size_t learning_online2_neurons_##type(neurons_##type *base, data_set_##type *dataset, bool (*condition)(type, size_t));\
-\
+void calculate_output_by_network_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type **output_link);\
 void print_predict_by_network_neurons_##type(neurons_##type *base, tensor_##type *input);\
 void print_predict_by_network_with_error_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type *target);\
 \

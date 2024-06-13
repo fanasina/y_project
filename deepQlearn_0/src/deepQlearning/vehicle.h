@@ -16,6 +16,7 @@
 
 #include "tools_t/tools_t.h"
 #include "dimension_t/dimension_t.h"
+#include "tensor_t/tensor_t.h"
 
 #define LOG_LENTH 128
 
@@ -35,10 +36,12 @@ struct game_status {
   int cur_log;
 };
 
-struct coordinate {
-  size_t dimension_size;
-  float *x;
-};
+//struct coordinate {
+//  size_t dimension_size;
+//  float *x;
+//};
+
+typedef tensor_TYPE_FLOAT coordinate;
 
 /*
   +-----------------------+ <-- upper_bound_block (coordinate (6,5) for example) 
@@ -55,32 +58,34 @@ struct coordinate {
 */
 struct blocks {
   size_t nb_blocks;
-  struct coordinate **lower_bound_block; 
-  struct coordinate **upper_bound_block;
-  struct coordinate **bounds_all_blocks;
+  coordinate **lower_bound_block; 
+  coordinate **upper_bound_block;
+  coordinate **bounds_all_blocks;
   bool all_updated;
-  size_t dimension_size;
+  dimension *dim;
   bool *marker;
   //float step: // size of subdivision of the lowest large
 };
 
 
-struct sensors {
-  size_t nb_values;
-  float *value;
-};
+//struct sensors {
+//  size_t nb_values;
+//  float *value;
+//  tensor_TYPE_FLOAT * sensor;
+//};
+typedef tensor_TYPE_FLOAT sensors;
 
 struct vehicle {
-  struct coordinate *coord;
+  coordinate *coord;
   float direction;
   float speed;
-  struct sensors *sensor;
+  sensors *sensor;
   struct blocks *path;
   struct game_status *status;
 };
 
 struct game_status * greate_game_status();
-struct coordinate * create_coordinate(size_t dim_size);
+coordinate * create_coordinate(size_t dim_size);
 struct blocks * create_blocks(size_t nb_blocks, size_t dim_size);
 
 struct sensors * create_sensors(size_t nb_values);
@@ -89,18 +94,18 @@ struct vehicle * create_vehicle(
 );
 
 void free_game_status(struct game_status *status);
-void free_coordinate(struct coordinate *coord);
+void free_coordinate(coordinate *coord);
 void free_blocks(struct blocks *blk);
 
-void free_sensors(struct sensors *snsr);
+void free_sensors(sensors *snsr);
 
 void free_vehicle(struct vehicle * vhcl);
 
 void update_bounds_limits_blocks(struct blocks * blk);
 
-int is_in_blocks(struct blocks *blk, struct coordinate *coord);
+int is_in_blocks(struct blocks *blk, coordinate *coord);
 
-void copy_coordinate(struct coordinate *coord, float *x);
+void copy_coordinate(coordinate *coord, float *x);
 
 void move_vehicle(struct vehicle *v);
 void read_sensor(struct vehicle *v);
@@ -111,9 +116,9 @@ void reset(struct vehicle *v);
 void print2D_blocks_indexOne_withPoint(struct blocks *blk, float scale_x, float scale_y, struct coordinate *coordPoint);
 void print_vehicle_n_path(struct vehicle *v, float scale_x, float scale_y);
 
-float distance2_coordinate(struct coordinate *c0, struct coordinate *c1);
+float distance2_coordinate(coordinate *c0, coordinate *c1);
 
 void print2D_blocks(struct blocks *blk, float scale_x, float scale_y, char pad);
-void print2D_blocks_withPoint(struct blocks *blk, float scale_x, float scale_y, char pad, struct coordinate *coordPoint);
+void print2D_blocks_withPoint(struct blocks *blk, float scale_x, float scale_y, char pad, coordinate *coordPoint);
 
 #endif /* __VEHICLE__C_H__  */

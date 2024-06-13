@@ -21,6 +21,7 @@
 
 #define VALGRIND_ 1
 
+
 float L(float t, float o){
   return (o - t) * (o - t)/2;
 }
@@ -356,13 +357,30 @@ TEST(copy_weight_in_neurons){
 
   size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
   
+  setup_all_layers_functions_TYPE_FLOAT(cpyn,
+    tensorContractnProdThread_TYPE_FLOAT,
+    tensorProdThread_TYPE_FLOAT,
+    DL,
+    L,
+    f,
+    df);
+
+  setup_all_layers_params_TYPE_FLOAT(cpyn, 5, 1 ,  0.1);
+
+
   copy_weight_in_neurons_TYPE_FLOAT(cpyn, bn);
  
   char msg[256];
+  tensor_TYPE_FLOAT * linked_tens = NULL;
   for(size_t i=0; i<ds->size; ++i){
-    print_predict_by_network_with_error_neurons_TYPE_FLOAT(bn,ds->input[i],ds->target[i]);
-    print_predict_by_network_with_error_neurons_TYPE_FLOAT(cpyn,ds->input[i],ds->target[i]);
-    
+//    print_predict_by_network_with_error_neurons_TYPE_FLOAT(bn,ds->input[i],ds->target[i]);
+ //   print_predict_by_network_with_error_neurons_TYPE_FLOAT(cpyn,ds->input[i],ds->target[i]);
+    calculate_output_by_network_neurons_TYPE_FLOAT(bn,ds->input[i],&linked_tens);
+    sprintf(msg," output base %ld ",i);
+    print_tensor_msg_TYPE_FLOAT(linked_tens,msg);
+    calculate_output_by_network_neurons_TYPE_FLOAT(cpyn,ds->input[i],&linked_tens);
+    sprintf(msg," output copy %ld ",i);
+    print_tensor_msg_TYPE_FLOAT(linked_tens,msg);
   }
  
 
