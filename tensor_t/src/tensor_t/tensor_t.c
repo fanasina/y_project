@@ -1086,6 +1086,35 @@ void tensorContractnProdNotOpt_##type(tensor_##type** MM, tensor_##type *M0, ten
     FREE_dM_S_ ; \
 }\
 \
+/* dot product = of 2 tensors same dimensions M0, M1, dim0, dim1 == contract (dim0 size) product of M0' M1' of dim0' and dim1' / dim0->perm = [1, dim0-> perm] and  dim1'->perm = [dim1->perm, 1] */ \
+type scalarProduct_dep_contractProd_##type(tensor_##type *M0, tensor_##type *M1, size_t nbthreads ,void (*tensorContractVar)(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread )){\
+  type ret = 0;\
+  if(is_equal_dim(M0->dim, M1->dim)){/* */\
+    dimension * d0 = create_dim(M0->dim->size + 1);\
+    dimension * d1 = create_dim(M1->dim->size + 1);\
+    size_t i;\
+    d0->perm[0] = 1;\
+    for(i=0; i<M0->dim->size; ++i) d0->perm[i+1] = M0->dim->perm[i];\
+    for(i=0; i<M1->dim->size; ++i) d1->perm[i] = M1->dim->perm[i];\
+    d1->perm[i] = 1;\
+    tensor_##type *M_0=CREATE_TENSOR_##type(d0);\
+    tensor_##type *M_1=CREATE_TENSOR_##type(d1);\
+    copy_tensor_##type(M_0,M0);\
+    copy_tensor_##type(M_1,M1);\
+    tensor_##type *M_=NULL;\
+    tensorContractVar(&M_,M_0,M_1,M0->dim->size,nbthreads);\
+    ret = M_->x[0];\
+    free_tensor_##type(M_0);\
+    free_tensor_##type(M_1);\
+    free_tensor_##type(M_);\
+  }\
+  return ret;\
+}\
+\
+type scalarProduct_0_##type(tensor_##type *M0, tensor_##type *M1){\
+  return scalarProduct_dep_contractProd_##type(M0,M1,4,tensorContractnProdThread_##type);\
+\
+}\
 \
 /*format_file: [dim]((x,x,a)(a,x,a)) | example:[2,3,4](((a0,b0,c0,d0)(a1,b1,c1,d1)(a2,b2,c2,d2))((e0,f0,g0,h0)(e1,f1,g1,h1)(e2,f2,g2,h2)))*/\
 tensor_##type * parseInput_withDim_to_tensor_##type(char *input){\

@@ -1759,6 +1759,73 @@ TEST(tensorContractnProd_TYPE_DOUBLE_2_2 ){
 
 
 
+TEST(scalProduct){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+
+  
+  dimension *d_0=create_dim(2);
+  dimension *d_1=create_dim(2);
+
+
+  d0->perm[0]=1;
+  d0->perm[1]=2; //3;
+  d0->perm[2]=3; //3;
+
+  d1->perm[0]=2;
+  d1->perm[1]=3; //3;
+  d1->perm[2]=1; //3;
+
+
+  d_0->perm[0]=2;
+  d_0->perm[1]=3; //3;
+  d_1->perm[0]=2;
+  d_1->perm[1]=3; //3;
+
+
+
+
+  tensor_TYPE_DOUBLE *M0 = CREATE_TENSOR_TYPE_DOUBLE(d0);
+  tensor_TYPE_DOUBLE *M1 = CREATE_TENSOR_TYPE_DOUBLE(d1);
+
+  tensor_TYPE_DOUBLE *M_0 = CREATE_TENSOR_TYPE_DOUBLE(d_0);
+  tensor_TYPE_DOUBLE *M_1 = CREATE_TENSOR_TYPE_DOUBLE(d_1);
+  
+  for(size_t i=0; i<M0->dim->rank;++i) {
+    M0->x[i]=2 ;
+    M_0->x[i]=2 ;
+  }
+  for(size_t i=0; i<M1->dim->rank;++i) {
+    M1->x[i]=3;
+    M_1->x[i]=3;
+  }
+  print_tensor_double(M0,"M0");
+  print_tensor_double(M1,"M1");
+
+  tensor_TYPE_DOUBLE *M=NULL;
+
+  tensorContractnProd_TYPE_DOUBLE(&M, M0,M1,2);
+
+  print_tensor_double(M,"M");
+ 
+  double dotProd = scalarProduct_0_TYPE_DOUBLE(M_0,M_1);
+
+  EXPECT_EQ_TYPE_DOUBLE(dotProd, M->x[0]);
+
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_DOUBLE(M->x[i],MnO->x[i]);
+    
+
+  free_tensor_TYPE_DOUBLE(M);
+  free_tensor_TYPE_DOUBLE(M0);
+  free_tensor_TYPE_DOUBLE(M1);
+  free_tensor_TYPE_DOUBLE(M_0);
+  free_tensor_TYPE_DOUBLE(M_1);
+
+}
+
+
+
 
 
 int main(int argc, char **argv){

@@ -20,7 +20,7 @@ tensor_##type* CREATE_TENSOR_FROM_CPY_DIM_##type(dimension *dim);\
 void _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(tensor_##type **M, dimension *dd);\
 tensor_##type* CLONE_TENSOR_##type(tensor_##type *tens);\
 void free_tensor_##type(tensor_##type *  tens); \
-void copy_tensor_##type(tensor_##type * dst, tensor_##type * src);\
+int copy_tensor_##type(tensor_##type * dst, tensor_##type * src);\
 tensor_##type * sub_minus_tensor_head_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
 tensor_##type * sub_minus_tensor_tail_##type(tensor_##type *rootens, size_t minuSubdim, size_t rankInDim); \
 tensor_##type * sub_tensor_head_##type(tensor_##type *rootens, size_t subdim, size_t rankInDim); \
@@ -42,6 +42,8 @@ void tensorProdThrea2d_##type(tensor_##type **MM, tensor_##type *M0, tensor_##ty
 void tensorContractnProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
 void tensorContractnPro2dThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
 void tensorContractnProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
+type scalarProduct_dep_contractProd_##type(tensor_##type *M0, tensor_##type *M1, size_t nbthreads ,void (*tensorContractVar)(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread ));\
+type scalarProduct_0_##type(tensor_##type *M0, tensor_##type *M1);\
 void init_random_x_##type(tensor_##type *M, type minR, type maxR,  int randomRange);\
 tensor_##type * parseInput_withDim_to_tensor_##type(char *input);\
 void parseInputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_##type **Tpart2, char *input, size_t pivotSplit);\
