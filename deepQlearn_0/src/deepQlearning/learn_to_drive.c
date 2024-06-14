@@ -149,7 +149,7 @@ void train_qlearning(struct RL_agent * rlAgent,
   
   struct game_status * car_status = rlAgent->car->status;
   if( copy_tensor_TYPE_FLOAT(experimental_values, action_value) == 0 /* done */){
-    if(status->done){
+    if(car_status->done){
 
     }
   }

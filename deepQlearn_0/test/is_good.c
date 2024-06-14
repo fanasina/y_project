@@ -23,7 +23,7 @@
 #include "learn_to_drive.h"
 
 TEST(create_coordenate){
-  struct coordinate * coord = create_coordinate(3);
+  coordinate * coord = create_coordinate(3);
   coord->x[0]=0;
   coord->x[1]=1.2;
   coord->x[0]=0.8;
@@ -72,7 +72,7 @@ TEST(is_in_blocks){
   copy_coordinate(zn->lower_bound_block[2], (float[]){0,4});
   copy_coordinate(zn->upper_bound_block[2], (float[]){6,7});
   
-  struct coordinate *coord = create_coordinate(2);
+  coordinate *coord = create_coordinate(2);
 
   copy_coordinate(coord, (float[]){1,1});
   EXPECT_TRUE(is_in_blocks(zn, coord));
@@ -128,7 +128,7 @@ TEST(print_blocks_withPoint){
   copy_coordinate(zn->upper_bound_block[6], (float[]){6,8});
 
 
-  struct coordinate *coord = create_coordinate(2);
+  coordinate *coord = create_coordinate(2);
 
   copy_coordinate(coord, (float[]){1,1});
   EXPECT_TRUE(is_in_blocks(zn, coord));

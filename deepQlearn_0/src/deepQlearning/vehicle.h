@@ -58,6 +58,7 @@ typedef tensor_TYPE_FLOAT coordinate;
 */
 struct blocks {
   size_t nb_blocks;
+  size_t dimension_size; /* rank */
   coordinate **lower_bound_block; 
   coordinate **upper_bound_block;
   coordinate **bounds_all_blocks;
@@ -88,7 +89,7 @@ struct game_status * greate_game_status();
 coordinate * create_coordinate(size_t dim_size);
 struct blocks * create_blocks(size_t nb_blocks, size_t dim_size);
 
-struct sensors * create_sensors(size_t nb_values);
+sensors * create_sensors(size_t nb_values);
 struct vehicle * create_vehicle( 
   struct blocks *path
 );
@@ -113,7 +114,7 @@ void step(struct vehicle *v, int action);
 
 void reset(struct vehicle *v);
 
-void print2D_blocks_indexOne_withPoint(struct blocks *blk, float scale_x, float scale_y, struct coordinate *coordPoint);
+void print2D_blocks_indexOne_withPoint(struct blocks *blk, float scale_x, float scale_y, coordinate *coordPoint);
 void print_vehicle_n_path(struct vehicle *v, float scale_x, float scale_y);
 
 float distance2_coordinate(coordinate *c0, coordinate *c1);

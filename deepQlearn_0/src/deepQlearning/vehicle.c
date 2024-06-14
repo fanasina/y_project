@@ -22,10 +22,14 @@ struct game_status * create_game_status(){
   status->done = false;
 }
 
-struct coordinate * create_coordinate(size_t dim_size){
-  struct coordinate * ret_coord = malloc(sizeof(struct coordinate));
-  ret_coord->dimension_size = dim_size;
-  ret_coord->x = malloc(dim_size * sizeof(float));
+coordinate * create_coordinate(size_t dim_size){
+  dimension * dim =  create_dim(1);
+  dim->perm[0] = dim_size;
+  updateRankDim(dim);
+  coordinate * ret_coord =  CREATE_TENSOR_TYPE_FLOAT(dim);
+  //struct coordinate * ret_coord = malloc(sizeof(struct coordinate));
+  //ret_coord->dimension_size = dim_size;
+  //ret_coord->x = malloc(dim_size * sizeof(float));
 
   return ret_coord;
 }
@@ -33,8 +37,8 @@ struct blocks * create_blocks(size_t nb_blocks, size_t dim_size){
   struct blocks * ret_blocks = malloc(sizeof(struct blocks));
   ret_blocks->nb_blocks = nb_blocks;
   ret_blocks->dimension_size = dim_size;
-  ret_blocks->lower_bound_block = malloc(nb_blocks * sizeof(struct coordinate *));
-  ret_blocks->upper_bound_block = malloc(nb_blocks * sizeof(struct coordinate *));
+  ret_blocks->lower_bound_block = malloc(nb_blocks * sizeof(coordinate *));
+  ret_blocks->upper_bound_block = malloc(nb_blocks * sizeof(coordinate *));
   ret_blocks->bounds_all_blocks = NULL;
   ret_blocks->all_updated = false;
   ret_blocks->marker = malloc(nb_blocks * sizeof(bool));
@@ -48,10 +52,12 @@ struct blocks * create_blocks(size_t nb_blocks, size_t dim_size){
   return ret_blocks;
 }
 
-struct sensors * create_sensors(size_t nb_values){
-  struct sensors * ret_sensors = malloc(sizeof(struct sensors));
-  ret_sensors->nb_values = nb_values;
-  ret_sensors->value = malloc(nb_values * sizeof(float));
+sensors * create_sensors(size_t nb_xs){
+  dimension * dim =  create_dim(1);
+  dim->perm[0] = nb_xs;
+  sensors * ret_sensors = CREATE_TENSOR_TYPE_FLOAT(dim);//malloc(sizeof(struct sensors));
+  //ret_sensors->nb_xs = nb_xs;
+  //ret_sensors->x = malloc(nb_xs * sizeof(float));
 
   return ret_sensors;
 }
@@ -75,9 +81,10 @@ void free_game_status(struct game_status *status){
   free(status);
 }
 
-void free_coordinate(struct coordinate *coord){
-  free(coord->x);
-  free(coord);
+void free_coordinate(coordinate *coord){
+  //free(coord->x);
+  //free(coord);
+  free_tensor_TYPE_FLOAT(coord);
 }
 
 void free_blocks(struct blocks *blk){
@@ -96,9 +103,10 @@ void free_blocks(struct blocks *blk){
   free(blk);
 }
 
-void free_sensors(struct sensors *snsr){
-  free(snsr->value);
-  free(snsr);
+void free_sensors(sensors *snsr){
+  //free(snsr->x);
+  //free(snsr);
+  free_tensor_TYPE_FLOAT(snsr);
 }
 
 void free_vehicle(struct vehicle * vhcl){
@@ -111,8 +119,8 @@ void free_vehicle(struct vehicle * vhcl){
 }
 
 
-float scalar_product(struct coordinate *coord1, struct coordinate *coord2){
-  size_t dimension_size = coord1->dimension_size;
+float scalar_product(coordinate *coord1, coordinate *coord2){
+/*  size_t dimension_size = coord1->dimension_size;
   if(coord1->dimension_size > coord2->dimension_size )
     dimension_size = coord2->dimension_size;
 
@@ -122,15 +130,17 @@ float scalar_product(struct coordinate *coord1, struct coordinate *coord2){
   }
 
   return scalar;
+  */
+  return scalarProduct_0_TYPE_FLOAT(coord1, coord2);
 }
 
-float vector_norm2(struct coordinate * coord){
+float vector_norm2(coordinate * coord){
   float scalar  = scalar_product(coord, coord);
   return (float)sqrt(scalar);
 }
 
-bool is_in_block_index(struct blocks *blk, size_t index, struct coordinate *coord){
-  if(blk->dimension_size != coord->dimension_size) return false;
+bool is_in_block_index(struct blocks *blk, size_t index, coordinate *coord){
+  if(blk->dimension_size != coord->dim->rank) return false;
   for(size_t j=0; j<blk->dimension_size; ++j){
     if( ((blk->lower_bound_block[index])->x[j] > coord->x[j] ) ||
         ((blk->upper_bound_block[index])->x[j] < coord->x[j] )   ){
@@ -142,8 +152,8 @@ bool is_in_block_index(struct blocks *blk, size_t index, struct coordinate *coor
 }
 
 
-int is_in_blocks(struct blocks *blk, struct coordinate *coord){
-  if(blk->dimension_size != coord->dimension_size) return 0;
+int is_in_blocks(struct blocks *blk, coordinate *coord){
+  if(blk->dimension_size != coord->dim->rank) return 0;
   size_t count_in = 0;
   for(size_t i=0; i<blk->nb_blocks; ++i){
     count_in = 0;
@@ -159,22 +169,22 @@ int is_in_blocks(struct blocks *blk, struct coordinate *coord){
   return 0;
 }
 
-void printCoordinate(struct coordinate *coord, char *msg){
-  for(size_t i=0; i<coord->dimension_size; ++i){
+void printCoordinate(coordinate *coord, char *msg){
+  for(size_t i=0; i<coord->dim->rank; ++i){
     printf(" %f,", coord->x[i]);
   }
-  printf("{%s} [ %ld ]\n", msg, coord->dimension_size);
+  printf("{%s} [ %ld ]\n", msg, coord->dim->rank);
 }
 
-void copy_coordinate(struct coordinate *coord, float *x){
-  for(size_t i=0; i<coord->dimension_size; ++i){
+void copy_coordinate(coordinate *coord, float *x){
+  for(size_t i=0; i<coord->dim->rank; ++i){
     coord->x[i] = x[i];
   }
 }
 
-struct coordinate ** bounds_limits_blocks(struct blocks *blk){ /* min x , max y */
+coordinate ** bounds_limits_blocks(struct blocks *blk){ /* min x , max y */
   
-  struct coordinate **bounds_coord = malloc(2 * sizeof(struct coordinate*)) ;
+  coordinate **bounds_coord = malloc(2 * sizeof( coordinate*)) ;
   bounds_coord[0] = create_coordinate(blk->dimension_size);
   bounds_coord[1] = create_coordinate(blk->dimension_size);
 
@@ -213,13 +223,13 @@ void print2D_blocks(struct blocks *blk, float scale_x, float scale_y, char pad){
   if(blk->dimension_size == 2){
     //struct coordinate ** bounds_coord = bounds_limits_blocks(blk);
     update_bounds_limits_blocks(blk);
-    struct coordinate ** bounds_coord = blk->bounds_all_blocks;
+    coordinate ** bounds_coord = blk->bounds_all_blocks;
 
-    for(int i=0; i<(bounds_coord[0]->dimension_size); ++i){
+    for(int i=0; i<(blk->dimension_size); ++i){
       printf(" x[%d]: %f <= %f \n",i, bounds_coord[0]->x[i],bounds_coord[1]->x[i]);
     }
 
-    struct coordinate * coord = create_coordinate(2);
+    coordinate * coord = create_coordinate(2);
 //    int offset_space = 0; 
 //    int offset = 2;
     //for(coord->x[1] = bounds_coord[0]->x[1]; coord->x[1] < bounds_coord[1]->x[1]; coord->x[1]+=scale_y )
@@ -253,8 +263,8 @@ void print2D_blocks(struct blocks *blk, float scale_x, float scale_y, char pad){
 }
 
 
-struct blocks * block_neighbord_Point(struct coordinate *coord, float *radius ){
-  struct blocks * blk = create_blocks(1, coord->dimension_size);
+struct blocks * block_neighbord_Point(coordinate *coord, float *radius ){
+  struct blocks * blk = create_blocks(1, coord->dim->rank);
   for(size_t i=0; i<blk->dimension_size; ++i){
     blk->lower_bound_block[0]->x[i] = coord->x[i]-radius[i] ;
     blk->upper_bound_block[0]->x[i] = coord->x[i]+radius[i] ;
@@ -263,13 +273,13 @@ struct blocks * block_neighbord_Point(struct coordinate *coord, float *radius ){
   return blk;
 }
 
-void print2D_blocks_withPoint(struct blocks *blk, float scale_x, float scale_y, char pad, struct coordinate *coordPoint){
+void print2D_blocks_withPoint(struct blocks *blk, float scale_x, float scale_y, char pad, coordinate *coordPoint){
   if(blk->dimension_size == 2){
     //struct coordinate ** bounds_coord = bounds_limits_blocks(blk);
     update_bounds_limits_blocks(blk);
-    struct coordinate ** bounds_coord = blk->bounds_all_blocks;
+    coordinate ** bounds_coord = blk->bounds_all_blocks;
     
-    struct coordinate * coord = create_coordinate(2);
+    coordinate * coord = create_coordinate(2);
     
     float *radius = malloc(2 * sizeof(float));
     //radius[0] = MIN(scale_x, scale_y);
@@ -306,12 +316,12 @@ void print2D_blocks_withPoint(struct blocks *blk, float scale_x, float scale_y, 
   }
 }
 
-void print2D_blocks_indexOne_withPoint(struct blocks *blk, float scale_x, float scale_y, struct coordinate *coordPoint){
+void print2D_blocks_indexOne_withPoint(struct blocks *blk, float scale_x, float scale_y, coordinate *coordPoint){
   if(blk->dimension_size == 2){
     update_bounds_limits_blocks(blk);
-    struct coordinate ** bounds_coord = blk->bounds_all_blocks;
+    coordinate ** bounds_coord = blk->bounds_all_blocks;
     
-    struct coordinate * coord = create_coordinate(2);
+    coordinate * coord = create_coordinate(2);
     
     float *radius = malloc(2 * sizeof(float));
     radius[0]=scale_x;
@@ -378,10 +388,10 @@ void move_vehicle(struct vehicle *v){
   v->coord->x[1] += v->speed * sin(v->direction * M_PI / 180);
 }
 
-float distance2_coordinate(struct coordinate *c0, struct coordinate *c1){
-  if(c0->dimension_size != c1->dimension_size) return 0;
+float distance2_coordinate(coordinate *c0, coordinate *c1){
+  if(c0->dim->rank != c1->dim->rank) return 0;
   float d=0, tmp;
-  for(size_t i=0; i<c0->dimension_size; ++i){
+  for(size_t i=0; i<c0->dim->rank; ++i){
      tmp = (c0->x[i] - c1->x[i]);
      d += tmp * tmp;
   }
@@ -394,13 +404,13 @@ float distance2_coordinate(struct coordinate *c0, struct coordinate *c1){
     diStep_sensor->x[0] += step_sensor * cos(direction_radian);\
     diStep_sensor->x[1] += step_sensor * sin(direction_radian);\
   }\
-  v->sensor->value[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)))) / 50;\
+  v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)))) / 50;\
   
-  //v->sensor->value[position] = (MIN(49,(int)(distance2_coordinate(diStep_sensor, v->coord)/10))) / 50;\
+  //v->sensor->x[position] = (MIN(49,(int)(distance2_coordinate(diStep_sensor, v->coord)/10))) / 50;\
 
 void read_sensor(struct vehicle *v){
   float step_sensor = ((float)1)/SUBDIVISION;
-  struct coordinate * diStep_sensor = create_coordinate(2);
+  coordinate * diStep_sensor = create_coordinate(2);
   copy_coordinate(diStep_sensor, v->coord->x);
   
   // count the number of step until we go out of the path = distance
@@ -466,20 +476,20 @@ void add_string_log(struct game_status *status, char *str ){
 }
 
 void step(struct vehicle *v, int action){
-  float action_value[NB_ACTION]={-3,0,3}; // [LEFT, CENTER, RIGHT]
-  v->direction = v->direction + action_value[action % 3];
+  float action_x[NB_ACTION]={-3,0,3}; // [LEFT, CENTER, RIGHT]
+  v->direction = v->direction + action_x[action % 3];
   v->speed = ((float)1)/2;
   move_vehicle(v);
   read_sensor(v);
   struct game_status *status = v->status;
-  status->state =  v->sensor->value[LEFT]* 2500 + 
-              v->sensor->value[CENTER]* 50 + 
-              v->sensor->value[RIGHT] ;
+  status->state =  v->sensor->x[LEFT]* 2500 + 
+              v->sensor->x[CENTER]* 50 + 
+              v->sensor->x[RIGHT] ;
   status->reward = 0;
   status->done =false;
   struct blocks * path = v->path;
-    //printf(" center : %f vs %f direction: %f\n",v->sensor->value[CENTER], LIMIT_DISTANCE, v->direction);
-  if( v->sensor->value[CENTER]<= LIMIT_DISTANCE ){
+    //printf(" center : %f vs %f direction: %f\n",v->sensor->x[CENTER], LIMIT_DISTANCE, v->direction);
+  if( v->sensor->x[CENTER]<= LIMIT_DISTANCE ){
     status->reward = REWARD_STOP;
     status->done = true;
   }
