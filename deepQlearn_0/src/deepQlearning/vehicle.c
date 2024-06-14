@@ -16,7 +16,7 @@
 
 struct game_status * create_game_status(){
   struct game_status * status = malloc(sizeof(struct game_status));
-  status->state = 0;
+  status->q_state = 0;
   status->reward = 0;
   status->cumulative_reward = 0;
   status->done = false;
@@ -482,7 +482,7 @@ void step(struct vehicle *v, int action){
   move_vehicle(v);
   read_sensor(v);
   struct game_status *status = v->status;
-  status->state =  v->sensor->x[LEFT]* 2500 + 
+  status->q_state =  v->sensor->x[LEFT]* 2500 + 
               v->sensor->x[CENTER]* 50 + 
               v->sensor->x[RIGHT] ;
   status->reward = 0;

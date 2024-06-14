@@ -71,6 +71,7 @@ struct delay_params * create_delay_params (
 }
 
 struct qlearning_params * create_qlearning_params  (
+  double gamma,
   double learning_rate,
   double discount_factor,
   double exploration_factor,
@@ -78,6 +79,7 @@ struct qlearning_params * create_qlearning_params  (
 ){
   struct qlearning_params * qparams = malloc(sizeof(struct qlearning_params));
 
+  qparams->gamma = gamma;
   qparams->learning_rate = learning_rate ;
   qparams->discount_factor = discount_factor ;
   qparams->exploration_factor = exploration_factor ;
@@ -148,10 +150,12 @@ void train_qlearning(struct RL_agent * rlAgent,
   tensor_TYPE_FLOAT * experimental_values = CREATE_TENSOR_FROM_CPY_DIM_TYPE_FLOAT(action_value->dim);
   
   struct game_status * car_status = rlAgent->car->status;
-  if( copy_tensor_TYPE_FLOAT(experimental_values, action_value) == 0 /* done */){
-    if(car_status->done){
-
-    }
+  copy_tensor_TYPE_FLOAT(experimental_values, action_value) ;
+  // experimental_values === Q-tab learning
+  if(car_status->done){
+    experimental_values->x[action] = -100;    
+  }else {
+    experimental_values->x[action] = reward + rlAgent->qlearnParams->gamma * MAX_ARRAY_TYPE_FLOAT(next_action_value->x, next_action_value->dim->rank) ;    
   }
   
 }

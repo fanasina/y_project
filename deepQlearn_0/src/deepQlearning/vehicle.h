@@ -28,7 +28,7 @@
 
 
 struct game_status {
-  long state;
+  long q_state;
   long reward;
   long cumulative_reward;
   bool done;

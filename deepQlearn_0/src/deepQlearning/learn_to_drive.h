@@ -16,6 +16,7 @@
 
 
 struct qlearning_params {
+  double gamma;
   double learning_rate;
   double factor_update_learning_rate;
   double minimum_threshold_learning_rate;
@@ -66,6 +67,7 @@ struct delay_params * create_delay_params (
 );
 
 struct qlearning_params * create_qlearning_params (
+  double gamma,
   double learning_rate,
   double discount_factor,
   double exploration_factor,
