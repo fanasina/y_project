@@ -24,7 +24,9 @@
 #define CENTER 1
 #define RIGHT 2
 
-#define SUBDIVISION 10
+#define COUNT_ACTION 3
+
+#define SUBDIVISION 5 //10
 
 
 struct game_status {
@@ -81,6 +83,7 @@ struct vehicle {
   float direction;
   float speed;
   sensors *sensor;
+  sensors *old_sensor;
   struct blocks *path;
   struct game_status *status;
 };
@@ -110,9 +113,10 @@ void copy_coordinate(coordinate *coord, float *x);
 
 void move_vehicle(struct vehicle *v);
 void read_sensor(struct vehicle *v);
-void step(struct vehicle *v, int action);
-
+void step_vehicle(struct vehicle *v, int action);
 void reset(struct vehicle *v);
+
+void add_string_log_M(struct game_status *status, char *str );
 
 void print2D_blocks_indexOne_withPoint(struct blocks *blk, float scale_x, float scale_y, coordinate *coordPoint);
 void print_vehicle_n_path(struct vehicle *v, float scale_x, float scale_y);

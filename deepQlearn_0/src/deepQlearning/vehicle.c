@@ -67,6 +67,7 @@ struct vehicle * create_vehicle(struct blocks *path){
   
   ret_vehicle->coord = create_coordinate(2);
   ret_vehicle->sensor = create_sensors(NB_SENSORS);
+  ret_vehicle->old_sensor = create_sensors(NB_SENSORS);
   ret_vehicle->path = path;
   
   ret_vehicle->status = create_game_status();
@@ -113,6 +114,7 @@ void free_vehicle(struct vehicle * vhcl){
   free_coordinate(vhcl->coord);
   free_blocks(vhcl->path);
   free_sensors(vhcl->sensor);
+  free_sensors(vhcl->old_sensor);
   free_game_status(vhcl->status);
 
   free(vhcl);
@@ -404,11 +406,13 @@ float distance2_coordinate(coordinate *c0, coordinate *c1){
     diStep_sensor->x[0] += step_sensor * cos(direction_radian);\
     diStep_sensor->x[1] += step_sensor * sin(direction_radian);\
   }\
-  v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)))) / 50;\
+  v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)/5))) ;\
   
+  //v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)))) / 50;\
   //v->sensor->x[position] = (MIN(49,(int)(distance2_coordinate(diStep_sensor, v->coord)/10))) / 50;\
 
 void read_sensor(struct vehicle *v){
+  copy_tensor_TYPE_FLOAT(v->old_sensor, v->sensor);
   float step_sensor = ((float)1)/SUBDIVISION;
   coordinate * diStep_sensor = create_coordinate(2);
   copy_coordinate(diStep_sensor, v->coord->x);
@@ -475,10 +479,11 @@ void add_string_log(struct game_status *status, char *str ){
 
 }
 
-void step(struct vehicle *v, int action){
+void step_vehicle(struct vehicle *v, int action){
+  //float action_x[NB_ACTION]={-3,0,3}; // [LEFT, CENTER, RIGHT]
   float action_x[NB_ACTION]={-3,0,3}; // [LEFT, CENTER, RIGHT]
   v->direction = v->direction + action_x[action % 3];
-  v->speed = ((float)1)/2;
+  v->speed = ((float)1)/5;
   move_vehicle(v);
   read_sensor(v);
   struct game_status *status = v->status;
@@ -494,14 +499,14 @@ void step(struct vehicle *v, int action){
     status->done = true;
   }
   else{
-    bool breaked = false;
+    bool broken = false;
     long prec, next;
     char msg[48];
     for(long i=0; i< path->nb_blocks; ++i){
         //prec = (i-1)%(path->nb_blocks);
         prec = (i + path->nb_blocks - 1 )%(path->nb_blocks);
         next = (i + 1)%(path->nb_blocks);
-        printf("i:%ld, prec:%ld, next:%ld: maker %d, prec marker %d\n",i,prec,next, path->marker[i], path->marker[prec]);
+        //printf("i:%ld, prec:%ld, next:%ld: maker %d, prec marker %d\n",i,prec,next, path->marker[i], path->marker[prec]);
       if(is_in_block_index(path, i, v->coord)){
         if(path->marker[i] == false && path->marker[prec] == true){
           path->marker[i]=true;
@@ -516,11 +521,11 @@ void step(struct vehicle *v, int action){
           status->done = true;
           add_string_log(status, "| reverse |");
         }
-        breaked = true;
+        broken = true;
         break;
       }
     }
-    if(breaked == false){
+    if(broken == false){
       if(status->cumulative_reward > THRESHOLD_REWARD){
         status->reward = REWARD_CONTINUE;
         status->done = true;
@@ -547,12 +552,14 @@ void reset(struct vehicle *v){
   int diff;
   diff = path->upper_bound_block[0]->x[0] - path->lower_bound_block[0]->x[0];
   random = rand() % diff;
-  v->coord->x[0] = path->lower_bound_block[0]->x[0] + random;
+  //v->coord->x[0] = path->lower_bound_block[0]->x[0] + random;
+  v->coord->x[0] = path->lower_bound_block[0]->x[0] + diff/2;
   diff = path->upper_bound_block[0]->x[1] - path->lower_bound_block[0]->x[1];
   random = rand() % diff;
-  v->coord->x[1] = path->lower_bound_block[0]->x[1] + random;
+  //v->coord->x[1] = path->lower_bound_block[0]->x[1] + random;
+  v->coord->x[1] = path->lower_bound_block[0]->x[1] + diff/2;
   random = rand() % 50;
-  v->direction = random - 25;
-  //v->direction = 15;
+  //v->direction = random - 25;
+  v->direction = -90;
   v->speed = 1;
 }

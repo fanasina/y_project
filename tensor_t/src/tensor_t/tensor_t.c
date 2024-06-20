@@ -1356,7 +1356,7 @@ void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, te
     fprintf( stderr, "Cannot open file: %s for reading\n",file_name_input );\
     exit( -1 );\
   }\
-  bool size_unknown=false, breaked=false; \
+  bool size_unknown=false, broken=false; \
   bool Done=false;\
   int retfread = 0, curIn=0;\
   while(!Done){\
@@ -1372,13 +1372,13 @@ void parse_file_InputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, te
     iinput[curIn]='\0';\
     size_t len = strlen(iinput);\
     for(size_t i=0; i<len ; ++i){\
-      if(iinput[i]==']') {breaked = true; break;}\
+      if(iinput[i]==']') {broken = true; break;}\
       if((iinput[i]=='*') ||(iinput[i]=='_')){ \
-        breaked=true;  size_unknown =true;\
+        broken=true;  size_unknown =true;\
         break;\
       }\
     }\
-    Done = breaked;\
+    Done = broken;\
   }\
   rewind(f_input);\
   list_perm_in_dim *l_p=NULL;\

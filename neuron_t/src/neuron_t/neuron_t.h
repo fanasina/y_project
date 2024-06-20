@@ -125,4 +125,13 @@ GEN_NEURON_(TYPE_FLOAT)
 GEN_NEURON_(TYPE_DOUBLE)
 
 
+#define UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(type, neuronVar, attribute, value) \
+  do{\
+    neurons_##type *tmpn = neuronVar;\
+    while(tmpn){\
+      tmpn->attribute = value;\
+      tmpn = tmpn->next_layer;\
+    }\
+  }while(0);\
+
 #endif /*__NEURON_T_C__H*/
