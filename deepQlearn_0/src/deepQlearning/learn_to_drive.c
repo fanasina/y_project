@@ -205,6 +205,22 @@ void train_qlearning(struct RL_agent * rlAgent,
   }else {
     experimental_values->x[action] = car_status->reward + rlAgent->qlearnParams->gamma * MAX_ARRAY_TYPE_FLOAT(next_action_value->x, next_action_value->dim->rank) ;    
   }
+// ***
+      neurons_TYPE_FLOAT *tmp=NULL, *ttmp=NULL, *base = net_main;
+      init_copy_in_out_networks_from_tensors_TYPE_FLOAT(base,base->output , experimental_values );\
+      tmp=net_main->next_layer;\
+      while(tmp){\
+        calc_out_neurons_TYPE_FLOAT(tmp);\
+        ttmp = tmp;\
+        tmp = tmp->next_layer;\
+      }\
+      while(ttmp != base){\
+        calc_delta_neurons_TYPE_FLOAT(ttmp);\
+        update_weight_neurons_TYPE_FLOAT(ttmp);\
+        ttmp = ttmp->prev_layer;\
+      }\
+
+// *** 
   float new_value = ( (net_main->learning_rate < qlParams->minimum_threshold_learning_rate /*0.0001*/) ? net_main->learning_rate :(net_main->learning_rate ) * qlParams->factor_update_learning_rate   /*0.995*/ );
   UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, net_main, learning_rate, new_value);
 
