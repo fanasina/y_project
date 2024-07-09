@@ -21,10 +21,12 @@ float D_L2(float t, float o){
 }
 
 void copy_weight_in_networks_from_main_to_target(struct networks_qlearning * networks){
-  copy_weight_in_neurons_TYPE_FLOAT(networks->target_net, networks->main_net);
+  //copy_weight_in_neurons_TYPE_FLOAT(networks->target_net, networks->main_net);
+   COPY_NN_ATTRIBUTE_IN_ALL_LAYERS(TYPE_FLOAT,weight_in, networks->target_net, networks->main_net);
 }
 void copy_weight_in_networks_from_main_to_best(struct networks_qlearning * networks){
-  copy_weight_in_neurons_TYPE_FLOAT(networks->best_net, networks->main_net);
+  //copy_weight_in_neurons_TYPE_FLOAT(networks->best_net, networks->main_net);
+   COPY_NN_ATTRIBUTE_IN_ALL_LAYERS(TYPE_FLOAT,weight_in, networks->best_net, networks->main_net);
 }
 
 struct networks_qlearning * create_nework_qlearning(
@@ -70,6 +72,8 @@ struct status_qlearning * create_status_qlearning (){
 
   status_ql->nb_training_after_updated_weight_in_target = 0;
 
+  status_ql->nb_episodes = 0;
+  
   return status_ql;
 }
 
@@ -91,6 +95,7 @@ struct print_params * create_print_params(float scale_x, float scale_y,  struct 
   pprint->scale_x = scale_x;
   pprint->scale_y = scale_y;
   pprint->delay = delay;
+  pprint->string_space = malloc(LOG_LENTH+1);
   pthread_mutex_init(&(pprint->mut_printed), NULL);
 
   int i;
@@ -164,6 +169,7 @@ void free_delay_params (struct delay_params *dly_p){
 }
 
 void free_print_params (struct print_params *pprint){
+  free(pprint->string_space);
   pthread_mutex_destroy(&(pprint->mut_printed));
   free_delay_params(pprint->delay);
   free(pprint);
@@ -192,13 +198,14 @@ void train_qlearning(struct RL_agent * rlAgent,
   neurons_TYPE_FLOAT * net_target = rlAgent->networks->target_net;
   tensor_TYPE_FLOAT * new_state = rlAgent->car->sensor /*input*/;
   tensor_TYPE_FLOAT * state = rlAgent->car->old_sensor  /*input*/;
-  calculate_output_by_network_neurons_TYPE_FLOAT(net_main, state, &action_value);
+  neurons_TYPE_FLOAT *ttmp = calculate_output_by_network_neurons_TYPE_FLOAT(net_main, state, &action_value);
   calculate_output_by_network_neurons_TYPE_FLOAT(net_target, new_state, &next_action_value);
   tensor_TYPE_FLOAT * experimental_values = CREATE_TENSOR_FROM_CPY_DIM_TYPE_FLOAT(action_value->dim);
   
   struct game_status * car_status = rlAgent->car->status;
   struct qlearning_params * qlParams = rlAgent->qlearnParams;
   copy_tensor_TYPE_FLOAT(experimental_values, action_value) ;
+  //copy_tensor_TYPE_FLOAT(experimental_values, next_action_value) ;
   // experimental_values === Q-tab learning
   if(car_status->done){
     experimental_values->x[action] = -100;    
@@ -206,19 +213,12 @@ void train_qlearning(struct RL_agent * rlAgent,
     experimental_values->x[action] = car_status->reward + rlAgent->qlearnParams->gamma * MAX_ARRAY_TYPE_FLOAT(next_action_value->x, next_action_value->dim->rank) ;    
   }
 // ***
-      neurons_TYPE_FLOAT *tmp=NULL, *ttmp=NULL, *base = net_main;
-      init_copy_in_out_networks_from_tensors_TYPE_FLOAT(base,base->output , experimental_values );\
-      tmp=net_main->next_layer;\
-      while(tmp){\
-        calc_out_neurons_TYPE_FLOAT(tmp);\
-        ttmp = tmp;\
-        tmp = tmp->next_layer;\
-      }\
-      while(ttmp != base){\
-        calc_delta_neurons_TYPE_FLOAT(ttmp);\
-        update_weight_neurons_TYPE_FLOAT(ttmp);\
-        ttmp = ttmp->prev_layer;\
-      }\
+      copy_tensor_TYPE_FLOAT(ttmp->target, experimental_values);
+      while(ttmp != net_main){
+        calc_delta_neurons_TYPE_FLOAT(ttmp);
+        update_weight_neurons_TYPE_FLOAT(ttmp);
+        ttmp = ttmp->prev_layer;
+      }
 
 // *** 
   float new_value = ( (net_main->learning_rate < qlParams->minimum_threshold_learning_rate /*0.0001*/) ? net_main->learning_rate :(net_main->learning_rate ) * qlParams->factor_update_learning_rate   /*0.995*/ );
@@ -230,19 +230,28 @@ void train_qlearning(struct RL_agent * rlAgent,
 }
 
 int select_action(struct RL_agent * rlAgent){
+  //static size_t explore = 0;
   int action;
   tensor_TYPE_FLOAT * action_value = NULL;
-  calculate_output_by_network_neurons_TYPE_FLOAT(rlAgent->networks->main_net, rlAgent->car->old_sensor, &action_value);
-  long int NUMBER_EPISODE2 = (rlAgent->qlearnParams->number_episodes);
-  NUMBER_EPISODE2 = NUMBER_EPISODE2 * NUMBER_EPISODE2;
-  srand(time(NULL));
+  //calculate_output_by_network_neurons_TYPE_FLOAT(rlAgent->networks->main_net, rlAgent->car->old_sensor, &action_value);
+  calculate_output_by_network_neurons_TYPE_FLOAT(rlAgent->networks->main_net, rlAgent->car->sensor, &action_value);
+  //long int NUMBER_EPISODE2 = (rlAgent->qlearnParams->number_episodes)*100;
+  int NUMBER_EPISODE2 = 3000;
+  //NUMBER_EPISODE2 = NUMBER_EPISODE2 * NUMBER_EPISODE2;
+//  static bool init = true ;
+//  if(init){
+    srand(time(NULL));
+//    init =false;
+//  }
   int random = rand() % NUMBER_EPISODE2;
-  float proba_explor = (float)random / NUMBER_EPISODE2;
-  if(proba_explor <= rlAgent->qlearnParams->exploration_factor ){
-    action = rand() % action_value->dim->rank ; 
+  float proba_explor = (float)(random ) / NUMBER_EPISODE2;
+  if(proba_explor > rlAgent->qlearnParams->exploration_factor ){
+    action = ARG_MAX_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  );
   }
   else{
-    action = ARG_MAX_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  );
+    action = rand() % action_value->dim->rank ; 
+   // explore++;
+    //printf(" EXPLORE :%ld, action : %d , factor : %f nb_episodes : %ld \n",explore,action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
   }
   return action;
 }
@@ -261,20 +270,34 @@ void learn_to_drive(struct RL_agent * rlAgent){
       reset(car);
       qlStatus->nb_training_after_updated_weight_in_target = 0;
       while(true){
+        ++(qlStatus->nb_episodes);
         ++(qlStatus->nb_training_after_updated_weight_in_target);
         action = select_action(rlAgent);
         sprintf(msg," dir:%.0f : %s, ", car->direction ,action_name[action]);
         add_string_log_M(car_status,msg);
         step_vehicle(car, action);
         train_qlearning(rlAgent, action);
-        if(pprint->printed){
+        if(/*(qlStatus->nb_episodes %15 == 0)  && */ pprint->printed){
           pthread_mutex_lock(&(pprint->mut_printed));
           print_vehicle_n_path(car, pprint->scale_x, pprint->scale_y);
           pthread_mutex_unlock(&(pprint->mut_printed));
           printf("%s ",pprint->string_space);
-          printf("ep: %ld ",index_episode);
+          printf("ep: %ld\n",index_episode);
           neurons_TYPE_FLOAT * net_main = rlAgent->networks->main_net;
-          for(size_t i=0; i<net_main->output->dim->rank; ++i) printf("{sensro[%s]:%f }",action_name[i%COUNT_ACTION],net_main->output->x[i]);
+          neurons_TYPE_FLOAT * net_target = rlAgent->networks->target_net;
+          for(size_t i=0; i<net_main->output->dim->rank; ++i) {
+            printf("{sensro[%s]:%f "/*vs %f / VS / %f */" vs oldsens[%s]: %f}\n",action_name[i%COUNT_ACTION],net_target->output->x[i], 
+            /*car->sensor->x[i] ,car->old_sensor->x[i],
+            */action_name[i%COUNT_ACTION],net_main->output->x[i]);
+            
+          }
+          printf("\n< %f > ( %s  ) \n", car->direction, action_name[action % COUNT_ACTION]);
+          //print_weight_in_neurons_TYPE_FLOAT(net_main, "net_main_wei");
+          //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, weight_in, "net_main_we_in");
+          PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, output, "net_main_out");
+          //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_target, output, "net_target_out");
+          //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, input, "net_main_input");
+          printf("action : %d , factor : %f nb_episodes : %ld \n",action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
           Sleep(pprint->delay->delay_between_games);
         }
         //done in step ... copy_tensor_TYPE_FLOAT(car->old_sensor, car->sensor);

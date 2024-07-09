@@ -77,7 +77,9 @@ void setup_networks_layers_without_weights_##type(neurons_##type **base_nr, size
 void setup_networks_layers_without_weights_from_config_##type(neurons_##type **base, config_layers *pconf);\
 void setup_networks_OneD_##type(neurons_##type **base_nr, size_t *array_dim_in_layers, size_t nb_layers, bool randomize, type minR, type maxR,  int randomRange);\
 void init_in_out_all_networks_OneD_##type(neurons_##type *nr, type *in, size_t sz_in, type *out, size_t sz_out);\
+\
 void print_neurons_msg_##type(neurons_##type *nr, char * msg);\
+void print_weight_in_neurons_##type(neurons_##type *nn, char *msg);\
 \
 void free_neurons_##type(neurons_##type *base);\
 \
@@ -106,7 +108,7 @@ void print_data_set_msg_##type(data_set_##type *ds, char *msg);\
 \
 size_t learning_online_neurons_##type(neurons_##type *base, data_set_##type *dataset, bool (*condition)(type, size_t));\
 size_t learning_online2_neurons_##type(neurons_##type *base, data_set_##type *dataset, bool (*condition)(type, size_t));\
-void calculate_output_by_network_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type **output_link);\
+neurons_##type * calculate_output_by_network_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type **output_link);\
 void print_predict_by_network_neurons_##type(neurons_##type *base, tensor_##type *input);\
 void print_predict_by_network_with_error_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type *target);\
 \
@@ -133,5 +135,34 @@ GEN_NEURON_(TYPE_DOUBLE)
       tmpn = tmpn->next_layer;\
     }\
   }while(0);\
+
+#define COPY_NN_ATTRIBUTE_IN_ALL_LAYERS(type,  attribute, dstNN ,sourceNN)\
+  do{\
+    neurons_##type *tmpn = dstNN;\
+    neurons_##type *srcNN = sourceNN;\
+    while(tmpn){\
+      if(tmpn->attribute)\
+        copy_tensor_##type(tmpn->attribute, srcNN->attribute);\
+      tmpn = tmpn->next_layer;\
+      srcNN = srcNN->next_layer;\
+    }\
+  }while(0);\
+
+
+
+#define PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(type, neuronVar, attribute, msg)\
+  do{\
+    neurons_##type *tmpn = neuronVar;\
+    char *vmsg=malloc(strlen(msg)+70);\
+    size_t i=0;\
+    while(tmpn){\
+      sprintf(vmsg,"%s layer %ld",msg,i++);\
+      if(tmpn->attribute)\
+        print_tensor_msg_##type(tmpn->attribute, vmsg);\
+      tmpn = tmpn->next_layer;\
+    }\
+    free(vmsg);\
+  }while(0);\
+
 
 #endif /*__NEURON_T_C__H*/

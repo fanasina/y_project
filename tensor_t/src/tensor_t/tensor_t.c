@@ -368,10 +368,10 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
   /*size_t j=0 ,k=0*/;\
   size_t *coord = malloc(sizeof(long int)*(T->dim)->size); \
   char *val=NULL;\
-  char *dimsg=malloc(512);\
+  /*char *dimsg=malloc(512);\
   sprintf(dimsg,"(%s)->dim",msg);\
   printDebug_dimension(T->dim,dimsg);\
-  printf("%s\n",msg);\
+  */printf("%s\n",msg);\
   long int begin , end /*, beginIter , endIter*/ ;\
   long int (*iter)(long int) ;\
   bool (*cond)(long int, long int) ; \
@@ -392,10 +392,11 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
         else break;\
       }\
     }\
-    printf(" [");\
-    for(size_t k=0; k<(T->dim)->size;++k) printf(" %ld,",coord[k]);\
-    val=type##_TO_STR(T->x[i]);\
+    /*printf(" [");\
+    for(size_t k=0; k<(T->dim)->size;++k) printf(" %ld",coord[k]);\
+    */val=type##_TO_STR(T->x[i]);\
     printf(" |#%ld]: %s, ",i,val);\
+    /*printf(" %s, ",val);*/\
     free(val); val=NULL;\
     if(coord[begin]==(T->dim)->perm[begin]-1){\
       size_t count=0;\
@@ -411,7 +412,7 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
   \
   free(coord);\
   printf("\n");\
-  free(dimsg);\
+  /*free(dimsg);*/\
 }\
 \
 \

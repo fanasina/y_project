@@ -45,6 +45,7 @@ struct status_qlearning {
   struct main_list_TYPE_L_INT * list_target_cumul;
   struct main_list_TYPE_L_INT * progress_best_cumul;
   long int nb_training_after_updated_weight_in_target;
+  size_t nb_episodes;
 };
 
 struct delay_params {
@@ -58,7 +59,7 @@ struct print_params {
   float scale_x; 
   float scale_y;
   struct delay_params *delay;
-  char string_space[LOG_LENTH];
+  char *string_space;//[LOG_LENTH];
 };
 
 struct networks_qlearning {

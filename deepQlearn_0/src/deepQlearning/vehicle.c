@@ -7,7 +7,7 @@
 //#define CENTER 1
 //#define RIGHT 2
 
-#define LIMIT_DISTANCE ((float)1)/50
+#define LIMIT_DISTANCE ((float)((SUBDIVISION-1)/10))/SUBDIVISION
 
 #define REWARD_STOP -1000
 #define REWARD_CONTINUE 100
@@ -68,6 +68,12 @@ struct vehicle * create_vehicle(struct blocks *path){
   ret_vehicle->coord = create_coordinate(2);
   ret_vehicle->sensor = create_sensors(NB_SENSORS);
   ret_vehicle->old_sensor = create_sensors(NB_SENSORS);
+
+  for(size_t i=0; i<NB_SENSORS;++i){
+    ret_vehicle->sensor->x[i]=0;
+    ret_vehicle->old_sensor->x[i]=0;
+  }
+
   ret_vehicle->path = path;
   
   ret_vehicle->status = create_game_status();
@@ -387,15 +393,15 @@ void print_vehicle_n_path(struct vehicle *v, float scale_x, float scale_y){
 
 void move_vehicle(struct vehicle *v){
   v->coord->x[0] += v->speed * cos(v->direction * M_PI / 180);
-  v->coord->x[1] += v->speed * sin(v->direction * M_PI / 180);
+  v->coord->x[1] -= v->speed * sin(v->direction * M_PI / 180);
 }
 
 float distance2_coordinate(coordinate *c0, coordinate *c1){
-  if(c0->dim->rank != c1->dim->rank) return 0;
+  if(c0->dim->rank != c1->dim->rank) return -1;
   float d=0, tmp;
   for(size_t i=0; i<c0->dim->rank; ++i){
      tmp = (c0->x[i] - c1->x[i]);
-     d += tmp * tmp;
+     d += (tmp * tmp);
   }
   return sqrt(d);
 }
@@ -404,19 +410,27 @@ float distance2_coordinate(coordinate *c0, coordinate *c1){
   direction_radian = (v->direction + deviation) * M_PI / 180;\
   while( is_in_blocks(v->path, diStep_sensor )){\
     diStep_sensor->x[0] += step_sensor * cos(direction_radian);\
-    diStep_sensor->x[1] += step_sensor * sin(direction_radian);\
+    diStep_sensor->x[1] -= step_sensor * sin(direction_radian);\
   }\
-  v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)/5))) ;\
+  dist = (distance2_coordinate(diStep_sensor, v->coord)/5);\
+  printf("| dist :%f | ",dist);\
+  v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),(int)dist))/SUBDIVISION ;\
   
+  
+  
+  
+  
+  //v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)/5))) ;\
   //v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)))) / 50;\
   //v->sensor->x[position] = (MIN(49,(int)(distance2_coordinate(diStep_sensor, v->coord)/10))) / 50;\
 
 void read_sensor(struct vehicle *v){
   copy_tensor_TYPE_FLOAT(v->old_sensor, v->sensor);
-  float step_sensor = ((float)1)/SUBDIVISION;
+  float step_sensor = STEP; // /SUBDIVISION;
   coordinate * diStep_sensor = create_coordinate(2);
   copy_coordinate(diStep_sensor, v->coord->x);
-  
+  float dist;
+  printf("\n"); 
   // count the number of step until we go out of the path = distance
   // center sensor
   float direction_radian ;
@@ -424,11 +438,11 @@ void read_sensor(struct vehicle *v){
 
   copy_coordinate(diStep_sensor, v->coord->x);
   // right sensor 
-  SENSOR_VALUE_CALCULATE(RIGHT,45);
+  SENSOR_VALUE_CALCULATE(RIGHT,-45);
   
   copy_coordinate(diStep_sensor, v->coord->x);
   // left sensor
-  SENSOR_VALUE_CALCULATE(LEFT, -45);
+  SENSOR_VALUE_CALCULATE(LEFT, 45);
  
   free_coordinate(diStep_sensor);
 
@@ -482,8 +496,8 @@ void add_string_log(struct game_status *status, char *str ){
 void step_vehicle(struct vehicle *v, int action){
   //float action_x[NB_ACTION]={-3,0,3}; // [LEFT, CENTER, RIGHT]
   float action_x[NB_ACTION]={-3,0,3}; // [LEFT, CENTER, RIGHT]
-  v->direction = v->direction + action_x[action % 3];
-  v->speed = ((float)1)/5;
+  v->direction = (float)((int)(v->direction + action_x[action % 3]) % 360) ;
+  v->speed = SPEED; // /5;
   move_vehicle(v);
   read_sensor(v);
   struct game_status *status = v->status;
@@ -495,22 +509,24 @@ void step_vehicle(struct vehicle *v, int action){
   struct blocks * path = v->path;
     //printf(" center : %f vs %f direction: %f\n",v->sensor->x[CENTER], LIMIT_DISTANCE, v->direction);
   if( v->sensor->x[CENTER]<= LIMIT_DISTANCE ){
+  //if( MAX_ARRAY_TYPE_FLOAT(v->sensor->x,v->sensor->dim->rank)<= LIMIT_DISTANCE ){
     status->reward = REWARD_STOP;
     status->done = true;
   }
   else{
     bool broken = false;
-    long prec, next;
+    long pprec, prec, next;
     char msg[48];
     for(long i=0; i< path->nb_blocks; ++i){
         //prec = (i-1)%(path->nb_blocks);
+        pprec = (i + path->nb_blocks - 2 )%(path->nb_blocks);
         prec = (i + path->nb_blocks - 1 )%(path->nb_blocks);
         next = (i + 1)%(path->nb_blocks);
         //printf("i:%ld, prec:%ld, next:%ld: maker %d, prec marker %d\n",i,prec,next, path->marker[i], path->marker[prec]);
       if(is_in_block_index(path, i, v->coord)){
         if(path->marker[i] == false && path->marker[prec] == true){
           path->marker[i]=true;
-          path->marker[prec]=false;
+          path->marker[pprec]=false;
           status->reward = REWARD_CONTINUE;
           status->done = false;
           sprintf(msg," %ld,",i);
@@ -536,9 +552,10 @@ void step_vehicle(struct vehicle *v, int action){
 
 }
 
-
+#define RANDOM 1
 
 void reset(struct vehicle *v){
+  //static bool init = true;
   struct blocks * path = v->path;
   long int i;
   for(i=0; i<(path->nb_blocks -1); ++i)
@@ -547,19 +564,32 @@ void reset(struct vehicle *v){
   v->status->cumulative_reward = 0;
   sprintf(v->status->log,"\n");
   v->status->cur_log = 0;
-  srand(time(NULL));
+  //if(init){
+      srand(time(NULL));
+  //  init = false;
+  //}
   int random;
   int diff;
   diff = path->upper_bound_block[0]->x[0] - path->lower_bound_block[0]->x[0];
-  random = rand() % diff;
-  //v->coord->x[0] = path->lower_bound_block[0]->x[0] + random;
-  v->coord->x[0] = path->lower_bound_block[0]->x[0] + diff/2;
+  random = rand() % (diff/2) ;
+  #if RANDOM
+    v->coord->x[0] = path->lower_bound_block[0]->x[0] + random;
+  #else
+    v->coord->x[0] = path->lower_bound_block[0]->x[0] + diff/2;
+  #endif
   diff = path->upper_bound_block[0]->x[1] - path->lower_bound_block[0]->x[1];
-  random = rand() % diff;
-  //v->coord->x[1] = path->lower_bound_block[0]->x[1] + random;
-  v->coord->x[1] = path->lower_bound_block[0]->x[1] + diff/2;
+  random = rand() % (diff/2);
+  #if RANDOM
+    v->coord->x[1] = path->lower_bound_block[0]->x[1] + random;
+  #else
+    v->coord->x[1] = path->lower_bound_block[0]->x[1] + diff/2;
+  #endif
   random = rand() % 50;
-  //v->direction = random - 25;
-  v->direction = -90;
-  v->speed = 1;
+  #if RANDOM
+    v->direction = random - 25;
+  #else
+    v->direction = -90;
+  #endif
+  v->speed = SPEED;
+  read_sensor(v);
 }

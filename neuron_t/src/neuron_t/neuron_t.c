@@ -627,6 +627,19 @@ void print_neurons_msg_##type(neurons_##type *nr, char *msg){\
   }\
 }\
 \
+void print_weight_in_neurons_##type(neurons_##type *nn, char *msg){\
+  neurons_##type *tmp = nn;\
+  size_t i = 0;\
+  char vmsg[250];\
+  while(tmp){\
+    if(tmp->weight_in){\
+      sprintf(vmsg,"%s layer %ld",msg,i++);\
+      print_tensor_msg_##type(tmp->weight_in, vmsg);\
+    }\
+    tmp = tmp->next_layer;\
+  }\
+}\
+\
 void free_neurons_##type(neurons_##type *base){\
   neurons_##type *temp = base, *ttemp;\
   while(temp){\
@@ -747,7 +760,7 @@ size_t learning_online2_neurons_##type(neurons_##type *base, data_set_##type *da
   return nbreps;\
 }\
 \
-void calculate_output_by_network_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type **output_link){\
+neurons_##type * calculate_output_by_network_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type **output_link){\
   for(size_t i=0; i<(input->dim)->rank; ++i) (base->output)->x[i]=input->x[i];\
   neurons_##type * tmp=base->next_layer;\
   while(tmp){\
@@ -755,6 +768,7 @@ void calculate_output_by_network_neurons_##type(neurons_##type *base, tensor_##t
     if(tmp->next_layer==NULL){\
       /*print_tensor_msg_##type(tmp->output,"retult");*/\
       *output_link = tmp->output;\
+      return tmp;\
     }\
     tmp = tmp->next_layer;\
   }\

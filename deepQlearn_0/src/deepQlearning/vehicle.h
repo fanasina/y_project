@@ -26,7 +26,10 @@
 
 #define COUNT_ACTION 3
 
-#define SUBDIVISION 5 //10
+#define SUBDIVISION 50
+
+#define STEP 1
+#define SPEED 1
 
 
 struct game_status {
