@@ -3,11 +3,13 @@
 char *action_name[8] = {"LEFT", "CENTER", "RIGHT"};
 
 float reLU(float x){
+  if(x>10) return 10;
   if(x>0) return x;
   return 0;
 }
 
 float d_reLU(float x){
+  if (x>10) return 0;
   if (x>0) return 1;
   return 0;
 }
@@ -29,6 +31,10 @@ void copy_weight_in_networks_from_main_to_best(struct networks_qlearning * netwo
    COPY_NN_ATTRIBUTE_IN_ALL_LAYERS(TYPE_FLOAT,weight_in, networks->best_net, networks->main_net);
 }
 
+float id(float x){ return x;}
+
+float constOne(float x){return 1;}
+
 struct networks_qlearning * create_nework_qlearning(
   struct config_layers * config,
   bool randomize, float minR, float maxR,  int randomRange,
@@ -46,13 +52,31 @@ struct networks_qlearning * create_nework_qlearning(
   setup_networks_alloutputs_config_TYPE_FLOAT(&(qnets->best_net), config, false, minR, maxR, randomRange);  
   copy_weight_in_networks_from_main_to_best(qnets);
 
-  
   setup_all_layers_functions_TYPE_FLOAT(qnets->main_net, tensorContractnProdThread_TYPE_FLOAT, tensorProdThread_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
   setup_all_layers_params_TYPE_FLOAT(qnets->main_net, nb_prod_thread, nb_calc_thread, learning_rate);
   setup_all_layers_functions_TYPE_FLOAT(qnets->target_net, tensorContractnProdThread_TYPE_FLOAT, tensorProdThread_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
   setup_all_layers_params_TYPE_FLOAT(qnets->target_net, nb_prod_thread, nb_calc_thread, learning_rate);
   setup_all_layers_functions_TYPE_FLOAT(qnets->best_net, tensorContractnProdThread_TYPE_FLOAT, tensorProdThread_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
   setup_all_layers_params_TYPE_FLOAT(qnets->best_net, nb_prod_thread, nb_calc_thread, learning_rate);
+
+// ne pas mettre fonction d'activation à la sortie , i.e: fonction identité : f(x) = x:
+  neurons_TYPE_FLOAT *tmpMain = qnets->main_net;
+  neurons_TYPE_FLOAT *tmpTarget = qnets->target_net;
+  neurons_TYPE_FLOAT *tmpBest = qnets->best_net;
+  while(tmpMain){
+    if(tmpMain->next_layer == NULL){
+      tmpMain->f_act = id;
+      tmpMain->d_f_act = constOne;
+      tmpTarget->f_act = id;
+      tmpTarget->d_f_act = constOne;
+      tmpBest->f_act = id;
+      tmpBest->d_f_act = constOne;
+    }
+    tmpMain = tmpMain->next_layer;
+    tmpTarget= tmpTarget->next_layer;
+    tmpBest = tmpBest->next_layer;
+  }
+  
 
 
   return qnets; 
@@ -73,6 +97,11 @@ struct status_qlearning * create_status_qlearning (){
   status_ql->nb_training_after_updated_weight_in_target = 0;
 
   status_ql->nb_episodes = 0;
+  status_ql->index_episode= 0;
+  status_ql->action=1;
+
+//  status_ql->last_action=-1;
+//  status_ql->count_last_action=0;
   
   return status_ql;
 }
@@ -129,6 +158,7 @@ struct qlearning_params * create_qlearning_params  (
   qparams->factor_update_exploration_factor = 0.995;
   qparams->minimum_threshold_exploration_factor = 0.01;
 
+//  qparams->threshold_number_same_action = 500;
 
   return qparams;
 }
@@ -226,6 +256,8 @@ void train_qlearning(struct RL_agent * rlAgent,
 
   qlParams->exploration_factor = (qlParams->exploration_factor < qlParams->minimum_threshold_exploration_factor) ? qlParams->exploration_factor : qlParams->exploration_factor * qlParams->factor_update_exploration_factor ;
 
+//  free_tensor_TYPE_FLOAT(action_value);
+//  free_tensor_TYPE_FLOAT(next_action_value);
 
 }
 
@@ -236,25 +268,90 @@ int select_action(struct RL_agent * rlAgent){
   //calculate_output_by_network_neurons_TYPE_FLOAT(rlAgent->networks->main_net, rlAgent->car->old_sensor, &action_value);
   calculate_output_by_network_neurons_TYPE_FLOAT(rlAgent->networks->main_net, rlAgent->car->sensor, &action_value);
   //long int NUMBER_EPISODE2 = (rlAgent->qlearnParams->number_episodes)*100;
-  int NUMBER_EPISODE2 = 3000;
+  //int randRange = 10000;
   //NUMBER_EPISODE2 = NUMBER_EPISODE2 * NUMBER_EPISODE2;
-//  static bool init = true ;
-//  if(init){
-    srand(time(NULL));
-//    init =false;
-//  }
-  int random = rand() % NUMBER_EPISODE2;
-  float proba_explor = (float)(random ) / NUMBER_EPISODE2;
+  //static bool init = true ;
+  //if(init){
+    //srand(time(NULL));
+    //init =false;
+  //}
+  //int random = xrand() % randRange;
+  float proba_explor =  (float) (rand() % (1<<17 -1))/ (1<<17 -1); //frand(); //(float)(random ) / randRange;
   if(proba_explor > rlAgent->qlearnParams->exploration_factor ){
     action = ARG_MAX_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  );
+    //if(action == ARG_MIN_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  )) 
+      //action = xrand() % action_value->dim->rank ; 
   }
   else{
-    action = rand() % action_value->dim->rank ; 
+    action = xrand() % action_value->dim->rank ; 
    // explore++;
     //printf(" EXPLORE :%ld, action : %d , factor : %f nb_episodes : %ld \n",explore,action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
   }
+  /*
+    if(rlAgent->status->last_action == action){
+      ++(rlAgent->status->count_last_action);
+      if(rlAgent->status->count_last_action > rlAgent->qlearnParams->threshold_number_same_action  ){
+        while(rlAgent->status->last_action == action) 
+          action = xrand() % action_value->dim->rank ;
+        
+        rlAgent->status->last_action = action;
+        rlAgent->status->count_last_action = 0;
+      }
+    }
+    else{
+      rlAgent->status->last_action = action;
+      rlAgent->status->count_last_action = 0;
+    }
+    */
+  rlAgent->status->action = action;
   return action;
 }
+
+void* runPrint(void *arg){
+  struct RL_agent *rlAgent = (struct RL_agent*)arg;
+  struct status_qlearning *qlStatus = rlAgent->status;
+  struct print_params * pprint = rlAgent->pprint;
+  struct vehicle *car = rlAgent->car;
+  size_t count_print = 0;
+  while(1){
+if(/*(qlStatus->nb_episodes %125 == 0)  &&*/  pprint->printed){
+          //pthread_mutex_lock(&(pprint->mut_printed));
+          pthread_mutex_lock(&(car->mut_coord));
+          print_vehicle_n_path(car, pprint->scale_x, pprint->scale_y);
+          pthread_mutex_unlock(&(car->mut_coord));
+          //pthread_mutex_unlock(&(pprint->mut_printed));
+          printf("%s ",pprint->string_space);
+          printf("ep: %ld\n",qlStatus->index_episode);
+          neurons_TYPE_FLOAT * net_main = rlAgent->networks->main_net;
+          neurons_TYPE_FLOAT * net_target = rlAgent->networks->target_net;
+          for(size_t i=0; i<net_main->output->dim->rank; ++i) {
+            printf("{sensro[%s]:%f "" vs oldsens[%s]: %f}\n",action_name[i%COUNT_ACTION],net_target->output->x[i], 
+            action_name[i%COUNT_ACTION],net_main->output->x[i]);
+            
+          }
+          printf("\n< %5.2f > ( %s  ) \n", car->direction, action_name[qlStatus->action % COUNT_ACTION]);
+          //print_weight_in_neurons_TYPE_FLOAT(net_main, "net_main_wei");
+          //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, weight_in, "net_main_we_in");
+          PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, output, "net_main_out");
+          //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_target, output, "net_target_out");
+          //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, input, "net_main_input");
+          printf(" action : %d , factor : %f nb_episodes : %ld \n",qlStatus->action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
+        
+          FOR_LIST_FORM_BEGIN(TYPE_L_INT, qlStatus->progress_best_cumul){
+             printf(" | %ld |,",(qlStatus->progress_best_cumul)->current_list->value);
+          }
+          printf("[%ld] %s ", rlAgent->car->status->cumulative_reward, pprint->string_space);
+
+        }
+          Sleep(pprint->delay->delay_between_games);
+          ++count_print;
+          if(count_print > 20){
+            count_print = 0;
+            clear_screen();
+          }
+  }
+}
+
 
 void learn_to_drive(struct RL_agent * rlAgent){
   int action;
@@ -264,11 +361,15 @@ void learn_to_drive(struct RL_agent * rlAgent){
   struct status_qlearning * qlStatus = rlAgent->status;
   struct print_params * pprint = rlAgent->pprint;
   char msg[100];
-
+  
+  pthread_t threadPrint;
+  pthread_create(&threadPrint, NULL, runPrint, (void*)rlAgent);
+  
   while(true){
     for(size_t index_episode = 0; index_episode < qlParams->number_episodes; ++index_episode){
       reset(car);
       qlStatus->nb_training_after_updated_weight_in_target = 0;
+      qlStatus->index_episode = index_episode;
       while(true){
         ++(qlStatus->nb_episodes);
         ++(qlStatus->nb_training_after_updated_weight_in_target);
@@ -277,51 +378,27 @@ void learn_to_drive(struct RL_agent * rlAgent){
         add_string_log_M(car_status,msg);
         step_vehicle(car, action);
         train_qlearning(rlAgent, action);
-        if(/*(qlStatus->nb_episodes %15 == 0)  && */ pprint->printed){
-          pthread_mutex_lock(&(pprint->mut_printed));
-          print_vehicle_n_path(car, pprint->scale_x, pprint->scale_y);
-          pthread_mutex_unlock(&(pprint->mut_printed));
-          printf("%s ",pprint->string_space);
-          printf("ep: %ld\n",index_episode);
-          neurons_TYPE_FLOAT * net_main = rlAgent->networks->main_net;
-          neurons_TYPE_FLOAT * net_target = rlAgent->networks->target_net;
-          for(size_t i=0; i<net_main->output->dim->rank; ++i) {
-            printf("{sensro[%s]:%f "/*vs %f / VS / %f */" vs oldsens[%s]: %f}\n",action_name[i%COUNT_ACTION],net_target->output->x[i], 
-            /*car->sensor->x[i] ,car->old_sensor->x[i],
-            */action_name[i%COUNT_ACTION],net_main->output->x[i]);
-            
-          }
-          printf("\n< %f > ( %s  ) \n", car->direction, action_name[action % COUNT_ACTION]);
-          //print_weight_in_neurons_TYPE_FLOAT(net_main, "net_main_wei");
-          //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, weight_in, "net_main_we_in");
-          PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, output, "net_main_out");
-          //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_target, output, "net_target_out");
-          //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, input, "net_main_input");
-          printf("action : %d , factor : %f nb_episodes : %ld \n",action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
-          Sleep(pprint->delay->delay_between_games);
-        }
-        //done in step ... copy_tensor_TYPE_FLOAT(car->old_sensor, car->sensor);
+                //done in step ... copy_tensor_TYPE_FLOAT(car->old_sensor, car->sensor);
         if( qlStatus->nb_training_after_updated_weight_in_target > qlParams->nb_training_before_update_weight_in_target ){
           qlStatus->nb_training_after_updated_weight_in_target = 0;
           copy_weight_in_networks_from_main_to_target(rlAgent->networks);
         }
         if(car_status->done == true){
           //push_back_list_TYPE_L_INT(qlStatus->list_main_cumul, car_status->cumulative_reward);
-          printf(" cumul : %ld ", car_status->cumulative_reward);
+          // printf(" cumul : %ld ", car_status->cumulative_reward);
           if(car_status->cumulative_reward > qlStatus->progress_best_cumul->end_list->value){
             push_back_list_TYPE_L_INT(qlStatus->progress_best_cumul, car_status->cumulative_reward);
-            FOR_LIST_FORM_BEGIN(TYPE_L_INT, qlStatus->progress_best_cumul){
-              printf(" | %ld |,",(qlStatus->progress_best_cumul)->current_list->value);
-            }
-            printf("%s ",pprint->string_space);
           }
           break;
         }
       }
 
-      if(pprint->printed){
-        Sleep(pprint->delay->delay_between_episodes);
-      }
+      //if(pprint->printed){
+      //  Sleep(pprint->delay->delay_between_episodes);
+      //}
     }
   }
+
+  pthread_join(threadPrint, NULL);
 }
+

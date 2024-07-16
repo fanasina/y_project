@@ -37,6 +37,7 @@ struct qlearning_params {
   float minimum_threshold_exploration_factor;
   long int nb_training_before_update_weight_in_target;
   size_t number_episodes;
+//  size_t threshold_number_same_action;
 };
 
 
@@ -46,6 +47,10 @@ struct status_qlearning {
   struct main_list_TYPE_L_INT * progress_best_cumul;
   long int nb_training_after_updated_weight_in_target;
   size_t nb_episodes;
+  size_t index_episode;
+  int action;
+//  int last_action;
+//  size_t count_last_action;
 };
 
 struct delay_params {

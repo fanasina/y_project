@@ -82,6 +82,7 @@ struct blocks {
 typedef tensor_TYPE_FLOAT sensors;
 
 struct vehicle {
+  pthread_mutex_t mut_coord;
   coordinate *coord;
   float direction;
   float speed;

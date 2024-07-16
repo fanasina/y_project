@@ -64,7 +64,7 @@ sensors * create_sensors(size_t nb_xs){
 
 struct vehicle * create_vehicle(struct blocks *path){
   struct vehicle * ret_vehicle = malloc(sizeof(struct vehicle));
-  
+  pthread_mutex_init(&(ret_vehicle->mut_coord), NULL); 
   ret_vehicle->coord = create_coordinate(2);
   ret_vehicle->sensor = create_sensors(NB_SENSORS);
   ret_vehicle->old_sensor = create_sensors(NB_SENSORS);
@@ -117,6 +117,7 @@ void free_sensors(sensors *snsr){
 }
 
 void free_vehicle(struct vehicle * vhcl){
+  pthread_mutex_destroy(&(vhcl->mut_coord));
   free_coordinate(vhcl->coord);
   free_blocks(vhcl->path);
   free_sensors(vhcl->sensor);
@@ -392,8 +393,10 @@ void print_vehicle_n_path(struct vehicle *v, float scale_x, float scale_y){
 }
 
 void move_vehicle(struct vehicle *v){
+  pthread_mutex_lock(&(v->mut_coord));
   v->coord->x[0] += v->speed * cos(v->direction * M_PI / 180);
   v->coord->x[1] -= v->speed * sin(v->direction * M_PI / 180);
+  pthread_mutex_unlock(&(v->mut_coord));
 }
 
 float distance2_coordinate(coordinate *c0, coordinate *c1){
@@ -413,11 +416,12 @@ float distance2_coordinate(coordinate *c0, coordinate *c1){
     diStep_sensor->x[1] -= step_sensor * sin(direction_radian);\
   }\
   dist = (distance2_coordinate(diStep_sensor, v->coord)/5);\
-  printf("| dist :%f | ",dist);\
-  v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),(int)dist))/SUBDIVISION ;\
+  /*printf("| dist :%f | ",dist);*/\
+  v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),dist))/SUBDIVISION ;\
   
   
   
+  //v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),(int)dist))/SUBDIVISION ;\
   
   
   //v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)/5))) ;\
@@ -430,7 +434,7 @@ void read_sensor(struct vehicle *v){
   coordinate * diStep_sensor = create_coordinate(2);
   copy_coordinate(diStep_sensor, v->coord->x);
   float dist;
-  printf("\n"); 
+//  printf("\n"); 
   // count the number of step until we go out of the path = distance
   // center sensor
   float direction_radian ;
@@ -493,11 +497,23 @@ void add_string_log(struct game_status *status, char *str ){
 
 }
 
+float addEpsilonRand(){
+  int rangeRand = 500;
+  int randd = xrand() % rangeRand;
+  int sign = (-1)*((randd %2)*2) + 1;
+  float addR = sign * (float)randd/(rangeRand* 10);
+  
+  return addR;
+  
+
+}
+
 void step_vehicle(struct vehicle *v, int action){
   //float action_x[NB_ACTION]={-3,0,3}; // [LEFT, CENTER, RIGHT]
   float action_x[NB_ACTION]={-3,0,3}; // [LEFT, CENTER, RIGHT]
   v->direction = (float)((int)(v->direction + action_x[action % 3]) % 360) ;
-  v->speed = SPEED; // /5;
+  //v->direction += addEpsilonRand();
+  //v->speed = SPEED; // /5;
   move_vehicle(v);
   read_sensor(v);
   struct game_status *status = v->status;
@@ -517,6 +533,7 @@ void step_vehicle(struct vehicle *v, int action){
     bool broken = false;
     long pprec, prec, next;
     char msg[48];
+    //size_t count_i[path->nb_blocks];
     for(long i=0; i< path->nb_blocks; ++i){
         //prec = (i-1)%(path->nb_blocks);
         pprec = (i + path->nb_blocks - 2 )%(path->nb_blocks);
@@ -531,7 +548,12 @@ void step_vehicle(struct vehicle *v, int action){
           status->done = false;
           sprintf(msg," %ld,",i);
           add_string_log(status, msg);
-        }
+          //count_i[i] = 0;
+        }/*else{
+          if(count_i[i]>10000)
+            status->reward = -10;
+          ++count_i[i];
+        }*/
         if(path->marker[next] == true){
           status->reward = REWARD_STOP;
           status->done = true;
@@ -550,6 +572,9 @@ void step_vehicle(struct vehicle *v, int action){
   }
   status->cumulative_reward += status->reward;
 
+  if(status->cumulative_reward < -25000){
+    status->done = true;
+  }
 }
 
 #define RANDOM 1
@@ -565,28 +590,29 @@ void reset(struct vehicle *v){
   sprintf(v->status->log,"\n");
   v->status->cur_log = 0;
   //if(init){
-      srand(time(NULL));
-  //  init = false;
+    //srand(time(NULL));
+    //init = false;
   //}
   int random;
   int diff;
   diff = path->upper_bound_block[0]->x[0] - path->lower_bound_block[0]->x[0];
-  random = rand() % (diff/2) ;
+  random = xrand() % (diff/2) ;
   #if RANDOM
     v->coord->x[0] = path->lower_bound_block[0]->x[0] + random;
   #else
     v->coord->x[0] = path->lower_bound_block[0]->x[0] + diff/2;
   #endif
   diff = path->upper_bound_block[0]->x[1] - path->lower_bound_block[0]->x[1];
-  random = rand() % (diff/2);
+  random = xrand() % (diff/2);
   #if RANDOM
     v->coord->x[1] = path->lower_bound_block[0]->x[1] + random;
   #else
     v->coord->x[1] = path->lower_bound_block[0]->x[1] + diff/2;
   #endif
-  random = rand() % 50;
+  random = xrand() % 50;
   #if RANDOM
-    v->direction = random - 25;
+   // v->direction = 115 - random ;
+    v->direction = random - 25  ;
   #else
     v->direction = -90;
   #endif

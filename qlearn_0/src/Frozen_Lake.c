@@ -83,10 +83,10 @@ struct game_status * create_game_status(){
 }
 
 #define GENERATE_RANDOM_PLACES(CONTENT) \
-  int CONTENT##_Number = rand() % (params->limit_##CONTENT##_number) + 1;\
+  int CONTENT##_Number = xrand() % (params->limit_##CONTENT##_number) + 1;\
   for(int i=0; i< CONTENT##_Number; ++i) { \
     do{\
-      random = rand() % (dim->rank);\
+      random = xrand() % (dim->rank);\
     }while((gm->cells[random]).content != EMPTY);\
     (gm->cells[random]).content = CONTENT;\
   }
@@ -101,13 +101,13 @@ long int generate_game(struct game *gm){
     for(long int j=0; j < ACTION_COUNT; ++j)
       (gm->cells[i]).Q[j] = 0;
   }
-  srand(time(NULL));
+  //srand(time(NULL));
   int random;
   GENERATE_RANDOM_PLACES(FOX)
   GENERATE_RANDOM_PLACES(CARROT)
   GENERATE_RANDOM_PLACES(BLOCK)
   do{
-      random = rand() % (dim->rank);
+      random = xrand() % (dim->rank);
   }while((gm->cells[random]).content != EMPTY);
   (gm->cells[random]).content = START;
   
@@ -289,7 +289,7 @@ void mainQlearning_game(struct game *gm){
   int random;
   long int NUMBER_EPISODE2 = (params->limit_EPISODES_number) * (params->limit_EPISODES_number);
   double proba_explor;
-  srand(time(NULL));
+  //srand(time(NULL));
 
   for(long int k=0 ; k < params->limit_game_number; ++k){
       generate_game(gm);
@@ -297,10 +297,10 @@ void mainQlearning_game(struct game *gm){
       reset_game_status(status);
 
       while(!(status->endGame)){
-        random = rand() % NUMBER_EPISODE2;
+        random = xrand() % NUMBER_EPISODE2;
         proba_explor = (double)random / NUMBER_EPISODE2;
         if( proba_explor < qlearnParams->exploration_factor * (1. / ((episode / 10 ) + 1))){ 
-          action = rand() % ACTION_COUNT;
+          action = xrand() % ACTION_COUNT;
           printf("exploration action ");
         }
         else{

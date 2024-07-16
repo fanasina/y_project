@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <time.h>
 
+#include <sys/ioctl.h>
+
 
 // to define DEBUG in gcc cli do: gcc -D DEBUG=1 or 0 if need!
 #ifndef DEBUG
@@ -44,7 +46,13 @@ extern long int PRECISION_TYPE_L_DOUBLE ;
 
 #endif
 
+int xrand();
+float frand();
+
 void gotoxy(int x, int y);
+
+void clear_screen();
+
 //void get_cursor_position(int *col, int *rows);
 
 #if DEBUG

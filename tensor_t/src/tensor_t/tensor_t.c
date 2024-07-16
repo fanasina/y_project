@@ -150,10 +150,11 @@ int copy_tensor_##type(tensor_##type * dst, tensor_##type * src){\
     }\
   }\
   void init_random_x_##type(tensor_##type *M, type minR, type maxR,  int randomRange){\
-    srand(time(NULL));\
+    /*static bool initRandomFirst = true;\
+    if(initRandomFirst){ srand(time(NULL)); initRandomFirst = false;}*/\
     int randVal;\
     for(size_t i =0; i<(M->dim)->rank;++i){\
-      randVal = rand() % randomRange;\
+      randVal = xrand() % randomRange;\
       M->x[i]=minR + (maxR-minR)*randVal  / randomRange ;\
     \
     }\

@@ -401,7 +401,7 @@ float df(float x){
   return exp(-x)/ ((1+exp(-x)) * (1+exp(-x)));
 }
 #if 1
-TEST(first_learn_vehicle_rev50){
+TEST(first_learn_vehicle_rev50_8){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
@@ -467,8 +467,8 @@ TEST(first_learn_vehicle_rev50){
 
   struct status_qlearning *qlstatus = create_status_qlearning ();
   struct delay_params *dly = create_delay_params (
-    100/*size_t delay_between_episodes*/,
-    10/*size_t delay_between_games*/
+    500/*size_t delay_between_episodes*/,
+    50/*size_t delay_between_games*/
   );
   
   struct qlearning_params *qlparams = create_qlearning_params (
@@ -510,7 +510,7 @@ TEST(first_learn_vehicle_rev50){
 
 
 #if 1
-TEST(first_learn_vehicle_50){
+TEST(first_learn_vehicle_50__9){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
@@ -518,7 +518,23 @@ TEST(first_learn_vehicle_50){
 
 
 #if 1
+  copy_coordinate(path->lower_bound_block[4], (float[]){0,0});
+  copy_coordinate(path->upper_bound_block[4], (float[]){150,250});
+  copy_coordinate(path->lower_bound_block[3], (float[]){150,40});
+  copy_coordinate(path->upper_bound_block[3], (float[]){250,150});
+  copy_coordinate(path->lower_bound_block[2], (float[]){250,80});
+  copy_coordinate(path->upper_bound_block[2], (float[]){360,200});
+  copy_coordinate(path->lower_bound_block[1], (float[]){360,70});
+  copy_coordinate(path->upper_bound_block[1], (float[]){600,150});
+  copy_coordinate(path->lower_bound_block[0], (float[]){600,90});
+  copy_coordinate(path->upper_bound_block[0], (float[]){760,300});
+  copy_coordinate(path->lower_bound_block[6], (float[]){260,300});
+  copy_coordinate(path->upper_bound_block[6], (float[]){760,360});
+  copy_coordinate(path->lower_bound_block[5], (float[]){0,250});
+  copy_coordinate(path->upper_bound_block[5], (float[]){410,300});
 
+
+/*
     copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[0], (float[]){150,250});
   copy_coordinate(path->lower_bound_block[1], (float[]){150,0});
@@ -534,7 +550,6 @@ TEST(first_learn_vehicle_50){
   copy_coordinate(path->lower_bound_block[6], (float[]){0,250});
   copy_coordinate(path->upper_bound_block[6], (float[]){410,300});
 
-/*
   copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[0], (float[]){100,250});
   copy_coordinate(path->lower_bound_block[1], (float[]){100,0});
@@ -611,8 +626,8 @@ TEST(first_learn_vehicle_50){
 
   struct status_qlearning *qlstatus = create_status_qlearning ();
   struct delay_params *dly = create_delay_params (
-    100/*size_t delay_between_episodes*/,
-    10/*size_t delay_between_games*/
+    500/*size_t delay_between_episodes*/,
+    50/*size_t delay_between_games*/
   );
   
   struct qlearning_params *qlparams = create_qlearning_params (
@@ -653,7 +668,7 @@ TEST(first_learn_vehicle_50){
 
 
 
-#if 0
+#if 1
 TEST(first_learn_vehicle){
   size_t nb_block = 7;
   size_t dim= 2;
@@ -763,7 +778,7 @@ TEST(first_learn_vehicle){
 
 
 
-#if 0
+#if 1
 TEST(first_learn_vehicle){
   size_t nb_block = 7;
   size_t dim= 2;

@@ -1,10 +1,126 @@
 #include "tools_t/tools_t.h"
 
+#define POW 17
+#define MMOD ((1 << (POW)) - 1)
+#define SUBA 5
+#define SUBB 8
+int xrand(){
+  int mod = MMOD; // (1 << 17) - 1;
+  int a = (1<<(POW-(SUBA))) - 1;
+  int b = (1 << (POW-(SUBB))) - 1;
+  static int xi = 0;
+  int xii = (a * xi + b)%mod;
+  //float ret = (float) xii / mod;
 
+  //printf("[a:%d * xi:%6d + b:%d ] %% %d = %6d :: %.7f | ",a,xi,b,mod,xii,ret);
+
+  xi = xii;
+
+  return xii;
+  /*
+  static bool init = true;
+  if(init){
+    init = false;
+    struct timespec start_t;
+    clock_gettime(CLOCK_REALTIME, &start_t);
+    srand(start_t.tv_nsec);
+      //srand(start_t.tv_nsec - start_t.tv_sec);
+  }
+  int ret = rand ();
+  return ret ;
+*/
+}
+int irand(){
+  int mod = MMOD; // (1 << 17) - 1;
+  int a = (1<<(POW-(SUBA))) - 1;
+  int b = (1 << (POW-(SUBB))) - 1;
+  static int xi = 0;
+  int xii = (a * xi + b)%mod;
+  //float ret = (float) xii / mod;
+
+  //printf("[a:%d * xi:%6d + b:%d ] %% %d = %6d :: %.7f | ",a,xi,b,mod,xii,ret);
+
+  xi = xii;
+
+  return xii;
+
+}
+
+
+float frand(){
+ /* int mod = MMOD; // (1 << 17) - 1;
+  int a = (1<<13) - 1;
+  int b = (1 << 7) - 1;
+  static int xi = 0;
+  
+  int xii = (a * xi + b)%mod;
+  float ret = (float) xii / mod;
+  
+  printf("[a:%d * xi:%6d + b:%d ] %% %d = %6d :: %.7f | ",a,xi,b,mod,xii,ret);
+
+  xi = xii;
+
+  return ret;
+*/
+/*
+int xii = irand();
+  float ret = (float) xii / (MMOD);
+*/  
+  int xii = rand();
+  float ret = (float) xii / RAND_MAX;
+
+//  printf("[%6d / %6d = %.6f | ", (xii), MMOD, ret);
+
+  return ret; 
+}
+
+
+/*
+int xrand(){
+    static int randMod = 1;
+    static bool init = true;
+    if(init){
+      init = false;
+      struct timespec start_t;
+      clock_gettime(CLOCK_REALTIME, &start_t);
+      srand(start_t.tv_nsec);
+      //srand(start_t.tv_nsec - start_t.tv_sec);
+    }
+    int ret = rand ();
+    if(ret % 7 ==  randMod % 11){
+      init = true;
+      randMod = ret + 1;
+    }
+    return ret ;
+}
+
+float frand(){
+  int max = 50000;
+  static int rnd = 0;
+  rnd = (xrand())%max;
+  printf("[%6d / %6d = %.6f | ", (rnd), max,(float)(rnd)/max);
+  return (float)(rnd)/max;
+  }
+*/
 
 void gotoxy(int x, int y)
 {
     printf("%c[%d;%df", 0x1B, y, x);
+}
+
+
+
+void clear_screen(){
+   struct winsize w;
+
+    ioctl(1, TIOCGWINSZ, &w);
+    char pad[w.ws_col+1];
+    int i=0;
+    for(i=0; i<w.ws_col+1; ++i) pad[i]=' ';
+    pad[i]='\0';
+    for(i=0; i<w.ws_row - 5 ; ++i) printf("%s\n",pad);;
+
+
 }
 
 
