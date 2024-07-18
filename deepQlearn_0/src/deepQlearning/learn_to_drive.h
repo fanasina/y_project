@@ -14,6 +14,7 @@
 
 
 #include "neuron_t/neuron_t.h"
+#include "neuron_t/nneuron_t_file.h"
 
 #include "list_t/list_t.h"
 

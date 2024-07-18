@@ -193,7 +193,7 @@ do{\
       \
       ppEnd=ttmp;\
       if( !bracketsDown){\
-        while(*ttmp!=0 && *ppEnd!=']' ){\
+        while(*ttmp!='\0' && *ppEnd!=']' ){\
           ss = strtoul(ttmp, &ppEnd, 10);\
           while(ttmp == ppEnd && *ttmp!='\0'  && ppEnd[0] !=']'){\
             ttmp++;\
@@ -207,11 +207,11 @@ do{\
         if( *ttmp ==']'){\
           dim=create_dim_from_list_perm(l_p);\
           bracketsDown = true;\
-          ttmp++; ppEnd++;\
+          /*ttmp++; ppEnd++;*/\
         }\
       \
       }\
-      else{/*if(bracketsDown)*/\
+      if(bracketsDown){\
  \
         if(T->dim->rank == dim->rank){\
           \
@@ -235,7 +235,6 @@ do{\
         }else {\
           tensorNotMatched = true;\
           Done = true;\
-          printf(" T->%s doesn't have the same rank as the input ! extract failed\n",#attribute);\
           break;\
         }\
       }\

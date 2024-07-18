@@ -352,6 +352,16 @@ if(/*(qlStatus->nb_episodes %125 == 0)  &&*/  pprint->printed){
   }
 }
 
+char *fileNameDateScore(char * pre, char* post,size_t score){
+  char *filename=malloc(256);
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  sprintf(filename,"%s%d%02d%02d_%02dh%02dm%02ds_%ld%s",pre, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,score,post);
+
+  return filename;
+}
+
+
 
 void learn_to_drive(struct RL_agent * rlAgent){
   int action;
@@ -387,7 +397,14 @@ void learn_to_drive(struct RL_agent * rlAgent){
           //push_back_list_TYPE_L_INT(qlStatus->list_main_cumul, car_status->cumulative_reward);
           // printf(" cumul : %ld ", car_status->cumulative_reward);
           if(car_status->cumulative_reward > qlStatus->progress_best_cumul->end_list->value){
+
             push_back_list_TYPE_L_INT(qlStatus->progress_best_cumul, car_status->cumulative_reward);
+            char *file = fileNameDateScore(".ff_main_",".txt",car_status->cumulative_reward);
+            EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->main_net ,weight_in, file);
+            free(file);
+            file = fileNameDateScore(".ff_target_",".txt",car_status->cumulative_reward);
+            EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->target_net ,weight_in, file);
+            free(file);
           }
           break;
         }

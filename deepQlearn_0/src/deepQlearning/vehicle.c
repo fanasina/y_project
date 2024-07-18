@@ -342,9 +342,12 @@ void print2D_blocks_indexOne_withPoint(struct blocks *blk, float scale_x, float 
         if(is_in_blocks(blk_point, coord))
           printf("\033[0;31m"); // red
         int in = is_in_blocks(blk,coord);
-        if(in)
-          printf("%d",in);
-        else 
+        if(in){
+          if(in>9){
+            int div=in%10;
+            printf("%d",div);
+          }else printf("%d",in);
+        }else 
           printf("."); //printf(" ");
         printf("\033[0;37m"); // white
       }
