@@ -65,7 +65,7 @@ void free_js_value(struct js_value *js){
       //print_value(ttmp);
       free_js_value(ttmp);
     }
-    if(js->type.object.iter){
+    if(js->type.object.index == 0 && js->type.object.iter){
       free(js->type.object.iter);
       js->type.object.iter = NULL;
     }
@@ -81,7 +81,7 @@ void free_js_value(struct js_value *js){
       //print_value(ttmp);
       free_js_value(ttmp);
     }
-    if(js->type.array.iter){
+    if(js->type.array.index == 0 && js->type.array.iter){
       free(js->type.array.iter);
       js->type.array.iter = NULL;
     }
@@ -240,7 +240,7 @@ return js;
       tmp_js->length = ccur - cur;
       tmp_js->type.array.prev_element = js;
       tmp_js->type.array.next_element = NULL;
-      tmp_js->type.array.iter = NULL;
+      tmp_js->type.array.iter = js_parent->type.array.iter;
       tmp_js->type.array.index = js->type.array.index + 1;
       //tmp_js->type.object.iter = NULL;
       js->type.array.next_element = tmp_js;
@@ -400,7 +400,7 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
       tmp_js->length = ccur - cur;
       tmp_js->type.object.prev_object = js;
       tmp_js->type.object.next_object = NULL;
-      tmp_js->type.object.iter = NULL;
+      tmp_js->type.object.iter = js_parent->type.object.iter;
       tmp_js->type.object.index = js->type.object.index + 1;
       js->type.object.next_object = tmp_js;
       js= tmp_js;
@@ -510,16 +510,19 @@ void setup_js_iterator(struct js_iterator **_iter, struct js_value * js){
 
 void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
   if(dstjs->code_type == jstype_object){
-    struct js_value *tmpjs = dstjs->type.object.next_object, *ttmpjs;
-      ttmpjs = dstjs;
-      while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
-      struct js_iterator *iter = ttmpjs->type.object.iter;
+    struct js_value *tmpjs = dstjs->type.object.next_object;//, *ttmpjs;
+      //ttmpjs = dstjs;
+      //while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
+      //struct js_iterator *iter = ttmpjs->type.object.iter;
+    struct js_iterator *iter = dstjs->type.object.iter;
     dstjs->type.object.next_object = jsnxt;
     jsnxt->type.object.prev_object = dstjs;
     size_t last_index = dstjs->type.object.index;
     struct js_value *ttmp = jsnxt;
     struct js_value *end = jsnxt;
     while(next_(ttmp)){
+      if(get_index_(ttmp)==0) free(ttmp->type.object.iter);
+      ttmp->type.object.iter = iter;
       end = ttmp;
       ttmp->type.object.index = (++last_index);
       ttmp = next_(ttmp);
@@ -541,16 +544,20 @@ void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
       iter->end = end;
     }
   }else if(dstjs->code_type == jstype_array){
-    struct js_value *tmpjs = dstjs->type.array.next_element, *ttmpjs;
-      ttmpjs = dstjs;
-      while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
-      struct js_iterator *iter = ttmpjs->type.array.iter;
+    struct js_value *tmpjs = dstjs->type.array.next_element;//, *ttmpjs;
+      //ttmpjs = dstjs;
+      //while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
+      //struct js_iterator *iter = ttmpjs->type.array.iter;
+    struct js_iterator *iter = dstjs->type.array.iter;
+    //if(jsnxt->type.array.iter) free(jsnxt->type.array.iter);
     dstjs->type.array.next_element = jsnxt;
     jsnxt->type.array.prev_element = dstjs;
     size_t last_index = dstjs->type.array.index;
     struct js_value *ttmp = jsnxt;
     struct js_value *end = jsnxt;
     while(next_(ttmp)){
+      if(get_index_(ttmp)==0) free(ttmp->type.object.iter);
+      ttmp->type.array.iter = iter;
       end = ttmp;
       ttmp->type.array.index = (++last_index);
       ttmp = next_(ttmp);
@@ -575,11 +582,12 @@ void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
 void set_prev_(struct js_value ** _dst, struct js_value * jsprv){
   struct js_value *dst = *_dst;
   if(dst->code_type == jstype_object){
-    struct js_value *tmpjs = dst->type.object.prev_object, *ttmpjs;
-      ttmpjs = dst;
-      while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
-      struct js_iterator *iter = ttmpjs->type.object.iter;
-
+    struct js_value *tmpjs = dst->type.object.prev_object;//, *ttmpjs;
+      //ttmpjs = dst;
+      //while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
+      //struct js_iterator *iter = ttmpjs->type.object.iter;
+    struct js_iterator *iter = dst->type.object.iter;
+    jsprv->type.object.iter = iter;
     dst->type.object.prev_object = jsprv;
     jsprv->type.object.prev_object = tmpjs;
     jsprv->type.object.index = dst->type.object.index;
@@ -596,14 +604,15 @@ void set_prev_(struct js_value ** _dst, struct js_value * jsprv){
       tmpjs->type.object.next_object = jsprv;
     }else{// dst prev null (top)
       *_dst = jsprv;     
-      (*_dst)->type.object.iter = malloc(sizeof(struct js_iterator));
-      (*_dst)->type.object.iter->begin = jsprv;
+      //(*_dst)->type.object.iter = iter; // malloc(sizeof(struct js_iterator));
+      //(*_dst)->type.object.iter->begin = jsprv;
       if(iter){
-        (*_dst)->type.object.iter->end = iter->end;
-        (*_dst)->type.object.iter->current = iter->current;
-        (*_dst)->type.object.iter->size = iter->size; // + (last_index + 1 - dst->type.object.index);
+        iter->begin = jsprv;
+      //  (*_dst)->type.object.iter->end = iter->end;
+      //  (*_dst)->type.object.iter->current = iter->current;
+      //  (*_dst)->type.object.iter->size = iter->size; // + (last_index + 1 - dst->type.object.index);
       }
-      iter =  (*_dst)->type.object.iter;
+      //iter =  (*_dst)->type.object.iter;
     }
     tmpjs = dst;
     while(tmpjs){
@@ -615,10 +624,12 @@ void set_prev_(struct js_value ** _dst, struct js_value * jsprv){
         //}
     }
   }else if(dst->code_type == jstype_array){
-    struct js_value *tmpjs = dst->type.array.prev_element, *ttmpjs;
-      ttmpjs = dst;
-      while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
-      struct js_iterator *iter = ttmpjs->type.array.iter;
+    struct js_value *tmpjs = dst->type.array.prev_element;//, *ttmpjs;
+      //ttmpjs = dst;
+      //while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
+      //struct js_iterator *iter = ttmpjs->type.array.iter;
+    struct js_iterator *iter = dst->type.array.iter;
+    jsprv->type.array.iter = iter;
     dst->type.array.prev_element = jsprv;
     jsprv->type.array.prev_element = tmpjs;
     jsprv->type.array.index = dst->type.array.index;
@@ -635,14 +646,15 @@ void set_prev_(struct js_value ** _dst, struct js_value * jsprv){
       tmpjs->type.array.next_element = jsprv;
     }else{// dst prev null (top)
       *_dst = jsprv;      
-      (*_dst)->type.array.iter = malloc(sizeof(struct js_iterator));
-      (*_dst)->type.array.iter->begin = jsprv;
+      //(*_dst)->type.array.iter = malloc(sizeof(struct js_iterator));
+      //(*_dst)->type.array.iter->begin = jsprv;
       if(iter){
-        (*_dst)->type.array.iter->end = iter->end;
-        (*_dst)->type.array.iter->current = iter->current;
-        (*_dst)->type.array.iter->size = iter->size; // + (last_index + 1 - dst->type.array.index);
+        iter->begin = jsprv;
+        //(*_dst)->type.array.iter->end = iter->end;
+        //(*_dst)->type.array.iter->current = iter->current;
+        //(*_dst)->type.array.iter->size = iter->size; // + (last_index + 1 - dst->type.array.index);
       }
-      iter =  (*_dst)->type.array.iter;
+      //iter =  (*_dst)->type.array.iter;
     }
     tmpjs = dst;
     while(tmpjs){
