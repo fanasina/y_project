@@ -115,7 +115,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
     }\
     else if(index_nearest == 2){\
       var_list->current_list = var_list->end_list;\
-      for(size_t i=0; i < array_diff_index[0]; ++i) var_list->current_list = (var_list->current_list)->preview; \
+      for(size_t i=0; i < array_diff_index[2]; ++i) var_list->current_list = (var_list->current_list)->preview; \
     }else if(from_current_index >= 0) \
       for(size_t i=0; i < array_diff_index[1]; ++i) var_list->current_list = (var_list->current_list)->preview; \
     else  \
