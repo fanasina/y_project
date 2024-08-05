@@ -508,6 +508,50 @@ void setup_js_iterator(struct js_iterator **_iter, struct js_value * js){
 
 }
 
+long  get_size_(struct js_value *js){
+  if(js->code_type < jstype_object) return -1;
+  if(js->code_type == jstype_object) return js->type.object.iter->size;
+  return js->type.array.iter->size;
+}
+
+long move_current_iter_to_index_(struct js_value *js, size_t index){
+  if(js->code_type < jstype_object) return -1;
+    struct js_iterator *iter = get_iterator_(js);
+    if(index == get_index_(iter->current)) return index;
+    //if(js->begin_list == NULL) return 0;
+    long size = get_size_(js);
+    if(index >= size){
+      iter->current = iter->end;
+      //js->current_index = js->size - 1;
+      return size - 1;
+    }
+    
+    long from_current_index = get_index_(iter->current) - index; 
+    size_t abs_cur_diff = abs(from_current_index); 
+    size_t array_diff_index[3]  = {index, abs_cur_diff , size - 1 - index}; 
+    size_t index_nearest = ARG_MIN_ARRAY_TYPE_SIZE_T(array_diff_index, 3);
+    if(index_nearest == 0){
+      iter->current = iter->begin;
+      for(size_t i=0; i<array_diff_index[0]; ++i) iter->current = next_(iter->current); 
+    }
+    else if(index_nearest == 2){
+      iter->current = iter->end;
+      for(size_t i=0; i < array_diff_index[2]; ++i) iter->current = prev_(iter->current); 
+    }else if(from_current_index >= 0) 
+      for(size_t i=0; i < array_diff_index[1]; ++i)  iter->current = prev_(iter->current);
+    else  
+      for(size_t i=0; i < array_diff_index[1]; ++i)  iter->current = next_(iter->current);
+      
+    return index;
+  }
+
+struct js_value * get_js_value_of_index_(size_t index, struct js_value *js){
+  if(move_current_iter_to_index_(js, index) >=0) 
+    return get_iterator_(js)->current;
+  return NULL;
+}
+
+
 void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
   if(dstjs->code_type == jstype_object){
     struct js_value *tmpjs = dstjs->type.object.next_object;//, *ttmpjs;
@@ -519,11 +563,13 @@ void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
     jsnxt->type.object.prev_object = dstjs;
     size_t last_index = dstjs->type.object.index;
     struct js_value *ttmp = jsnxt;
-    struct js_value *end = jsnxt;
+    //struct js_iterator *olditer = jsnxt->type.object.iter;
+    //bool deferFree = (jsnxt->type.object.index == 0);
+    struct js_value *end = jsnxt->type.object.iter->end;
     while(next_(ttmp)){
       if(get_index_(ttmp)==0) free(ttmp->type.object.iter);
       ttmp->type.object.iter = iter;
-      end = ttmp;
+      //end = ttmp;
       ttmp->type.object.index = (++last_index);
       ttmp = next_(ttmp);
     }
@@ -533,7 +579,7 @@ void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
 //      printf("%d line\n",__LINE__);
       tmpjs->type.object.prev_object = ttmp;
       while(tmpjs){
-        end = tmpjs;
+        //end = tmpjs;
         tmpjs->type.object.index = (++last_index);
         tmpjs = next_(tmpjs);
       }
@@ -541,8 +587,11 @@ void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
     //struct js_iterator *iter = get_iterator_(dstjs);
     if(iter){
       iter->size = last_index + 1;
-      iter->end = end;
+      if(get_index_(iter->end) < get_index_(end)){
+        iter->end = end;
+      }
     }
+    //if(deferFree && olditer) free(olditer);
   }else if(dstjs->code_type == jstype_array){
     struct js_value *tmpjs = dstjs->type.array.next_element;//, *ttmpjs;
       //ttmpjs = dstjs;
@@ -554,11 +603,13 @@ void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
     jsnxt->type.array.prev_element = dstjs;
     size_t last_index = dstjs->type.array.index;
     struct js_value *ttmp = jsnxt;
-    struct js_value *end = jsnxt;
+    struct js_value *end = jsnxt->type.array.iter->end;
+    //struct js_iterator *olditer = jsnxt->type.array.iter;
+    //bool deferFree = (jsnxt->type.array.index == 0);
     while(next_(ttmp)){
       if(get_index_(ttmp)==0) free(ttmp->type.object.iter);
       ttmp->type.array.iter = iter;
-      end = ttmp;
+      //end = ttmp;
       ttmp->type.array.index = (++last_index);
       ttmp = next_(ttmp);
     }
@@ -566,7 +617,7 @@ void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
     if(tmpjs){
       tmpjs->type.array.prev_element = ttmp;
       while(tmpjs){
-        end = tmpjs;
+        //end = tmpjs;
         tmpjs->type.array.index = (++last_index);
         tmpjs = next_(tmpjs);
       }
@@ -574,8 +625,11 @@ void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
     //struct js_iterator *iter = get_iterator_(dstjs);
     if(iter){
       iter->size = last_index + 1;
-      iter->end = end;
+      if(get_index_(iter->end) < get_index_(end)){
+        iter->end = end;
+      }
     }
+    //if(deferFree && olditer) free(olditer);
   }
 }
 
@@ -668,16 +722,17 @@ void set_prev_(struct js_value ** _dst, struct js_value * jsprv){
 
 void add_js_value_index(size_t index, struct js_value *js_to_add, struct js_value **js_org){
   if((*js_org)->code_type >= jstype_object && (*js_org)->code_type == js_to_add->code_type ){
-    struct js_value *tmpjs = *js_org, *ttmp=NULL;
-    while(tmpjs){// TO DO : use iter to optimize
+    struct js_value /**tmpjs = *js_org,*/ *ttmp=NULL;
+    /*while(tmpjs){// TO DO : use iter to optimize
       if(get_index_(tmpjs) == index){
 //        printf("broken, index:%ld\n",index);
        break;
       }
       ttmp = tmpjs;
       tmpjs = next_(tmpjs);
-    }
-    if(ttmp){
+    }*/
+    ttmp = get_js_value_of_index_(index, *js_org);
+    if(ttmp != *js_org){
 //      printf("not NULL\n");
       set_next_(ttmp,js_to_add);
     }else{

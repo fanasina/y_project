@@ -21,11 +21,11 @@ JSONSRC=$(JSONDIR)/src/json_t/json_t.c
 JSONSRC_O=$(JSONSRC:.c=.o)
 
 TOOLSRC_O=$(TOOLDIR)/src/tools_t/tools_t.o
-#TOOLSRC=$(TOOLDIR)/src/tools_t/tools_t.c
-#TOOLSRC_O=$(TOOLSRC:.c=.o)
+TOOLSRC=$(TOOLDIR)/src/tools_t/tools_t.c
+TOOLSRC_O=$(TOOLSRC:.c=.o)
 
 SRC=$(wildcard **/**/*.c) 
-OBJ=$(SRC:.c=.o) #$(TOOLSRC_O) 
+OBJ=$(SRC:.c=.o) $(TOOLSRC_O) 
 
 TOPTARGETS := all clean
 DEP=$(TOOLDIR) $(LISTDIR)
@@ -35,7 +35,7 @@ $(TOPTARGETS): $(DEP)
 all: $(JSONSRC_O)
 
 
-$(JSONSRC_O): $(JSONSRC) $(LISTSRC_O) $(TOOLSRC_O)
+$(JSONSRC_O): $(JSONSRC)  $(TOOLSRC_O)  # $(LISTSRC_O)
 	$(CC) -o $@ -c $< $(CFLAGS)
 
 
