@@ -196,12 +196,117 @@ TEST(append_val){
   free_js_value(js);
   LOG("line %d\n",__LINE__);
 
-// free(rrjson);
-// free(rrjson1);
+
+}
+TEST(delete_index){
+
+  char *val = "{ \"array\" : [ \"message\" , \"Hello! it's a string\" ,  [{},{},[ [ ] ] ] , { \"age\" : 48  , \"speaker\" : \" the president \" } , 45 , true ] , \"second\" : 324.1 , \"person\" : { \"name\" : \"Fana\" , \"age\" : 37 , \"genre\" : \"male\" , \"married\" : false , \"note\" : [2.1,4.45,4,10, { \"math\" : 17.1, \"malagasy\" : 12, \"eps\" : [ 5, 6 , 4 ] }] } , \"nul\" : { } }";
+
+  struct js_value *js = create_js_value(val, NULL);
+
+  print_value(js);
+  delete_index_js_value(2, &js);
+
+  print_value(js);
+  
+
+  free_js_value(js);
+  LOG("line %d\n",__LINE__);
+
 
 }
 
+TEST(delete_key){
 
+  char *val = "{ \"array\" : [ \"message\" , \"Hello! it's a string\" ,  [{},{},[ [ ] ] ] , { \"age\" : 48  , \"speaker\" : \" the president \" } , 45 , true ] , \"second\" : 324.1 , \"person\" : { \"name\" : \"Fana\" , \"age\" : 37 , \"genre\" : \"male\" , \"married\" : false , \"note\" : [2.1,4.45,4,10, { \"math\" : 17.1, \"malagasy\" : 12, \"eps\" : [ 5, 6 , 4 ] }] } , \"nul\" : { } }";
+
+  struct js_value *js = create_js_value(val, NULL);
+
+  print_value(js);
+  delete_key_js_value("second", &js);
+
+  print_value(js);
+
+  
+
+  free_js_value(js);
+  LOG("line %d\n",__LINE__);
+
+
+}
+TEST(delete_key_format_in){
+
+  char *val =" { "
+" \"array\" : "
+"    [ "
+"     \"message\", "
+"     \"Hello! it's a string\", "
+"        [ "
+"            { "
+"            \"\" : null"
+"            } , "
+"            { "
+"            \"\" : null"
+"            } , "
+"            [ "
+"                [ "
+"                 null"
+"                ] "
+"            ] "
+"        ] , "
+"        { "
+"        \"age\" : 48.000000, "
+"        \"speaker\" : \" the president \""
+"        } , "
+"     45.000000, "
+"     true"
+"    ] , "
+" \"person\" : "
+"    { "
+"    \"name\" : \"Fana\", "
+"    \"age\" : 37.000000, "
+"    \"genre\" : \"male\", "
+"    \"married\" : false, "
+"    \"note\" : "
+"        [ "
+"         2.100000, "
+"         4.450000, "
+"         4.000000, "
+"         10.000000, "
+"            { "
+"            \"math\" : 17.100000, "
+"            \"malagasy\" : 12.000000, "
+"            \"eps\" : "
+"                [ "
+"                 5.000000, "
+"                 6.000000, "
+"                 4.000000"
+"                ] "
+"            } "
+"        ] "
+"    } , "
+" \"nul\" : "
+"    { "
+"    \"\" : null"
+"    } "
+" }";
+
+//  "{ \"array\" : [ \"message\" , \"Hello! it's a string\" ,  [{},{},[ [ ] ] ] , { \"age\" : 48  , \"speaker\" : \" the president \" } , 45 , true ] , \"second\" : 324.1 , \"person\" : { \"name\" : \"Fana\" , \"age\" : 37 , \"genre\" : \"male\" , \"married\" : false , \"note\" : [2.1,4.45,4,10, { \"math\" : 17.1, \"malagasy\" : 12, \"eps\" : [ 5, 6 , 4 ] }] } , \"nul\" : { } }";
+
+  struct js_value *js = create_js_value(val, NULL);
+
+  print_value(js);
+  delete_key_js_value("second", &js);
+
+  print_value(js);
+
+  
+
+  free_js_value(js);
+  LOG("line %d\n",__LINE__);
+
+
+}
 int main(int argc, char **argv){
   
 
