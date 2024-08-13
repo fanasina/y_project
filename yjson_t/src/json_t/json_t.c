@@ -516,6 +516,64 @@ long  get_size_(struct js_value *js){
 
 long move_current_iter_to_index_(struct js_value *js, size_t index){
   if(js->code_type < jstype_object) return -1;
+  if(js->code_type == jstype_object){
+    struct js_iterator *iter = js->type.object.iter;
+    if(index == js->type.object.index) return index;
+    long size = iter->size;
+    if(index >= size ){
+      iter->current = iter->end;
+      return size - 1;
+    }
+    long from_current_index = iter->current->type.object.index - index;
+    size_t abs_cur_diff = abs(from_current_index); 
+    size_t array_diff_index[3]  = {index, abs_cur_diff , size - 1 - index}; 
+    size_t index_nearest = ARG_MIN_ARRAY_TYPE_SIZE_T(array_diff_index, 3);
+    if(index_nearest == 0){
+      iter->current = iter->begin;
+      for(size_t i=0; i<array_diff_index[0]; ++i) iter->current = iter->current->type.object.next_object;//next_(iter->current); 
+    }
+    else if(index_nearest == 2){
+      iter->current = iter->end;
+      for(size_t i=0; i < array_diff_index[2]; ++i) iter->current = iter->current->type.object.prev_object;//prev_(iter->current); 
+    }else if(from_current_index >= 0) 
+      for(size_t i=0; i < array_diff_index[1]; ++i)  iter->current = iter->current->type.object.prev_object;//prev_(iter->current); prev_(iter->current);
+    else  
+      for(size_t i=0; i < array_diff_index[1]; ++i)  iter->current =  iter->current->type.object.next_object;//next_(iter->current); next_(iter->current);
+      
+    return index;
+
+  }else{
+    struct js_iterator *iter = js->type.array.iter;
+    if(index == js->type.array.index) return index;
+    long size = iter->size;
+    if(index >= size ){
+      iter->current = iter->end;
+      return size - 1;
+    }
+    long from_current_index = iter->current->type.array.index - index;
+    size_t abs_cur_diff = abs(from_current_index); 
+    size_t array_diff_index[3]  = {index, abs_cur_diff , size - 1 - index}; 
+    size_t index_nearest = ARG_MIN_ARRAY_TYPE_SIZE_T(array_diff_index, 3);
+    if(index_nearest == 0){
+      iter->current = iter->begin;
+      for(size_t i=0; i<array_diff_index[0]; ++i) iter->current = iter->current->type.array.next_element;//next_(iter->current); 
+    }
+    else if(index_nearest == 2){
+      iter->current = iter->end;
+      for(size_t i=0; i < array_diff_index[2]; ++i) iter->current = iter->current->type.array.prev_element;//prev_(iter->current); 
+    }else if(from_current_index >= 0) 
+      for(size_t i=0; i < array_diff_index[1]; ++i)  iter->current = iter->current->type.array.prev_element;//prev_(iter->current); prev_(iter->current);
+    else  
+      for(size_t i=0; i < array_diff_index[1]; ++i)  iter->current =  iter->current->type.array.next_element;//next_(iter->current); next_(iter->current);
+      
+    return index;
+
+
+  }
+
+
+#if 0
+
     struct js_iterator *iter = get_iterator_(js);
     if(index == get_index_(iter->current)) return index;
     //if(js->begin_list == NULL) return 0;
@@ -543,6 +601,7 @@ long move_current_iter_to_index_(struct js_value *js, size_t index){
       for(size_t i=0; i < array_diff_index[1]; ++i)  iter->current = next_(iter->current);
       
     return index;
+#endif
   }
 
 struct js_value * get_js_value_of_index_(size_t index, struct js_value *js){
@@ -741,6 +800,80 @@ void add_js_value_index(size_t index, struct js_value *js_to_add, struct js_valu
   }
 }
 
+void delete_index_js_value(size_t index, struct js_value **js_org){
+  if((*js_org)->code_type >= jstype_object){
+    struct js_value  *ttmp=NULL;
+    ttmp = get_js_value_of_index_(index, *js_org);
+      if((*js_org)->code_type == jstype_object){
+        struct js_iterator *iter = (*js_org)->type.object.iter;
+        struct js_value *prevJS = ttmp->type.object.prev_object;
+        struct js_value *nextJS = ttmp->type.object.next_object;
+       
+        if(prevJS){
+          prevJS->type.object.next_object = nextJS;
+
+        }else{
+          iter->begin = nextJS;
+        }
+
+        if(iter->current == ttmp){
+          iter->current = (nextJS ? nextJS : prevJS) ;
+        }
+        if(nextJS){
+          nextJS->type.object.prev_object = prevJS;
+          ttmp->type.object.next_object = NULL;
+        }else{
+          iter->end == prevJS;
+        }
+    
+      if(ttmp == *js_org){
+        *js_org = nextJS;
+      }
+        while(nextJS){
+         --(nextJS->type.object.index);
+         nextJS = nextJS->type.object.next_object;
+        }
+        --(iter->size);
+       
+        free_js_value(ttmp);
+        
+      }else{
+        struct js_iterator *iter = (*js_org)->type.array.iter;
+        struct js_value *prevJS = ttmp->type.array.prev_element;
+        struct js_value *nextJS = ttmp->type.array.next_element;
+       
+        if(prevJS){
+          prevJS->type.array.next_element = nextJS;
+
+        }else{
+          iter->begin = nextJS;
+        }
+
+        if(iter->current == ttmp){
+          iter->current = (nextJS ? nextJS : prevJS) ;
+        }
+        if(nextJS){
+          nextJS->type.array.prev_element = prevJS;
+          ttmp->type.array.next_element = NULL;
+        }else{
+          iter->end == prevJS;
+        }
+    
+      if(ttmp == *js_org){
+        *js_org = nextJS;
+      }
+        while(nextJS){
+         --(nextJS->type.array.index);
+         nextJS = nextJS->type.array.next_element;
+        }
+        --(iter->size);
+       
+        free_js_value(ttmp);
+       
+      }
+  }
+}
+
 struct js_iterator * get_iterator_(struct js_value *js){
   if(js->code_type == jstype_object) return js->type.object.iter;
   if(js->code_type == jstype_array) return js->type.array.iter;
@@ -857,12 +990,19 @@ struct js_value *get_js_value_of_key(char * key, struct js_value *js ){
     struct js_value *tmp = js;
     while(tmp){
       if(strncmp(key,tmp->type.object.key, tmp->type.object.key_length) == 0){
+        js->type.object.iter->current = tmp;
         return tmp; //tmp->type.object.value == value_of_(tmp);
       }
       tmp = next_(tmp);
     }
   }
   return NULL; 
+}
+void delete_key_js_value(char * key, struct js_value **js_org){
+  struct js_value *js = get_js_value_of_key(key, *js_org);
+  if(js){
+    delete_index_js_value(js->type.object.index, js_org);
+  }
 }
 
 /*
