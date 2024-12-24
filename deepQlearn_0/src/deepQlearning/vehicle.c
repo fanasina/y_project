@@ -418,7 +418,7 @@ float distance2_coordinate(coordinate *c0, coordinate *c1){
     diStep_sensor->x[0] += step_sensor * cos(direction_radian);\
     diStep_sensor->x[1] -= step_sensor * sin(direction_radian);\
   }\
-  dist = (distance2_coordinate(diStep_sensor, v->coord)/5);\
+  dist = (distance2_coordinate(diStep_sensor, v->coord)/10/*5*/);\
   /*printf("| dist :%f | ",dist);*/\
   v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),dist))/SUBDIVISION ;\
   

@@ -3,13 +3,13 @@
 char *action_name[8] = {"LEFT", "CENTER", "RIGHT"};
 
 float reLU(float x){
-  if(x>10) return 10;
+//  if(x>10) return 10;
   if(x>0) return x;
   return 0;
 }
 
 float d_reLU(float x){
-  if (x>10) return 0;
+//  if (x>10) return 0;
   if (x>0) return 1;
   return 0;
 }

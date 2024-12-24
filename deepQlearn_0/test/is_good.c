@@ -457,7 +457,7 @@ TEST(first_learn_vehicle_rev50_8){
   int randomRange = 500;
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
-  float learning_rate =0.00001 /*0.001*/;  
+  float learning_rate = 0.001; // 0.00001 /*0.001*/;  
   struct networks_qlearning *nnetworks = create_nework_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
@@ -465,8 +465,8 @@ TEST(first_learn_vehicle_rev50_8){
     learning_rate
   );
 
-EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->main_net, weight_in, ".ff_main_20240717_01h42m16s_5300.txt");
-EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_20240717_01h42m16s_5300.txt");
+//EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->main_net, weight_in, ".ff_main_20240717_01h42m16s_5300.txt");
+//EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_20240717_01h42m16s_5300.txt");
 
 struct status_qlearning *qlstatus = create_status_qlearning ();
   struct delay_params *dly = create_delay_params (
@@ -478,7 +478,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
     0.95/*float gamma*/,
     learning_rate,
     0 /* (not used!)float discount_factor*/,
-    0.0001 /* 0.99*/  /*float exploration_factor*/,
+    0.99, // 0.0001 /* 0.99*/  /*float exploration_factor*/,
     20/*long int nb_training_before_update_weight_in_target*/,
     10000/*size_t number_episodes*/
   );

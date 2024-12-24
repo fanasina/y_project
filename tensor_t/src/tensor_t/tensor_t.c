@@ -399,6 +399,11 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
     printf(" |#%ld]: %s, ",i,val);\
     /*printf(" %s, ",val);*/\
     free(val); val=NULL;\
+    if(T->x[i] != T->x[i]){\
+      printf("\nALERT NAN\n");\
+      char c;\
+      scanf("%c",&c);\
+    }\
     if(coord[begin]==(T->dim)->perm[begin]-1){\
       size_t count=0;\
       for(long int j=begin; cond(j,end); j = iter(j)){\
