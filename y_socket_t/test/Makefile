@@ -1,0 +1,68 @@
+
+
+
+
+NAME_TEST=is_good
+CC=gcc
+YTESTDIR=$(PWD)/../../ytest_t
+YLISTDIR=$(PWD)/../../list_t
+
+ROOT_DIR=$(PWD)/..
+INCLUDE_DIR=$(ROOT_DIR)/include
+CFLAGS=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include -I$(YLISTDIR)/src
+LDFLAGS=-L$(YTESTDIR) -lytest -lpthread -lm -lOpenCL
+
+#SRC_DIR=$(ROOT_DIR)/src
+#SRC=$(wildcard */*/*.c) 
+#SRC=$(wildcard **/**/*.c) 
+
+#OBJ=$(SRC:.c=.o)
+
+#HEADS=$(OBJS:.o=.h)
+#TEST_DIR=$(PWD)
+
+EXECSRC=$(NAME_TEST).c
+EXEC=launch_$(NAME_TEST)_m
+
+YSOCKSRC=$(ROOT_DIR)/src/y_socket_t/y_socket_t.c
+YSOCKSRC_O=$(YSOCKSRC:.c=.o)
+
+YNODESRC=$(ROOT_DIR)/src/y_socket_t/y_node_t.c
+YNODESRC_O=$(YNODESRC:.c=.o)
+
+YLISTSRC=$(YLISTDIR)/src/list_t/list_t.c
+YLISTSRC_O=$(YLISTSRC:.c=.o)
+
+TOPTARGETS := all clean
+
+DEPS=$(YTESTDIR) $(YLISTDIR) $(ROOT_DIR)
+
+OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YLISTSRC_O)
+
+
+LIB_YTEST=$(YTESTDIR)/libytest.so
+
+LIB_YSOCK=$(PWD)/../libysocket.so
+
+$(TOPTARGETS): $(DEPS)
+
+$(DEPS):  
+	$(MAKE) -C $@ $(MAKECMDGOALS)
+
+
+
+all: $(EXEC) $(LIB_YSOCK)  $(LIB_YTEST)
+
+$(EXEC):	$(EXECSRC) $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
+
+.PHONY: clean mrproper
+
+clean:
+	rm -f $(OBJ)
+
+mrproper: clean
+	rm -f $(EXEC)
+
+run: $(EXEC)
+	$(EXEC) -h

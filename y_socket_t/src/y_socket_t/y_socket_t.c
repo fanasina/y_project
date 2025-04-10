@@ -1,4 +1,19 @@
-#include "y_socket/y_socket.h"
+#include "y_socket_t/y_socket_t.h"
+
+const int af_array[nbIpVersion]={AF_INET, AF_INET6};
+
+struct y_socket_t * y_socket_create(char *port){
+  struct y_socket_t *sock_temp=malloc(sizeof(struct y_socket_t));
+  sock_temp->port=port;
+  return sock_temp;
+}
+
+void y_socket_free(struct y_socket_t *socket){
+
+  
+  free(socket);
+}
+
 
 #if 0
 struct y_server_t server;

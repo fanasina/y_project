@@ -1,42 +1,58 @@
 # lib: -lysocket
 PROJECT_LIB=libysocket.so
 CC=gcc
-INCLUDE_DIRS=$(PWD) 
+INCLUDE_DIRS=$(PWD)/include
 SOCDIR=$(PWD) 
 #$(wildcard $(PWD)/**/include)
 
+YLISTDIR=$(PWD)/../list_t
 
-INCLUDE=-I$(PWD)/include
+INCLUDE=-I$(INCLUDE_DIRS) -I$(YLISTDIR)/src
 CFLAGS=-g -lpthread -Wall -Werror -fpic $(INCLUDE) #"-D DEBUG=1" 
 #LDFLAGS=
 
-TOPTARGETS := all clean #update_headers
 
-#SRC=$(wildcard y*/src/**/**/*.c) 
-SRC=$(wildcard src/*/*.c) 
-OBJ=$(SRC:.c=.o) 
+YSOCKSRC=$(PWD)/src/y_socket_t/y_socket_t.c
+YSOCKSRC_O=$(YSOCKSRC:.c=.o)
 
-#SUBDIRS :=$(wildcard y*) $(TOOLDIR) $(BARPDIR)
+YNODESRC=$(PWD)/src/y_socket_t/y_node_t.c
+YNODESRC_O=$(YNODESRC:.c=.o)
 
-#export
+YLISTSRC=$(YLISTDIR)/src/list_t/list_t.c
+YLISTSRC_O=$(YLISTSRC:.c=.o)
 
 
-#$(TOPTARGETS): $(SUBDIRS)
+
+TOPTARGETS := all clean 
+
+DEPS=$(YLISTDIR) 
+
+OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YLISTSRC_O)
+
+$(TOPTARGETS): $(DEPS)
+
 
 all: $(PROJECT_LIB) 
 
-#update_headers
+
 
 
 $(PROJECT_LIB): $(OBJ)
-	echo $(OBJ)
+	echo "objects:" $(OBJ)
 	#$(CC) -shared -o $@ $^ $(INCLUDE) $(LDFLAGS)
 	#$(CC) -shared -o $@ $^ $(LDFLAGS)
 	$(CC) -shared -o $@ $^ $(CFLAGS)
 
 
-$(SUBDIRS):
-		$(MAKE) -C $@ $(MAKECMDGOALS)
+$(YSOCKSRC_O): $(YSOCKSRC) $(YNODESRC_O)
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+$(YNODESRC_O): $(YNODESRC) $(YSOCKSRC_O) $(YLISTSRC_O) 
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+
+$(DEPS):
+	$(MAKE) -C $@ $(MAKECMDGOALS)
 
 
 # .PHONY: $(TOPTARGETS) $(SUBDIRS)
@@ -50,7 +66,7 @@ mrproper: clean
 	rm -f $(PROJECT_LIB)
 
 install: 
-	cp libytest.so /usr/lib/
+	cp libysocket.so /usr/lib/
 	@if [ -d /usr/local/include ] ; then\
 		echo "copy include to /usr/local/include/" ;\
 		cp -r include/* /usr/local/include/;\
@@ -60,13 +76,13 @@ install:
 	fi
 
 uninstall:
-	rm /usr/lib/libytest.so
+	rm /usr/lib/libysocket.so
 	@if [ -d /usr/local/include ] ; then\
 		 echo "remove from /usr/local/include/" ;\
-		 rm -r /usr/local/include/y_socket ;\
+		 rm -r /usr/local/include/y_socket_t ;\
 	else\
 		 echo "remove from /usr/include/" ;\
-		 rm -r /usr/include/y_socket ;\
+		 rm -r /usr/include/y_socket_t ;\
 	fi
 
 	
