@@ -35,7 +35,7 @@ extern const int af_array[nbIpVersion];//={AF_INET, AF_INET6};
 struct y_socket_t{
   struct pollfd fds[nbIpVersion];
   char * port;
-  struct main_list_y_NODE_T nodes;
+  struct main_list_y_NODE_T *nodes;
 
 };
 

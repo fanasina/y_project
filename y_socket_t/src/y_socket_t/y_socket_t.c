@@ -5,11 +5,13 @@ const int af_array[nbIpVersion]={AF_INET, AF_INET6};
 struct y_socket_t * y_socket_create(char *port){
   struct y_socket_t *sock_temp=malloc(sizeof(struct y_socket_t));
   sock_temp->port=port;
+  sock_temp->nodes = create_var_list_y_NODE_T();
   return sock_temp;
 }
 
 void y_socket_free(struct y_socket_t *socket){
 
+  free_all_var_list_y_NODE_T(socket->nodes);
   
   free(socket);
 }

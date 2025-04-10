@@ -100,17 +100,32 @@ TEST(searchNode){
   GET_IN_type_ADDR(&(nA.addr),) = inet_addr("1.1.1.3");
   push_back_list_y_NODE_T(listNodes, nA);
 
-  GET_IN_type_ADDR(&(nB.addr),) = inet_addr("0.1.1.1");
-//  push_back_list_y_NODE_T(listNodes, nB);
-  
+  //GET_IN_type_ADDR(&(nB.addr),) = inet_addr("0.1.1.1");
+  int ret = set_addr_y_NODE_T(&nB, "0.1.1.1");
+  LOG("return of set =%d\n", ret);
+
   EXPECT_TRUE(NULL == search_node_in_list_y_NODE_T(listNodes, nB));
-  GET_IN_type_ADDR(&(nA.addr),) = inet_addr("1.1.1.3");
+  //GET_IN_type_ADDR(&(nA.addr),) = inet_addr("1.1.1.3");
+  inet_pton(AF_INET, "1.1.1.3", &(GET_IN_type_ADDR(&(nA.addr),)));
+  EXPECT_FALSE(NULL == search_node_in_list_y_NODE_T(listNodes, nA));
+  
+  //inet_pton(AF_INET6, "::1", GET_IN_type_ADDR(&(nB.addr),6));
+  ret = set_addr_y_NODE_T(&nB, "::1");
+  LOG("return of set =%d\n", ret);
+  push_back_list_y_NODE_T(listNodes, nB);
+  
+  //inet_pton(AF_INET6, "::", GET_IN_type_ADDR(&(nA.addr),6));
+  ret = set_addr_y_NODE_T(&nB, "::");
+  LOG("return of set =%d\n", ret);
   EXPECT_FALSE(NULL == search_node_in_list_y_NODE_T(listNodes, nA));
 
   free_all_var_list_y_NODE_T(listNodes);
 
 
 }
+
+
+
 
 
 int main(int argc, char **argv){

@@ -40,6 +40,27 @@ struct list_y_NODE_T * search_node_in_list_y_NODE_T(struct main_list_y_NODE_T *l
       return listNodes->current_list;      
     }
   }
-  return NULL;
+  return NULL; 
+}
+
+int set_addr_y_NODE_T(y_NODE_T *node, char * addrStr){
+  int af = AF_INET, ret = -2;
+  for(int i=0; i<strlen(addrStr); ++i){
+    if(addrStr[i]=='.')
+      break;
+    if(addrStr[i]==':'){
+      af=AF_INET6;
+      break;
+    }
+  }
+  node->addr.ss_family = af;
+  if(af==AF_INET)
+    ret = inet_pton(af, addrStr, &(GET_IN_type_ADDR(&(node->addr),)));
+  else if(af == AF_INET6)
+    ret = inet_pton(af, addrStr, (GET_IN_type_ADDR(&(node->addr), 6)));
+  
+  return ret;
   
 }
+
+
