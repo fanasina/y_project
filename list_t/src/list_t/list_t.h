@@ -30,6 +30,7 @@
   void remove_all_list_in_##type(struct main_list_##type *var_list);\
   void increment_list_##type(struct main_list_##type * var_list);\
   void decrement_list_##type(struct main_list_##type * var_list);\
+  struct list_##type * search_from_begin_in_list_##type(struct main_list_##type *var_list, type value, int funcCmp(type, type));
 
 
 GENERATE_LIST_ALL(TYPE_CHAR)
@@ -202,6 +203,14 @@ GENERATE_LIST_ALL(TYPE_PTR)
     var_list->current_list = (var_list->current_list)->preview;\
     --(var_list->current_index);\
   }\
+  struct list_##type * search_from_begin_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type)){\
+    for(move_current_to_begin_list_##type(var_list); var_list->current_list; increment_list_##type(var_list)){\
+      if(0 == funcCmp(value, var_list->current_list->value))\
+        return var_list->current_list;\
+    }\
+    return NULL;\
+  }\
+
   
 
 
