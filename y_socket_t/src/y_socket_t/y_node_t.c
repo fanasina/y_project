@@ -35,12 +35,14 @@ int y_NODE_T_cmp(y_NODE_T nodeA, y_NODE_T nodeB){
   return ret;
 }
 struct list_y_NODE_T * search_node_in_list_y_NODE_T(struct main_list_y_NODE_T *listNodes, y_NODE_T node){
-  FOR_LIST_FORM_BEGIN(y_NODE_T, listNodes){
+/*  FOR_LIST_FORM_BEGIN(y_NODE_T, listNodes){
     if(y_NODE_T_cmp(node, listNodes->current_list->value) == 0){
       return listNodes->current_list;      
     }
   }
   return NULL; 
+  */
+  return search_first_occ_from_begin_in_list_y_NODE_T(listNodes, node, y_NODE_T_cmp);
 }
 
 int set_addr_y_NODE_T(y_NODE_T *node, char * addrStr){
