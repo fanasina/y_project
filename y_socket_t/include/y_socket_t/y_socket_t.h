@@ -33,15 +33,23 @@ enum ipVersions{
 extern const int af_array[nbIpVersion];//={AF_INET, AF_INET6};
 
 struct y_socket_t{
-  struct pollfd fds[nbIpVersion];
+  struct pollfd *fds;
   char * port;
   struct main_list_y_NODE_T *nodes;
+  pthread_mutex_t mut_nodes;
+};
 
+struct argdst {
+  char *port;
+  char *addrStr;
 };
 
 struct y_socket_t * y_socket_create(char * port);
 
 void y_socket_free(struct y_socket_t *socket);
+
+void *y_pollSocketsFunc(void *arg);
+void *threadFuncSend(void *arg);
 
 // type = nothing if v4, 6 if v6
 #define  GET_IN_type_ADDR(PointerSockAddr,type) \

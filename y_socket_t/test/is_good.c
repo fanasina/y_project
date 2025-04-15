@@ -75,6 +75,28 @@ TEST(equalNode){
 
 
 }
+TEST(equalNode6){
+  y_NODE_T nA, nB;
+  init_len_y_NODE_T(&nA);
+  init_len_y_NODE_T(&nB);
+
+  nA.addr.ss_family=AF_INET6;
+  nB.addr.ss_family=AF_INET6;
+
+  //((struct sockaddr_in*)&(nA.addr))->sin_addr.s_addr = inet_addr("192.168.1.2");
+  //((struct sockaddr_in*)&(nB.addr))->sin_addr.s_addr = inet_addr("192.168.1.2");
+
+  inet_pton(AF_INET6, "::1", &(GET_IN_type_ADDR(&(nA.addr),6)));
+  inet_pton(AF_INET6, "::1", &(GET_IN_type_ADDR(&(nB.addr),6)));
+
+
+  EXPECT_EQ(0, y_NODE_T_cmp(nA,nB));
+  inet_pton(AF_INET6, "::", &(GET_IN_type_ADDR(&(nB.addr),6)));
+  LOG("diff = %d\n", y_NODE_T_cmp(nA,nB));
+
+
+}
+
 
 
 TEST(searchNode){
@@ -125,7 +147,28 @@ TEST(searchNode){
 }
 
 
+TEST(pollThread){
+  struct y_socket_t *argS=y_socket_create("1600");
 
+  pthread_t pollTh;
+  pthread_create(&pollTh, NULL, y_pollSocketsFunc, (void*)argS);
+
+/*  
+  struct argdst dstarg={
+    .port="1600",
+    .addrStr="::1",
+  };
+  pthread_t cliTh;
+  pthread_create(&cliTh, NULL, threadFuncSend, (void*)&dstarg);
+
+  pthread_join(cliTh, NULL);
+*/
+
+  pthread_join(pollTh, NULL);
+
+  y_socket_free(argS);
+
+}
 
 
 int main(int argc, char **argv){
