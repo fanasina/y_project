@@ -179,6 +179,9 @@ void *y_pollSocketsFunc(void *arg){
   char tempAddr[BUF_SIZE];
   int c_af;
   char host[NI_MAXHOST], service[NI_MAXSERV];
+  char buf_send[BUF_SIZE];
+  int fd_file;
+  int retread;
 //  char msgRet[BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100];
 //  int len_msgRet;
   for(;;){
@@ -198,7 +201,7 @@ void *y_pollSocketsFunc(void *arg){
         (struct sockaddr *)&(node.addr), &(node.addr_len));
         if(nread == -1)
           continue;
-
+        if(buf[nread-1]=='\n') buf[nread-1]='\0';
 printf("msg : %s\n",buf);
 
         status = getnameinfo((struct sockaddr*)&(node.addr), node.addr_len, host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICHOST);
@@ -211,46 +214,56 @@ printf("msg : %s\n",buf);
         if(NULL ==  search_node_in_list_y_NODE_T(argSock->nodes, node))
           push_back_list_y_NODE_T(argSock->nodes, node);
         
+        /*
         //UPPER
         for(int i=0; i<nread; ++i)
           if((buf[i] >='a') && (buf[i]<='z'))
-            buf[i]=buf[i]+'A'-'a';
-        
-        //memset(msgRet, 0, BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100);
-//        sprintf(msgRet, "from %s:%s =%s",host, service, buf);
-        
-//        len_msgRet = strlen(msgRet);
-        printf("sending response  %s :\n",buf);
-        FOR_LIST_FORM_BEGIN(y_NODE_T, argSock->nodes){
-          c_af=(argSock->nodes->current_list->value).addr.ss_family;
-          //memset(tempAddr, 0, BUF_SIZE);
-          if(c_af==AF_INET){
-             if(NULL == inet_ntop(c_af, 
-              &(GET_IN_type_ADDR(&(argSock->nodes->current_list->value),)),
-              tempAddr, BUF_SIZE/*(argSock->nodes->current_list->value).addr_len*/)){
-              fprintf(stderr, "error inet_ntop v4\n");
+            buf[i]=buf[i]+'A'-'a';*/
+       fd_file = open( buf , O_RDONLY);
+       if(fd_file == -1){
+         fprintf(stderr,"error opening file |%s| for reading\n",buf);
+         return NULL;
+       }
+  
+       while((retread = read(fd_file, buf_send, BUF_SIZE) ) > 0 )
+       {
+          //memset(msgRet, 0, BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100);
+  //        sprintf(msgRet, "from %s:%s =%s",host, service, buf);
+          
+  //        len_msgRet = strlen(msgRet);
+          printf("sending response  %s :\n",buf_send);
+          FOR_LIST_FORM_BEGIN(y_NODE_T, argSock->nodes){
+            c_af=(argSock->nodes->current_list->value).addr.ss_family;
+            //memset(tempAddr, 0, BUF_SIZE);
+            if(c_af==AF_INET){
+               if(NULL == inet_ntop(c_af, 
+                &(GET_IN_type_ADDR(&(argSock->nodes->current_list->value),)),
+                tempAddr, BUF_SIZE/*(argSock->nodes->current_list->value).addr_len*/)){
+                fprintf(stderr, "error inet_ntop v4\n");
+              }
+            }else if(c_af==AF_INET6){
+               if(NULL == inet_ntop(c_af, 
+                &(GET_IN_type_ADDR(&(argSock->nodes->current_list->value),6)),
+                tempAddr, BUF_SIZE /*(argSock->nodes->current_list->value).addr_len*/)){
+                fprintf(stderr, "error inet_ntop v6 :errno=%d\n",errno);
+              }
             }
-          }else if(c_af==AF_INET6){
-             if(NULL == inet_ntop(c_af, 
-              &(GET_IN_type_ADDR(&(argSock->nodes->current_list->value),6)),
-              tempAddr, BUF_SIZE /*(argSock->nodes->current_list->value).addr_len*/)){
-              fprintf(stderr, "error inet_ntop v6 :errno=%d\n",errno);
-            }
+                      
+            if(sendto(fds[(c_af==AF_INET6)].fd, 
+              buf_send, retread,
+              /*msgRet, len_msgRet,*/ 
+              0, 
+              (struct sockaddr*)&((argSock->nodes->current_list->value).addr), 
+              (argSock->nodes->current_list->value).addr_len) != 
+              retread
+              /*len_msgRet*/
+              ){
+              fprintf(stderr, "Error sending response to %s\n",tempAddr);
+            }else
+              printf("sending response to %s\n",tempAddr);
           }
-                    
-          if(sendto(fds[(c_af==AF_INET6)].fd, 
-            buf, nread,
-            /*msgRet, len_msgRet,*/ 
-            0, 
-            (struct sockaddr*)&((argSock->nodes->current_list->value).addr), 
-            (argSock->nodes->current_list->value).addr_len) != 
-            nread
-            /*len_msgRet*/
-            ){
-            fprintf(stderr, "Error sending response to %s\n",tempAddr);
-          }else
-            printf("sending response to %s\n",tempAddr);
         }
+        close(fd_file);
       }
     }
 //    printf("nread = %ld: buf=%s\nlen_buf=%ld\ncmp=%d\n",nread,buf,strlen(buf),strncmp(buf,"SHUTDOWN SERVER",15));
@@ -264,107 +277,4 @@ printf("msg : %s\n",buf);
 #define xstr(x) str(x) 
 
 
-void *threadFuncSend(void *arg){
-  struct argdst * dstarg = (struct argdst*)arg;
-  
- int socketDescriptor, status;
-  unsigned int msgLength;
-  struct addrinfo hints, *serverInfo, *p;
-  struct timeval timeValue;
-  fd_set readSetFD;
-  char msg[BUF_SIZE];//, serverPort[PORT_ARRAY_SIZE];
-  bool sockSuccess = false;
 
-  /*
-  puts("Entrez le nom du serveur ou son adresse IP : ");
-  memset(msg, 0, sizeof msg);
-  scanf("%s"xstr(BUF_SIZE)"s",msg);
-
-  puts("Entrez le numéro de port du serveur : ");
-  memset(serverPort, 0, sizeof serverPort);
-  scanf("%s"xstr(MAX_PORT)"s",serverPort);
- */
-  memset(&hints, 0, sizeof hints);
-  hints.ai_family = AF_UNSPEC;
-  hints.ai_socktype = SOCK_DGRAM;
-
-  if((status = getaddrinfo(dstarg->addrStr, dstarg->port, &hints, &serverInfo)) != 0){
-    fprintf(stderr, "getaddrinfo: %s\n",gai_strerror(status));
-    exit(EXIT_FAILURE);
-  }
-
-  p = serverInfo;
-  while((p!=NULL) && !sockSuccess){
-    if(p->ai_family == AF_INET)
-      puts("Open IPv4 socket");
-    else
-      puts("Open IPv6 socket");
-
-    if((socketDescriptor = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1){
-      perror("socket:");
-      sockSuccess = false; // echec ouverture du socket
-      p = p->ai_next;
-    }
-    else
-      sockSuccess = true;
-  }
-
-  freeaddrinfo(serverInfo);
-
-  if(p==NULL){
-    fputs("Creation de socket impossible", stderr);
-    return NULL;
-  }
-
-  puts("\n Entrez quelques caractères au clavier.");
-  puts("Le serveur les modifiera et les renvera.");
-  puts("Pour sortir, entrez une ligne avec le caractère '.' uniquement.");
-
-  puts("Saisie du message : ");
-  memset(msg, 0, sizeof msg);
-  scanf(" %"xstr(BUF_SIZE)"[^\n]%*c", msg);
-
-  while(strcmp(msg, ".")){
-    if((msgLength = strlen(msg)) > 0 ){
-      if(sendto(socketDescriptor, msg, msgLength, 0,
-        p->ai_addr, p->ai_addrlen) == -1){
-        perror("sendto:");
-        close(socketDescriptor);
-        exit(EXIT_FAILURE);
-      }
-
-      FD_ZERO(&readSetFD);
-      FD_SET(socketDescriptor, &readSetFD);
-      timeValue.tv_sec = 1;
-      timeValue.tv_usec = 0;
-
-      if(select(socketDescriptor +1, &readSetFD, NULL,NULL, &timeValue)){
-        memset(msg, 0, sizeof msg);
-        if(recv(socketDescriptor, msg, sizeof msg, 0) == -1){
-          perror("recv:");
-          close(socketDescriptor);
-          exit(EXIT_FAILURE);
-        }
-
-        printf("Message traité : %s\n", msg);
-        if(strcmp(msg,"SHUTDOWN SERVER")==0)
-          break;
-      }
-      else{
-        puts("Pas de réponse dans la seconde.");
-      }
-
-    }
-  puts("Saisie du message : ");
-    memset(msg, 0, sizeof msg);
-    scanf(" %"xstr(BUF_SIZE)"[^\n]%*c", msg);
-  }
-
-  close(socketDescriptor);
-
-
- 
-
-  return NULL;
-
-}
