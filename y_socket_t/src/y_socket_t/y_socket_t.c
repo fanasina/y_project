@@ -185,6 +185,7 @@ void *y_pollSocketsFunc(void *arg){
 //  char msgRet[BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100];
 //  int len_msgRet;
   for(;;){
+    printf("poll: wait events\n");
     status = poll(fds, nbIpVersion, -1);
     if(status <= 0){
       if(status == -1 && errno != EINTR){
@@ -264,6 +265,7 @@ printf("msg : %s\n",buf);
           }
         }
         close(fd_file);
+        printf("fd=%d closede: filename=%s\n",fd_file,buf);
       }
     }
 //    printf("nread = %ld: buf=%s\nlen_buf=%ld\ncmp=%d\n",nread,buf,strlen(buf),strncmp(buf,"SHUTDOWN SERVER",15));
