@@ -10,7 +10,7 @@ YLISTDIR=$(PWD)/../../list_t
 ROOT_DIR=$(PWD)/..
 INCLUDE_DIR=$(ROOT_DIR)/include
 CFLAGS=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include -I$(YLISTDIR)/src
-LDFLAGS=-L$(YTESTDIR) -lytest -lpthread -lm -lOpenCL
+LDFLAGS=-L$(YTESTDIR) -lytest -lpthread -lm -lOpenCL -Wall -Werror
 
 #SRC_DIR=$(ROOT_DIR)/src
 #SRC=$(wildcard */*/*.c) 

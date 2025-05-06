@@ -2,6 +2,7 @@
 #define Y_TASK_T_H__C
 
 #include <pthread.h>
+#include <unistd.h>
 
 #include "list_t/list_t.h"
 
@@ -33,7 +34,7 @@ void push_tasQ(struct y_tasQ *tasQ, struct y_task_t task);
 struct list_y_TASK_T* pull_tasQ(struct y_tasQ *tasQ);
 
 struct argExecTasQ{
-  int * go_on;
+  int  go_on;
   struct y_tasQ *tasQ;
   struct y_tasQ *historytasQ;
 };

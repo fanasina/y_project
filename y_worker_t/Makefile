@@ -5,9 +5,11 @@ INCLUDE_DIRS=$(PWD)/include
 SOCDIR=$(PWD) 
 #$(wildcard $(PWD)/**/include)
 
+TOOLDIR=$(PWD)/../ytools_t
 YLISTDIR=$(PWD)/../list_t
 
-INCLUDE=-I$(INCLUDE_DIRS) -I$(YLISTDIR)/src
+
+INCLUDE=-I$(INCLUDE_DIRS) -I$(YLISTDIR)/src -I$(TOOLDIR)/include
 CFLAGS=-g -lpthread -Wall -Werror -fpic $(INCLUDE) #"-D DEBUG=1" 
 #LDFLAGS=
 
@@ -21,13 +23,14 @@ YTASKSRC_O=$(YTASKSRC:.c=.o)
 YLISTSRC=$(YLISTDIR)/src/list_t/list_t.c
 YLISTSRC_O=$(YLISTSRC:.c=.o)
 
+TOOLSRC_O=$(TOOLDIR)/src/tools_t/tools_t.o
 
 
 TOPTARGETS := all clean 
 
 DEPS=$(YLISTDIR) 
 
-OBJ=$(YWORKSRC_O) $(YLISTSRC_O)
+OBJ=$(YWORKSRC_O) $(YLISTSRC_O) 
 
 $(TOPTARGETS): $(DEPS)
 

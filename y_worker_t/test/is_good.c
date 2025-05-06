@@ -25,8 +25,9 @@
 
 #define VALGRIND_ 1
 
+#if 0
 TEST(first){
-  struct y_tasQ tasQ0 ;
+  //struct y_tasQ tasQ0 ;
   struct y_tasQ *tasQ = create_y_tasQ();
 
   free_y_tasQ(tasQ);    
@@ -48,44 +49,58 @@ TEST(worker){
 
 
 }
+#endif 
 
 void* funcPrintSelf(void* arg){
-  LOG("begin fun call\n");
+  LOG("func: begin func call\n");
   struct argExecTasQ *argx=(struct argExecTasQ*)arg;
-  int randomm=rand()%1000;
+  static long int count = 0; //randomm=rand()%1000;
   size_t thread_id=pthread_self();
-  LOG("my status=%d, idfunc=%d; threadid=%ld\n",*(argx->go_on), randomm, thread_id);
+  LOG("func: my status=%d, func number=%ld; threadid=%ld\n",(argx->go_on), count, thread_id);
   usleep(200000);
-  LOG("end func%d; in thread=%ld\n",randomm,thread_id);
+  LOG("func: end func %ld; in thread=%ld\n",count,thread_id);
+	++count;
+  return NULL;
 }
+
+void* funcEnd(void* arg){
+  LOG("funcEnd: begin func End\n");
+  struct argExecTasQ *argx=(struct argExecTasQ*)arg;
+  static long int count = 0; //randomm=rand()%1000;
+  size_t thread_id=pthread_self();
+  LOG("funcEnd: my status=%d, func number=%ld; threadid=%ld\n",(argx->go_on), count, thread_id);
+  usleep(20000);
+  LOG("funcEnd: end func %ld; in thread=%ld\n",count,thread_id);
+	++count;
+  return NULL;
+}
+
+
 
 TEST(threads){
 
   srand(time(NULL));
-  struct main_list_y_WORKER_T * workers = create_var_list_y_WORKER_T();
+  struct main_list_ptr_y_WORKER_T * workers = create_var_list_ptr_y_WORKER_T();
   struct argExecTasQ *argx =  create_argExecTasQ();
-  
+  pthread_mutex_t *mut_workers = malloc(sizeof(pthread_mutex_t));
+  pthread_mutex_init(mut_workers, NULL);  
   
   
   for(int i=0; i<4; ++i){
-    struct y_worker_t w={.exec=GO_ON_WORKER, .id=i};
-    struct list_y_WORKER_T * liwo=malloc(sizeof(struct list_y_WORKER_T));
-    liwo->value=w;
-    //liwo->preview=NULL;
-    liwo->next=NULL;
-    append_list_y_WORKER_T(workers, liwo);
-    //push_back_list_y_WORKER_T(workers, w);
-    struct argWorker argw;
-    argw.argx = argx;
-    argw.worker=workers->end_list;
-  LOG("%d workers %ld created\n",4,argw.worker->value.id);
-    pthread_create(&(w.thread),NULL,execute_work,(void*)&argw);
-//usleep(5000);
+    struct y_worker_t *pw= create_ptr_y_WORKER_T(GO_ON_WORKER, i);
+    assign_argWorker_of_ptr_y_WORKER_T(pw, argx, mut_workers);
+    pthread_mutex_lock(mut_workers);
+    //append_list_ptr_y_WORKER_T(workers, li_pw);
+    push_back_list_ptr_y_WORKER_T(workers, pw);
+    pthread_mutex_unlock(mut_workers);
+  LOG("%d workers %ld created\n",4,(pw->arg->pworker->id));
+    pthread_create(pw->thread,NULL,execute_work,(void*)(pw->arg));
+//usleep(500);
   }
-usleep(500000);
+//usleep(500000);
  
 
-  for(int i=0; i<10;++i)
+  for(int i=0; i<40;++i)
   { 
     struct y_task_t task = {
       .func=funcPrintSelf,
@@ -93,58 +108,30 @@ usleep(500000);
       .status=TASK_PENDING,
     };
     push_tasQ(argx->tasQ, task);
-    usleep(10000);
+//    usleep(10000);
   }
   LOG("%d tasks created\n",40);
 
-  for(int i=4; i<8; ++i){
-    struct y_worker_t w={.exec=GO_ON_WORKER, .id=i};
-    struct list_y_WORKER_T * liwo=malloc(sizeof(struct list_y_WORKER_T));
-    liwo->value=w;
-    //liwo->preview=NULL;
-    liwo->next=NULL;
-    append_list_y_WORKER_T(workers, liwo);
-    //push_back_list_y_WORKER_T(workers, w);
-    struct argWorker argw;
-    argw.argx = argx;
-    argw.worker=workers->end_list;
-    pthread_create(&(w.thread),NULL,execute_work,(void*)&argw);
-usleep(5000);
+	for(int i=4; i<8; ++i){
+    struct y_worker_t *pw= create_ptr_y_WORKER_T(GO_ON_WORKER, i);
+    assign_argWorker_of_ptr_y_WORKER_T(pw, argx, mut_workers);
+    pthread_mutex_lock(mut_workers);
+    //append_list_ptr_y_WORKER_T(workers, li_pw);
+    push_back_list_ptr_y_WORKER_T(workers, pw);
+    pthread_mutex_unlock(mut_workers);
+  LOG("%d workers %ld created\n",4,(pw->arg->pworker->id));
+    pthread_create(pw->thread,NULL,execute_work,(void*)(pw->arg));
+//usleep(500);
   }
-  LOG("another %d workers created\n",4);
+ LOG("another %d workers created\n",4);
 
+	kill_all_workers(workers, argx);
 
+	wait_and_free_workers(workers);
 
-
-
-
-//  usleep(400000);
-  for(move_current_to_begin_list_y_WORKER_T(workers); workers->current_list;increment_list_y_WORKER_T(workers)){
-    workers->current_list->value.exec=KILL_WORKER;
-  }
-  
-  *(argx->go_on)=0;
-
-  for(move_current_to_begin_list_y_WORKER_T(workers); workers->current_list;increment_list_y_WORKER_T(workers)){
-    struct y_task_t task = {
-      .func=NULL,
-      .arg=argx,
-      .status=TASK_DONE,
-    };
-    push_tasQ(argx->tasQ, task);
-
-  }
-
-  
-  for(move_current_to_begin_list_y_WORKER_T(workers); workers->current_list;increment_list_y_WORKER_T(workers)){
-    pthread_join(workers->current_list->value.thread ,NULL);
-    LOG("debug: JOIN donei, thread id:%ld\n",workers->current_list->value.id);
-  }
-
-//  usleep(5000000);
   free_argExecTasQ(argx);
-  free_all_var_list_y_WORKER_T(workers);
-  
+  pthread_mutex_destroy(mut_workers);
+  free(mut_workers);  
 
 }
 

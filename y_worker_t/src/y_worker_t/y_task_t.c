@@ -34,7 +34,7 @@ void push_tasQ(struct y_tasQ *tasQ, struct y_task_t task){
   printf("debug: push_tasQ fin\n");
 }
 struct list_y_TASK_T* pull_tasQ(struct y_tasQ *tasQ){
-  printf("debug: pull_tasQ debut\n");
+  printf("debug: pull_tasQ debut id_th:%ld\n",pthread_self());
   struct list_y_TASK_T *valueRet = NULL;
   pthread_mutex_lock(tasQ->mut_tasQ);
   while(tasQ->list_tasQ->end_list == NULL){
@@ -46,23 +46,29 @@ struct list_y_TASK_T* pull_tasQ(struct y_tasQ *tasQ){
   pthread_mutex_unlock(tasQ->mut_tasQ);
  
 
-  printf("debug: pull_tasQ fin : is valueRet NULL ? = %d\n", valueRet == NULL);
+  printf("debug: pull_tasQ fin : is valueRet NULL ? = %d, id_th:%ld\n", valueRet == NULL, pthread_self());
   return valueRet;
 }
 
 struct argExecTasQ * create_argExecTasQ(){
   struct argExecTasQ * retasQ = malloc(sizeof(struct argExecTasQ));
-  retasQ->go_on = malloc(sizeof(int));
-  *(retasQ->go_on)=1;
+  (retasQ->go_on)=1;
   retasQ->tasQ = create_y_tasQ();
   retasQ->historytasQ = create_y_tasQ();
   return retasQ;
 }
 void free_argExecTasQ(struct argExecTasQ * arg){
-  free(arg->go_on);
   free_y_tasQ(arg->tasQ);
   free_y_tasQ(arg->historytasQ);
   free(arg);
+}
+
+int check_go_on_tasQ(struct argExecTasQ *argx){
+	int ret;
+	pthread_mutex_lock(argx->tasQ->mut_tasQ);
+	ret = (argx->go_on);
+	pthread_mutex_unlock(argx->tasQ->mut_tasQ);
+	return ret;
 }
 
 void * execute_task(void *arg){
@@ -70,7 +76,7 @@ void * execute_task(void *arg){
   struct y_tasQ *tasQ = argx->tasQ;
   struct y_tasQ *historytasQ = argx->historytasQ;
   struct list_y_TASK_T *l_task=NULL;
-  while(*(argx->go_on)){
+  while(check_go_on_tasQ(argx)){
 
     l_task = pull_tasQ(tasQ);
     printf("debug: is l_task NULL? = %d\n", l_task==NULL);
@@ -86,6 +92,9 @@ void * execute_task(void *arg){
 
 
   }
+    printf("debug: -------------------> exit task exec \n");
+    usleep(1000);
+  return NULL;
 }
 
 
