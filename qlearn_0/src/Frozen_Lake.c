@@ -264,8 +264,11 @@ void print_game_dim2(struct game *gm) {
                 code2dCoul(coul, cells[cur].content);
                 printf("\033[%ld;%ldm", coul->perm[0], coul->perm[1]);
                 if ( (gm->status)->rabbitRankPosition == cur  ){ /*lapin_pos.x == i && lapin_pos.y == j */ 
-                    printf("\033[37;01m");
-                }
+                    //printf("\033[47;01m");
+                    printf("\033[106m");
+                }else{
+                    printf("\033[49m");
+								}
                 printf("%2c: %8.4f |", action_name[k], cells[cur].Q[k]);
             }
             printf("%*c\n", 10, ' ');
@@ -321,7 +324,7 @@ void mainQlearning_game(struct game *gm){
 
         print_game_dim2(gm);
       
-  //      usleep((gm->delay)->delay_between_episodes);
+        usleep((gm->delay)->delay_between_episodes);
         
       }
       push_back_list_TYPE_L_INT(list_final_rewards, status->final_reward);
@@ -331,7 +334,7 @@ void mainQlearning_game(struct game *gm){
       printf(" %ld ",(list_final_rewards->current_list)->value);
     }
     remove_all_list_in_TYPE_L_INT(list_final_rewards);
- //   usleep((gm->delay)->delay_between_games);
+    usleep((gm->delay)->delay_between_games);
   }
   free(list_final_rewards);
 }
