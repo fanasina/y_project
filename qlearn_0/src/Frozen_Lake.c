@@ -217,7 +217,7 @@ void printLine(char c, int l, bool prec) {
     printf("\033[%d;0%dm", 0, 1); // noir // vide
     if (prec) printf("%*c\n", 10, ' ');
     for (int i = 0; i < l; i++)  printf("%c", c);
-    printf("%*c\n", 10, ' ');
+    printf("%*c||\n", 10, ' ');
 }
 void printLinec(char c, int l) {
     printLine(c, l, true);
@@ -234,10 +234,12 @@ void code2dCoul(dimension *color, enum Content content) {
   }
 }
 
+#if 0
 void gotoxy(int x, int y)
 {
     printf("%c[%d;%df", 0x1B, y, x);
 }
+#endif
 
 void print_game_dim2(struct game *gm) {
   struct cell *cells = gm->cells;
@@ -248,7 +250,10 @@ void print_game_dim2(struct game *gm) {
     long int *coord = malloc(2*sizeof(long int));
     int mult = dim->perm[0] * 14;
     char sep = '-';
-    gotoxy(0, 10);
+    //gotoxy(0, 10);
+    gotoxy(0, 0);
+		
+		printLinec('=',mult);
     for (long int j = 0; j < dim->perm[1]; j++) {
         for (long int i = 0; i < dim->perm[0]; i++) {
             long int cur = i + j * dim->perm[0];
@@ -257,6 +262,7 @@ void print_game_dim2(struct game *gm) {
             //printf("s:%2d,(%d,%d),%2c|", cells[cur].rankPosition, cells[cur].pos.x, cells[cur].pos.y, cont_name[cells[cur].c]);
             printf("s:%2ld,(%ld,%ld),%2c|", cur, i , j , content_name[cells[cur].content]);
         }
+				printf("%*c||", 10, ' ');
         printLinec(sep, mult);
         for (long int k = 0; k < ACTION_COUNT; k++) {
             for (long int i = 0; i < dim->perm[0]; i++) {
@@ -271,7 +277,7 @@ void print_game_dim2(struct game *gm) {
 								}
                 printf("%2c: %8.4f |", action_name[k], cells[cur].Q[k]);
             }
-            printf("%*c\n", 10, ' ');
+            printf("%*c||\n", 10, ' ');
         }
         printLine(sep, mult, false);
     }
@@ -292,7 +298,7 @@ void mainQlearning_game(struct game *gm){
   int random;
   long int NUMBER_EPISODE2 = (params->limit_EPISODES_number) * (params->limit_EPISODES_number);
   double proba_explor;
-  //srand(time(NULL));
+  srand(time(NULL));
 
   for(long int k=0 ; k < params->limit_game_number; ++k){
       generate_game(gm);
@@ -323,7 +329,8 @@ void mainQlearning_game(struct game *gm){
         status->final_reward += status->reward;
 
         print_game_dim2(gm);
-      
+     		
+			 	//getchar();	
         usleep((gm->delay)->delay_between_episodes);
         
       }
