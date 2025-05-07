@@ -4,6 +4,7 @@
 #define MMOD ((1 << (POW)) - 1)
 #define SUBA 5
 #define SUBB 8
+#if 0
 int xrand(){
   int mod = MMOD; // (1 << 17) - 1;
   int a = (1<<(POW-(SUBA))) - 1;
@@ -17,7 +18,9 @@ int xrand(){
   xi = xii;
 
   return xii;
-  /*
+}
+#else
+int xrand(){
   static bool init = true;
   if(init){
     init = false;
@@ -28,8 +31,9 @@ int xrand(){
   }
   int ret = rand ();
   return ret ;
-*/
 }
+#endif
+
 int irand(){
   int mod = MMOD; // (1 << 17) - 1;
   int a = (1<<(POW-(SUBA))) - 1;
