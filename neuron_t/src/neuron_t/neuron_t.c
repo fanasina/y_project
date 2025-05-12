@@ -635,7 +635,7 @@ void print_weight_in_neurons_##type(neurons_##type *nn, char *msg){\
     if(tmp->weight_in){\
       sprintf(vmsg,"%s layer %ld",msg,i++);\
       print_tensor_msg_##type(tmp->weight_in, vmsg);\
-    }else{printf("weight_in %d NULL\n",i);}\
+    }else{printf("weight_in %ld NULL\n",i);}\
     tmp = tmp->next_layer;\
   }\
 }\

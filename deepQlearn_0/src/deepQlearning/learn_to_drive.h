@@ -50,7 +50,8 @@ struct status_qlearning {
   size_t nb_episodes;
   size_t index_episode;
   int action;
-//  int last_action;
+  int ending;
+	pthread_mutex_t *mut_ending;
 //  size_t count_last_action;
 };
 

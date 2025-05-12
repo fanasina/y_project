@@ -24,9 +24,12 @@ int xrand(){
   static bool init = true;
   if(init){
     init = false;
-    struct timespec start_t;
+		srand(time(NULL));
+    /*
+		struct timespec start_t;
     clock_gettime(CLOCK_REALTIME, &start_t);
     srand(start_t.tv_nsec);
+		*/
       //srand(start_t.tv_nsec - start_t.tv_sec);
   }
   int ret = rand ();

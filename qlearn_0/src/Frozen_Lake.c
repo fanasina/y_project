@@ -330,7 +330,7 @@ void mainQlearning_game(struct game *gm){
 
         print_game_dim2(gm);
      		
-			 	//getchar();	
+			 //	getchar();	
         usleep((gm->delay)->delay_between_episodes);
         
       }

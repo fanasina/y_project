@@ -89,7 +89,11 @@ struct status_qlearning * create_status_qlearning (){
   status_ql->list_main_cumul = create_var_list_TYPE_L_INT();
   status_ql->list_target_cumul = create_var_list_TYPE_L_INT();
   status_ql->progress_best_cumul = create_var_list_TYPE_L_INT();
- 
+
+	status_ql->ending = 0;
+	status_ql->mut_ending=malloc(sizeof(pthread_mutex_t));
+	pthread_mutex_init(status_ql->mut_ending, NULL);
+
   //push_back_list_TYPE_L_INT(status_ql->list_main_cumul, 0);
   //push_back_list_TYPE_L_INT(status_ql->list_target_cumul, 0);
   push_back_list_TYPE_L_INT(status_ql->progress_best_cumul, -10000);
@@ -192,6 +196,8 @@ void free_status_qlearning(struct status_qlearning *status_ql){
   free_all_var_list_TYPE_L_INT(status_ql->list_main_cumul);
   free_all_var_list_TYPE_L_INT(status_ql->list_target_cumul);
   free_all_var_list_TYPE_L_INT(status_ql->progress_best_cumul);
+	pthread_mutex_destroy(status_ql->mut_ending);
+	free(status_ql->mut_ending);
   free(status_ql);
 }
 void free_delay_params (struct delay_params *dly_p){
@@ -258,6 +264,7 @@ void train_qlearning(struct RL_agent * rlAgent,
 
 //  free_tensor_TYPE_FLOAT(action_value);
 //  free_tensor_TYPE_FLOAT(next_action_value);
+  free_tensor_TYPE_FLOAT(experimental_values);
 
 }
 
@@ -276,7 +283,7 @@ int select_action(struct RL_agent * rlAgent){
     //init =false;
   //}
   //int random = xrand() % randRange;
-  float proba_explor =  (float) (rand() % (1<<17 -1))/ (1<<17 -1); //frand(); //(float)(random ) / randRange;
+  float proba_explor =  (float) (xrand() % (1<<17 -1))/ (1<<17 -1); //frand(); //(float)(random ) / randRange;
   if(proba_explor > rlAgent->qlearnParams->exploration_factor ){
     action = ARG_MAX_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  );
     //if(action == ARG_MIN_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  )) 
@@ -307,13 +314,21 @@ int select_action(struct RL_agent * rlAgent){
   return action;
 }
 
+int is_ending(struct status_qlearning *qlStatus){
+	int ret;
+  pthread_mutex_lock(qlStatus->mut_ending);
+	ret = qlStatus->ending;
+  pthread_mutex_unlock(qlStatus->mut_ending);
+	return ret;
+}
+
 void* runPrint(void *arg){
   struct RL_agent *rlAgent = (struct RL_agent*)arg;
   struct status_qlearning *qlStatus = rlAgent->status;
   struct print_params * pprint = rlAgent->pprint;
   struct vehicle *car = rlAgent->car;
   size_t count_print = 0;
-  while(1){
+  while(!is_ending(qlStatus)){
 if(/*(qlStatus->nb_episodes %125 == 0)  &&*/  pprint->printed){
           //pthread_mutex_lock(&(pprint->mut_printed));
           pthread_mutex_lock(&(car->mut_coord));
@@ -350,6 +365,7 @@ if(/*(qlStatus->nb_episodes %125 == 0)  &&*/  pprint->printed){
             clear_screen();
           }
   }
+	return NULL;
 }
 
 char *fileNameDateScore(char * pre, char* post,size_t score){
@@ -375,7 +391,7 @@ void learn_to_drive(struct RL_agent * rlAgent){
   pthread_t threadPrint;
   pthread_create(&threadPrint, NULL, runPrint, (void*)rlAgent);
   
-  while(true){
+ // while(true){
     for(size_t index_episode = 0; index_episode < qlParams->number_episodes; ++index_episode){
       reset(car);
       qlStatus->nb_training_after_updated_weight_in_target = 0;
@@ -414,7 +430,10 @@ void learn_to_drive(struct RL_agent * rlAgent){
       //  Sleep(pprint->delay->delay_between_episodes);
       //}
     }
-  }
+			pthread_mutex_lock(qlStatus->mut_ending);
+			qlStatus->ending = 1;
+			pthread_mutex_unlock(qlStatus->mut_ending);
+//  }
 
   pthread_join(threadPrint, NULL);
 }
