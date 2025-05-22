@@ -6,10 +6,11 @@ NAME_TEST=is_good
 CC=gcc
 YTESTDIR=$(PWD)/../../ytest_t
 YLISTDIR=$(PWD)/../../list_t
+YWORKDIR=$(PWD)/../../y_worker_t
 
 ROOT_DIR=$(PWD)/..
 INCLUDE_DIR=$(ROOT_DIR)/include
-CFLAGS=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include -I$(YLISTDIR)/src
+CFLAGS=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include -I$(YLISTDIR)/src -I$(YWORKDIR)/include
 LDFLAGS=-L$(YTESTDIR) -lytest -lpthread -lm -lOpenCL
 
 #SRC_DIR=$(ROOT_DIR)/src
@@ -33,11 +34,14 @@ YNODESRC_O=$(YNODESRC:.c=.o)
 YLISTSRC=$(YLISTDIR)/src/list_t/list_t.c
 YLISTSRC_O=$(YLISTSRC:.c=.o)
 
+YWORKSRC_0=$(YWORKDIR)/src/y_worker_t/y_worker_t.o
+YTASKSRC_0=$(YWORKDIR)/src/y_worker_t/y_task_t.o
+
 TOPTARGETS := all clean
 
-DEPS=$(YTESTDIR) $(YLISTDIR) $(ROOT_DIR)
+DEPS=$(YTESTDIR) $(YLISTDIR) $(YWORKDIR)  $(ROOT_DIR)
 
-OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YLISTSRC_O)
+OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YLISTSRC_O) $(YWORKSRC_0) $(YTASKSRC_0)
 
 
 LIB_YTEST=$(YTESTDIR)/libytest.so

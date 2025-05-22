@@ -22,6 +22,10 @@
 
 #include "y_socket_t/y_node_t.h"
 
+#include "y_worker_t/y_worker_t.h"
+#include "y_worker_t/y_task_t.h"
+
+
 #define BUF_SIZE 500
 
 #define type4 
