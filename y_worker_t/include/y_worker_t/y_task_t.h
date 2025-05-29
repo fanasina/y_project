@@ -44,4 +44,16 @@ void free_argExecTasQ(struct argExecTasQ * arg);
 
 void * execute_task(void *arg);
 
+struct dependency_task{
+  int done;
+  pthread_mutex_t *mut_dep;
+  pthread_cond_t *cond_dep;
+};
+
+struct dependency_task * create_dependency_task();
+void free_dependency_task(struct dependency_task * dep_task);
+
+void release_dependancy_task(struct dependency_task *dep);
+void wait_dependancy_task(struct dependency_task *dep);
+
 #endif /* Y_TASK_T_H__C */

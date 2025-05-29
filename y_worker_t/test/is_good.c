@@ -75,6 +75,25 @@ void* funcEnd(void* arg){
   return NULL;
 }
 
+void* funcDepRel(void* arg){
+  LOG("func: begin func release\n");
+  struct dependency_task *dep = (struct dependency_task*)arg;
+  size_t thread_id=pthread_self();
+  LOG("func: threadid=%ld\n", thread_id);
+  usleep(300000);
+  release_dependancy_task(dep);
+  LOG("==============-------------------> func: end func release in thread=%ld\n",thread_id);
+  return NULL;
+}
+void* funcDepCall(void* arg){
+  LOG("func: begin func Call dep\n");
+  struct dependency_task *dep = (struct dependency_task*)arg;
+  size_t thread_id=pthread_self();
+  LOG("func call: threadid=%ld\n", thread_id);
+  wait_dependancy_task(dep);
+  LOG("==============-----------------> func: end func call dep in thread=%ld\n",thread_id);
+  return NULL;
+}
 
 
 TEST(threads){
@@ -111,6 +130,17 @@ TEST(threads){
 //    usleep(10000);
   }
   LOG("%d tasks created\n",40);
+  
+  struct dependency_task * argDep = create_dependency_task();
+
+   struct y_task_t taskCal = {
+      .func=funcDepCall,
+      .arg=argDep,
+      .status=TASK_PENDING,
+    };
+    push_tasQ(argx->tasQ, taskCal);
+
+  LOG(" +++++++++++++++++ task call dep created\n");
 
 	for(int i=4; i<8; ++i){
     struct y_worker_t *pw= create_ptr_y_WORKER_T(GO_ON_WORKER, i);
@@ -124,7 +154,16 @@ TEST(threads){
 //usleep(500);
   }
  LOG("another %d workers created\n",4);
+   struct y_task_t taskR = {
+      .func=funcDepRel,
+      .arg=argDep,
+      .status=TASK_PENDING,
+    };
+    push_tasQ(argx->tasQ, taskR);
+  LOG(" +++++++++++++++++ task rel dep created\n");
 
+//usleep(50);
+ 
 	kill_all_workers(workers, argx);
 
 	wait_and_free_workers(workers);
@@ -133,6 +172,7 @@ TEST(threads){
   pthread_mutex_destroy(mut_workers);
   free(mut_workers);  
 
+  free_dependency_task(argDep);
 }
 
 int main(int argc, char **argv){

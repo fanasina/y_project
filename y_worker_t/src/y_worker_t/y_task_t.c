@@ -26,27 +26,27 @@ void free_y_tasQ(struct y_tasQ * tasQ){
 }
 
 void push_tasQ(struct y_tasQ *tasQ, struct y_task_t task){
-  printf("debug: push_tasQ debut\n");
+  //printf("debug: push_tasQ debut\n");
   pthread_mutex_lock(tasQ->mut_tasQ);
   push_back_list_y_TASK_T(tasQ->list_tasQ, task);
   pthread_mutex_unlock(tasQ->mut_tasQ);
   pthread_cond_signal(tasQ->cond_tasQ);
-  printf("debug: push_tasQ fin\n");
+  //printf("debug: push_tasQ fin\n");
 }
 struct list_y_TASK_T* pull_tasQ(struct y_tasQ *tasQ){
-  printf("debug: pull_tasQ debut id_th:%ld\n",pthread_self());
+  //printf("debug: pull_tasQ debut id_th:%ld\n",pthread_self());
   struct list_y_TASK_T *valueRet = NULL;
   pthread_mutex_lock(tasQ->mut_tasQ);
   while(tasQ->list_tasQ->end_list == NULL){
     pthread_cond_wait(tasQ->cond_tasQ, tasQ->mut_tasQ);
   }
-  printf("debug: call pull_end_from_list_y_TASK_T  debut\n");
+  //printf("debug: call pull_end_from_list_y_TASK_T  debut\n");
   valueRet  = pull_end_from_list_y_TASK_T(tasQ->list_tasQ);
-  printf("debug: call pull_end_from_list_y_TASK_T  fin, is tasQ NULL? : %d\nis tasQ->list_tasQ NULL?:%d\n", tasQ==NULL, tasQ->list_tasQ == NULL);
+  //printf("debug: call pull_end_from_list_y_TASK_T  fin, is tasQ NULL? : %d\nis tasQ->list_tasQ NULL?:%d\n", tasQ==NULL, tasQ->list_tasQ == NULL);
   pthread_mutex_unlock(tasQ->mut_tasQ);
  
 
-  printf("debug: pull_tasQ fin : is valueRet NULL ? = %d, id_th:%ld\n", valueRet == NULL, pthread_self());
+  //printf("debug: pull_tasQ fin : is valueRet NULL ? = %d, id_th:%ld\n", valueRet == NULL, pthread_self());
   return valueRet;
 }
 
@@ -79,7 +79,7 @@ void * execute_task(void *arg){
   while(check_go_on_tasQ(argx)){
 
     l_task = pull_tasQ(tasQ);
-    printf("debug: is l_task NULL? = %d\n", l_task==NULL);
+    //printf("debug: is l_task NULL? = %d\n", l_task==NULL);
     if(l_task){
       if((l_task->value.status != TASK_DONE) && (l_task->value.func!=NULL))
         l_task->value.ret = l_task->value.func(l_task->value.arg);
@@ -92,9 +92,45 @@ void * execute_task(void *arg){
 
 
   }
-    printf("debug: -------------------> exit task exec \n");
-    usleep(1000);
+    //printf("debug: -------------------> exit task exec \n");
+  //  usleep(1000);
   return NULL;
 }
 
+struct dependency_task * create_dependency_task(){
+  struct dependency_task *dep=malloc(sizeof(struct dependency_task));
+
+  dep->mut_dep = malloc(sizeof(pthread_mutex_t));
+  dep->cond_dep = malloc(sizeof(pthread_cond_t));
+  pthread_mutex_init(dep->mut_dep, NULL);
+  pthread_cond_init(dep->cond_dep, NULL);
+  dep->done = 0;
+
+  return dep;
+}
+
+void free_dependency_task(struct dependency_task * dep_task){
+  pthread_mutex_destroy(dep_task->mut_dep);
+  pthread_cond_destroy(dep_task->cond_dep);
+  free(dep_task->mut_dep);
+  free(dep_task->cond_dep);
+
+  free(dep_task);
+  dep_task= NULL;
+}
+
+void release_dependancy_task(struct dependency_task *dep){
+  pthread_mutex_lock(dep->mut_dep);
+  dep->done = 1;
+  pthread_mutex_unlock(dep->mut_dep);
+  pthread_cond_signal(dep->cond_dep);
+}
+
+void wait_dependancy_task(struct dependency_task *dep){
+  pthread_mutex_lock(dep->mut_dep);
+  while(!(dep->done)){
+    pthread_cond_wait(dep->cond_dep, dep->mut_dep);
+  }
+  pthread_mutex_unlock(dep->mut_dep);
+}
 

@@ -56,21 +56,21 @@ void* execute_work(void* arg){
   pworker->status=WORKER_ON;
   pworker->id_thread=id_thread;
   pthread_mutex_unlock(pworker->mut_worker);
-    printf("debug: ############################ execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
+    //printf("debug: ############################ execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
   do{
-    printf("debug: execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
+    //printf("debug: execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
     execute_task((void*)argx);
-    printf("debug: <<<<>>>> execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
+    //printf("debug: <<<<>>>> execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
   pthread_mutex_lock(pworker->mut_worker);
   exec=pworker->exec;
   pthread_mutex_unlock(pworker->mut_worker);
-    printf("debug: execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
+    //printf("debug: execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
   }while(exec);
 
   
   pthread_mutex_lock(pworker->mut_worker);
   pworker->status=WORKER_OFF;
-    printf("debug: =========>>>  execute_task end, worker OFF =%d, id=%ld self:%ld\n",pworker->status, pworker->id, pworker->id_thread);
+    //printf("debug: =========>>>  execute_task end, worker OFF =%d, id=%ld self:%ld\n",pworker->status, pworker->id, pworker->id_thread);
   pthread_mutex_unlock(pworker->mut_worker);
 	pthread_cond_signal(pworker->cond_worker);
   //free_y_worker_t(worker);
@@ -82,6 +82,7 @@ void kill_all_workers(
 								struct main_list_ptr_y_WORKER_T * workers,
 								struct argExecTasQ *argx
 ){
+  usleep(100); // need interruption to wait a little bit
   for(move_current_to_begin_list_ptr_y_WORKER_T(workers); workers->current_list;increment_list_ptr_y_WORKER_T(workers)){
       pthread_mutex_lock(workers->current_list->value->mut_worker);
       workers->current_list->value->exec=KILL_WORKER;
@@ -118,17 +119,11 @@ void wait_and_free_workers(struct main_list_ptr_y_WORKER_T *workers){
       }
       reterror = pthread_join(*(workers->current_list->value->thread) ,NULL);
       if(0!=reterror){
-      printf("debug: error %d pthread_join  thread %ld\n",reterror,(workers->current_list->value->id));
+      //printf("debug: error %d pthread_join  thread %ld\n",reterror,(workers->current_list->value->id));
     }
-    printf("debug: JOIN done, thread id:%ld id_thread:%ld\n",
-        (workers->current_list->value->id),
-        (workers->current_list->value->id_thread)
-        );
+    //printf("debug: JOIN done, thread id:%ld id_thread:%ld\n", (workers->current_list->value->id), (workers->current_list->value->id_thread) );
     }else{
-    printf("debug: thread id:%ld id_thread:%ld already KILLED\n",
-        (workers->current_list->value->id),
-        (workers->current_list->value->id_thread)
-        );
+    //printf("debug: thread id:%ld id_thread:%ld already KILLED\n", (workers->current_list->value->id),  (workers->current_list->value->id_thread)  );
 
     }
 
