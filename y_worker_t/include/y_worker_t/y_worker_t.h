@@ -14,6 +14,7 @@
 #define WORKER_ON 1
 #define WORKER_OFF 0
 
+
 struct argWorker;
 
 typedef struct y_worker_t{
@@ -29,29 +30,41 @@ typedef struct y_worker_t{
 
 typedef struct y_worker_t * ptr_y_WORKER_T;
 
+
 //GENERATE_LIST_ALL(y_WORKER_T)
 
 GENERATE_LIST_ALL(ptr_y_WORKER_T)
+//GENERATE_PTR_type_SIG((ptr_y_WORKER_T)
 
-ptr_y_WORKER_T create_ptr_y_WORKER_T(int exec, int id);
-void free_ptr_y_WORKER_T(ptr_y_WORKER_T pworker);
 
-void purge_ptr_y_WORKER_T_in_list(struct main_list_ptr_y_WORKER_T *list_workers);
+//ptr_y_WORKER_T create_ptr_y_WORKER_T(int exec, int id);
+ptr_y_WORKER_T create_ptr_y_WORKER_T(struct main_list_ptr_y_WORKER_T * workers, 
+                                      struct main_list_TYPE_PTR *list_arg, 
+                                      pthread_mutex_t *mut_workers,
+                                     struct argExecTasQ *argx, int exec, int id );
+//void free_ptr_y_WORKER_T(ptr_y_WORKER_T pworker);
+
+
+void purge_list_ptr_y_WORKER_T(struct main_list_ptr_y_WORKER_T *list_workers);
+void purge_list_TYPE_PTR(struct main_list_TYPE_PTR *list_voids);
 
 struct argWorker {
   struct argExecTasQ *argx;
   struct y_worker_t *pworker;
+  struct main_list_ptr_y_WORKER_T * workers;
+  struct main_list_TYPE_PTR * list_arg;
+
   pthread_mutex_t *mut_workers;
 };
 
-void assign_argWorker_of_ptr_y_WORKER_T(ptr_y_WORKER_T pworker, struct argExecTasQ *argx, pthread_mutex_t *mut_worker);
 
 void* execute_work(void* arg);
 
-void kill_all_workers(
-                struct main_list_ptr_y_WORKER_T * workers,
-                struct argExecTasQ *argx
-);
-void wait_and_free_workers(struct main_list_ptr_y_WORKER_T *workers);
+void kill_all_workers(struct argWorker *argw);
+
+//void kill_all_workers(struct main_list_ptr_y_WORKER_T * workers, struct argExecTasQ *argx);
+//void wait_workers(struct main_list_ptr_y_WORKER_T *workers);
+//void free_workers(struct main_list_ptr_y_WORKER_T *workers);
+void free_workers_and_argx(struct main_list_ptr_y_WORKER_T *workers,  struct argExecTasQ *argx);
 
 #endif /* Y_WORKER_T_H__C */

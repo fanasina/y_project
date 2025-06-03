@@ -33,6 +33,7 @@
   struct list_##type * search_first_occ_with_mov_from_curr_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type), void (*incr_or_decr_mov)(struct main_list_##type *));\
   struct list_##type * search_first_occ_from_begin_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type));\
   struct list_##type * pull_end_from_list_##type(struct main_list_##type *var_list);\
+  struct list_##type * pull_begin_from_list_##type(struct main_list_##type *var_list);\
   void append_list_##type(struct main_list_##type *var_list, struct list_##type *list);\
  
 
@@ -78,6 +79,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
     }else {\
       var_list->begin_list = list_to_add;\
       var_list->current_list= list_to_add;\
+      var_list->current_index=0;\
     }\
     var_list->end_list = list_to_add;\
     ++(var_list->size);\
@@ -93,6 +95,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
     }else {\
       var_list->end_list = list_to_add;\
       var_list->current_list= list_to_add;\
+      var_list->current_index=0;\
     }\
     var_list->begin_list = list_to_add;\
     ++(var_list->size);\
@@ -230,6 +233,24 @@ GENERATE_LIST_ALL(TYPE_PTR)
       }\
       var_list->end_list = prevL;\
       --(var_list->size);\
+      ret->preview = NULL;\
+    }\
+    return ret;\
+  }\
+  struct list_##type * pull_begin_from_list_##type(struct main_list_##type *var_list){\
+    struct list_##type *ret = var_list->begin_list;\
+    if(ret != NULL){\
+      struct list_##type * nextL = ret->next;\
+      if(nextL != NULL){\
+        nextL->preview=NULL;\
+      }else{\
+        var_list->end_list=NULL;\
+        var_list->current_index = 0;\
+        var_list->current_list=NULL;\
+      }\
+      var_list->begin_list = nextL;\
+      --(var_list->size);\
+      ret->next = NULL;\
     }\
     return ret;\
   }\

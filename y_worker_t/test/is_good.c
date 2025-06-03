@@ -52,14 +52,14 @@ TEST(worker){
 #endif 
 
 void* funcPrintSelf(void* arg){
-  LOG("func: begin func call\n");
-  struct argExecTasQ *argx=(struct argExecTasQ*)arg;
-  static long int count = 0; //randomm=rand()%1000;
+  int *count = (int*)arg; //randomm=rand()%1000;
+  LOG("func: begin func call %d\n",*count);
+//  struct argExecTasQ *argx=(struct argExecTasQ*)arg;
   size_t thread_id=pthread_self();
-  LOG("func: my status=%d, func number=%ld; threadid=%ld\n",(argx->go_on), count, thread_id);
+  LOG("func:  number=%d; threadid=%ld\n", *count, thread_id);
   usleep(200000);
-  LOG("func: end func %ld; in thread=%ld\n",count,thread_id);
-	++count;
+  LOG("func: end func %d; in thread=%ld\n",*count,thread_id);
+//  free(count);
   return NULL;
 }
 
@@ -98,40 +98,51 @@ void* funcDepCall(void* arg){
 
 TEST(threads){
 
+
   srand(time(NULL));
   struct main_list_ptr_y_WORKER_T * workers = create_var_list_ptr_y_WORKER_T();
+  
+  struct main_list_TYPE_PTR * list_arg = create_var_list_TYPE_PTR();
+
   struct argExecTasQ *argx =  create_argExecTasQ();
   pthread_mutex_t *mut_workers = malloc(sizeof(pthread_mutex_t));
   pthread_mutex_init(mut_workers, NULL);  
   
-  
-  for(int i=0; i<4; ++i){
-    struct y_worker_t *pw= create_ptr_y_WORKER_T(GO_ON_WORKER, i);
-    assign_argWorker_of_ptr_y_WORKER_T(pw, argx, mut_workers);
-    pthread_mutex_lock(mut_workers);
-    //append_list_ptr_y_WORKER_T(workers, li_pw);
-    push_back_list_ptr_y_WORKER_T(workers, pw);
-    pthread_mutex_unlock(mut_workers);
-  LOG("%d workers %ld created\n",4,(pw->arg->pworker->id));
-    pthread_create(pw->thread,NULL,execute_work,(void*)(pw->arg));
+int nb_worker=4;  
+  for(int i=0; i<nb_worker; ++i){
+   
+    struct y_worker_t *pw= create_ptr_y_WORKER_T(workers, list_arg, mut_workers, argx, GO_ON_WORKER, i);
+
+  LOG(" - / -----  -- / ---  %d workers %ld created\n",nb_worker,(pw->arg->pworker->id));
 //usleep(500);
   }
-//usleep(500000);
+usleep(50000);
  
-
-  for(int i=0; i<40;++i)
+int nb_task=9;
+  for(int i=0; i<nb_task;++i)
   { 
+    int *j=malloc(sizeof(int));
+    *j=i*100;
     struct y_task_t task = {
       .func=funcPrintSelf,
-      .arg=argx,
+      .arg=j,
       .status=TASK_PENDING,
     };
     push_tasQ(argx->tasQ, task);
+    push_back_list_TYPE_PTR(list_arg, j);
 //    usleep(10000);
   }
-  LOG("%d tasks created\n",40);
+  LOG("%d tasks created\n",nb_task);
   
   struct dependency_task * argDep = create_dependency_task();
+   struct y_task_t taskR = {
+      .func=funcDepRel,
+      .arg=argDep,
+      .status=TASK_PENDING,
+    };
+    push_tasQ(argx->tasQ, taskR);
+  LOG(" +++++++++++++++++ task rel dep created\n");
+
 
    struct y_task_t taskCal = {
       .func=funcDepCall,
@@ -141,38 +152,51 @@ TEST(threads){
     push_tasQ(argx->tasQ, taskCal);
 
   LOG(" +++++++++++++++++ task call dep created\n");
-
+/*
 	for(int i=4; i<8; ++i){
-    struct y_worker_t *pw= create_ptr_y_WORKER_T(GO_ON_WORKER, i);
-    assign_argWorker_of_ptr_y_WORKER_T(pw, argx, mut_workers);
-    pthread_mutex_lock(mut_workers);
-    //append_list_ptr_y_WORKER_T(workers, li_pw);
-    push_back_list_ptr_y_WORKER_T(workers, pw);
-    pthread_mutex_unlock(mut_workers);
-  LOG("%d workers %ld created\n",4,(pw->arg->pworker->id));
-    pthread_create(pw->thread,NULL,execute_work,(void*)(pw->arg));
+    struct y_worker_t *pw= create_ptr_y_WORKER_T(workers, mut_workers, argx, GO_ON_WORKER, i);
+    LOG("%d workers %ld created\n",4,(pw->arg->pworker->id));
 //usleep(500);
   }
+
  LOG("another %d workers created\n",4);
-   struct y_task_t taskR = {
-      .func=funcDepRel,
-      .arg=argDep,
-      .status=TASK_PENDING,
-    };
-    push_tasQ(argx->tasQ, taskR);
-  LOG(" +++++++++++++++++ task rel dep created\n");
-
-//usleep(50);
+*/
+  usleep(600000);
  
-	kill_all_workers(workers, argx);
+	kill_all_workers(workers->begin_list->value->arg);
+//	kill_all_workers(workers, argx);
 
-	wait_and_free_workers(workers);
+//	wait_workers(workers);
+//usleep(50000);
+//	free_workers_and_argx(workers, argx);
 
+//  free_argExecTasQ(argx);
+//  pthread_mutex_destroy(mut_workers);
+//  free(mut_workers);  
+
+/*  
+
+  purge_ptr_y_WORKER_T_in_list(workers);
+  free_all_var_list_ptr_y_WORKER_T(workers);
+  
   free_argExecTasQ(argx);
-  pthread_mutex_destroy(mut_workers);
-  free(mut_workers);  
+*/
+ 
+//  kill_all_workers(workers, argx);
+   
+/*  pthread_mutex_destroy(mut_workers);
+  free(mut_workers);
+*/
 
-  free_dependency_task(argDep);
+free_dependency_task(argDep);
+ 
+//  purge_TYPE_PTR_in_list(void_list_arg); 
+//  free_all_var_list_TYPE_PTR(void_list_arg);
+  
+/*  purge_list_TYPE_PTR(list_arg);
+  purge_list_ptr_y_WORKER_T(workers);
+  free_argExecTasQ(argx);  
+  */
 }
 
 int main(int argc, char **argv){
