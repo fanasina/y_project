@@ -44,7 +44,7 @@ ptr_y_WORKER_T create_ptr_y_WORKER_T(struct main_list_ptr_y_WORKER_T * workers,
 
 	return pworker;
 }
-void free_ptr_y_WORKER_T(void* p_worker){
+void __free_ptr_y_WORKER_T(void* p_worker){
 	ptr_y_WORKER_T pworker = (struct y_worker_t*)p_worker;
 	pthread_mutex_destroy(pworker->mut_worker);
 	free(pworker->mut_worker);
@@ -55,7 +55,7 @@ void free_ptr_y_WORKER_T(void* p_worker){
 	free(pworker);
 }
 
-
+/*
 void purge_list_ptr_y_WORKER_T(struct main_list_ptr_y_WORKER_T *list_workers){
 	for(move_current_to_begin_list_ptr_y_WORKER_T(list_workers); list_workers->current_list; increment_list_ptr_y_WORKER_T(list_workers)){
 		free_ptr_y_WORKER_T(list_workers->current_list->value);
@@ -69,7 +69,7 @@ void purge_list_TYPE_PTR(struct main_list_TYPE_PTR *list_voids){
   free_all_var_list_TYPE_PTR(list_voids);
 }
 
-
+*/
 
 
 void* execute_work(void* arg){
@@ -122,6 +122,17 @@ int check_worker_status(struct y_worker_t * pworker ){
   return ret;
 }
 
+GEN_FUNC_PTR_LIST_FREE(ptr_y_WORKER_T){
+  ptr_y_WORKER_T pworker = (struct y_worker_t*)arg;
+  pthread_mutex_destroy(pworker->mut_worker);
+  free(pworker->mut_worker);
+  pthread_cond_destroy(pworker->cond_worker);
+  free(pworker->cond_worker);
+  free(pworker->thread);
+  free(pworker->arg);
+  free(pworker);
+} 
+
 void kill_all_workers ( struct argWorker *argw){
   	struct main_list_ptr_y_WORKER_T * workers  = argw->workers;
 	  struct argExecTasQ *argx = argw->argx;
@@ -155,10 +166,13 @@ void kill_all_workers ( struct argWorker *argw){
  
   pthread_mutex_destroy(argw->mut_workers);
   free(argw->mut_workers);
-
+/*
   purge_list_TYPE_PTR(argw->list_arg);
   purge_list_ptr_y_WORKER_T(workers);
-
+*/
+  purge_ptr_type_list_TYPE_PTR(argw->list_arg);
+  purge_ptr_type_list_ptr_y_WORKER_T(workers);
+  
   free_argExecTasQ(argx);
   
 

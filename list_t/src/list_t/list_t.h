@@ -270,10 +270,37 @@ GENERATE_LIST_ALL(TYPE_PTR)
   }\
   
 
+#define GEN_HEAD_PTR_LIST(type)\
+  void purge_ptr_type_list_##type(struct main_list_##type *var_list);\
+  void free_##type(void *arg);\
+
+
+
+#define GEN_FUNC_PTR_LIST_FREE(type)\
+  void purge_ptr_type_list_##type(struct main_list_##type *var_list){\
+    struct list_##type *tmp = var_list->begin_list;\
+    while(tmp){\
+      var_list->current_list = tmp;\
+      tmp = tmp->next;\
+      free_##type(var_list->current_list->value);\
+      free(var_list->current_list);\
+    }\
+    var_list->begin_list = NULL;\
+    var_list->current_list = NULL;\
+    var_list->end_list = NULL;\
+    var_list->size = 0;\
+    var_list->current_index = 0;\
+  }\
+  void free_##type(void *arg)\
+
+
+GEN_HEAD_PTR_LIST(TYPE_PTR)
+
 
 #define LIST_T(type) \
     GENERATE_LIST_ALL(type)\
     GEN_LIST_ALL(type)
+
 
 
 #endif /* __LIST_T_C__H */

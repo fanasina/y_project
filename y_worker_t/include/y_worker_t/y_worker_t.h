@@ -34,7 +34,7 @@ typedef struct y_worker_t * ptr_y_WORKER_T;
 //GENERATE_LIST_ALL(y_WORKER_T)
 
 GENERATE_LIST_ALL(ptr_y_WORKER_T)
-//GENERATE_PTR_type_SIG((ptr_y_WORKER_T)
+GEN_HEAD_PTR_LIST(ptr_y_WORKER_T)
 
 
 //ptr_y_WORKER_T create_ptr_y_WORKER_T(int exec, int id);
