@@ -290,6 +290,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
     var_list->end_list = NULL;\
     var_list->size = 0;\
     var_list->current_index = 0;\
+		free(var_list);\
   }\
   void free_##type(void *arg)\
 
