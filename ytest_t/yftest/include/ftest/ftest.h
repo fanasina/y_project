@@ -97,7 +97,7 @@ extern char *varHK_EQ, *varHK_TR, *varHK_RN, *varHK_DN, *varHK_OK, *varHK_FL, *v
       fprintf(stream,  __VA_ARGS__); \
       fflush(stream);\
       if(is_parallel_nb){\
-        long int id_thread=id_of_thread_executed();\
+        long int id_thread=id_of_thread_executed(__func__);\
         if(log_parallel){\
             fprintf(F_OUT, "%s",buf);\
             if(id_thread >= 0){\
@@ -159,7 +159,7 @@ struct func {
 
 extern bool is_parallel_nb;
 
-long int id_of_thread_executed(void);
+long int id_of_thread_executed(const char *func_call_name);
 
 void parse_options(int argc, char **argv);
 
@@ -833,7 +833,7 @@ do{                                                                             
       }                                                                                               \
   }                                                                                                   \
   else{                                                                                               \
-    size_t id_thread=id_of_thread_executed();                                                         \
+    size_t id_thread=id_of_thread_executed(__func__);                                                         \
       if(expected_##expect##_f_name(var1, __func__)){                                                 \
         PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s, on thread[%ld]\n\n",__func__,id_thread);    \
       }                                                                                               \
@@ -858,7 +858,7 @@ do{                                                                             
       }                                                                                               \
   }\
   else{\
-    size_t id_thread=id_of_thread_executed();                                                         \
+    size_t id_thread=id_of_thread_executed(__func__);                                                         \
       if(expected_##expect##_f_name(var1, __func__)){                                                 \
         PRINT_HK_C(colors_f[k_GREEN],tab_hk_f[hk_TR]," 1 test passed from %s, on thread[%ld]\n\n",__func__,id_thread);    \
       }                                                                                               \

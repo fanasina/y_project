@@ -207,7 +207,7 @@ void append_failed_list(struct failed_lists **fn_failed_list ,const char *name_f
 /*
  * match the id global (gives by OS) of the thread with the local (the program) id of thread
  */ 
-long int id_of_thread_executed(void){
+long int id_of_thread_executed(const char * func_call_name){
   size_t id_from_self = pthread_self();
   for(long int i=0; i<= parallel_nb; ++i){
     if(id_thread_self[i] == id_from_self)
@@ -217,7 +217,7 @@ long int id_of_thread_executed(void){
     for(long int i=0; i<= parallel_nb; ++i)
       PRINT_DEBUG(" id_thread_self[%ld] = %ld \n", i, id_thread_self[i]);
   }*/
-  PRINT_ERROR("\nsomething wrong on %s, id_from_self: %ld\n",__func__,id_from_self);
+  PRINT_ERROR("\nsomething wrong on %s, called by <%s>, id_from_self: %ld\n",__func__, func_call_name,id_from_self);
   return -1;
 }
 
@@ -666,10 +666,10 @@ void parse_options(int argc, char **argv){
     }
 
 
-void list_failed_test(struct failed_lists *test_failed){
+void list_failed_test(struct failed_lists *test_failed, const char * func_call_name){
   struct failed_lists *failed_lst = test_failed;
   if(is_parallel_nb){
-    long int  id_thrd = id_of_thread_executed();
+    long int  id_thrd = id_of_thread_executed(func_call_name);
     if(id_thrd < 0 || id_thrd == parallel_nb ){
       LISTE_ALL_FAILED_TEST_IN_F_OUT
     }else{
@@ -997,7 +997,7 @@ stat_end_run(size_t ntst, struct timespec start_t){
   PRINT_HK_C(colors_f[k_GREEN], tab_hk_f[hk_PS]," %lu tests\n", count_pass_global);
   if(failed_l != NULL){
     PRINT_HK_C(colors_f[k_RED], tab_hk_f[hk_FL]," %lu tests, listed below:\n",count_fail_global); 
-    list_failed_test(failed_l);
+    list_failed_test(failed_l, __func__);
     PRINT_HK_C("","","\n%ld FAILED TESTS \n",count_fail_global);
   }
 }
@@ -1168,7 +1168,7 @@ stat_end_parallel_run(size_t ntst, struct timespec start_t, size_t id_thrd){
   PRINT_HK_C(colors_f[k_GREEN], tab_hk_f[hk_PS]," %lu tests passed on thread[%ld]\n", count_pass_thread[id_thrd], id_thrd);
   if(thread_test_failed_l[id_thrd] != NULL){
     PRINT_HK_C(colors_f[k_RED], tab_hk_f[hk_FL]," %lu tests failed on thread[%ld], listed below:\n",count_fail_thread[id_thrd],id_thrd); 
-    list_failed_test(thread_test_failed_l[id_thrd]);
+    list_failed_test(thread_test_failed_l[id_thrd], __func__);
   }
 }
 /*
@@ -1188,7 +1188,7 @@ stat_end_all_parallel_run(size_t ntst, struct timespec start_t){
   PRINT_HK_C(colors_f[k_GREEN], tab_hk_f[hk_PS]," %lu tests\n", count_pass_global);
   if(failed_l != NULL){
     PRINT_HK_C(colors_f[k_RED], tab_hk_f[hk_FL]," %lu tests, listed below:\n",count_fail_global); 
-    list_failed_test(failed_l);
+    list_failed_test(failed_l, __func__);
     PRINT_HK_C("","","\n%ld FAILED TESTS \n",count_fail_global);
   }
 }
