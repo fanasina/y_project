@@ -103,6 +103,9 @@ extern char *varHK_EQ, *varHK_TR, *varHK_RN, *varHK_DN, *varHK_OK, *varHK_FL, *v
             if(id_thread >= 0){\
               fprintf(f_ou_th[id_thread], "%s",buf);\
               fflush(f_ou_th[id_thread]);\
+            }else{\
+              fprintf(f_ou_th[parallel_nb], "%s",buf);\
+              fflush(f_ou_th[parallel_nb]);\
             }\
         }\
         else{\
@@ -112,6 +115,8 @@ extern char *varHK_EQ, *varHK_TR, *varHK_RN, *varHK_DN, *varHK_OK, *varHK_FL, *v
             }\
             else {\
               fprintf(F_OUT, "%s",buf);\
+              fprintf(f_ou_th[parallel_nb], "%s",buf);\
+              fflush(f_ou_th[parallel_nb]);\
             }\
         }\
       } \
@@ -158,6 +163,7 @@ struct func {
 
 
 extern bool is_parallel_nb;
+extern size_t parallel_nb ;
 
 long int id_of_thread_executed(const char *func_call_name);
 

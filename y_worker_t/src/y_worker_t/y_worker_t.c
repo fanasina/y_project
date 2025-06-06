@@ -86,21 +86,21 @@ void* execute_work(void* arg){
   pworker->id_thread=id_thread;
   pthread_mutex_unlock(pworker->mut_worker);
 	pthread_cond_signal(pworker->cond_worker);
-    printf("debug: ############################ execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
+    //printf("debug: ############################ execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
   do{
-    printf("debug: execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
+    //printf("debug: execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
     execute_task((void*)argx);
-    printf("debug: <<<<>>>> execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
+    //printf("debug: <<<<>>>> execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
   pthread_mutex_lock(pworker->mut_worker);
   exec=pworker->exec;
   pthread_mutex_unlock(pworker->mut_worker);
-    printf("debug: execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
+    //printf("debug: execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
   }while(exec);
 
   
   pthread_mutex_lock(pworker->mut_worker);
   pworker->status=WORKER_OFF;
-    printf("debug: =========>>>  execute_task end, worker OFF =%d, id=%ld self:%ld\n",pworker->status, pworker->id, pworker->id_thread);
+    //printf("debug: =========>>>  execute_task end, worker OFF =%d, id=%ld self:%ld\n",pworker->status, pworker->id, pworker->id_thread);
   pthread_mutex_unlock(pworker->mut_worker);
 	pthread_cond_signal(pworker->cond_worker);
 //	usleep(1000);
