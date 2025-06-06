@@ -217,7 +217,8 @@ long int id_of_thread_executed(const char * func_call_name){
     for(long int i=0; i<= parallel_nb; ++i)
       PRINT_DEBUG(" id_thread_self[%ld] = %ld \n", i, id_thread_self[i]);
   }*/
-  PRINT_ERROR("\nsomething wrong on %s, called by <%s>, id_from_self: %ld\n",__func__, func_call_name,id_from_self);
+	/* no error, when pthread is call in a test, we will not have a match! */
+ 	PRINT_DEBUG("\n debug [%s]: called by <%s>, id_from_self: %ld\n",__func__, func_call_name,id_from_self);
   return -1;
 }
 
