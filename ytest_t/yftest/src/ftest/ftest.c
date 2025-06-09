@@ -1014,9 +1014,9 @@ bool is_in_array_##type(type *array, type val){\
   for(size_t i = 0; i < cur_array_##type; ++i){\
     char * strarr = type##_TO_STR(array[i]), *strval = type##_TO_STR(val);\
     PRINT_DEBUG("compare |%s| in array and val: |%s|\n",strarr, strval);\
-    free(strarr);free(strval);\
+    if(strcmp(#type, "TYPE_STRING" ) != 0 ){ free(strarr);free(strval); }\
     /*PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));*/\
-    if(COMPARE_N_##type((void*)(array[i]),(void*)val  ) == 0 ){\
+    if(COMPARE_N_##type((void*)(&array[i]),(void*)&val  ) == 0 ){\
       found = true;\
       break;\
     }\
@@ -1025,6 +1025,7 @@ bool is_in_array_##type(type *array, type val){\
   return found;\
 }\
 
+// no need anymore, combined with above!!
 #define GEN_IS_IN_ARRAY_NUM(type)\
 bool is_in_array_##type(type *array, type val){\
   bool found = false;\
@@ -1044,7 +1045,7 @@ bool is_in_array_##type(type *array, type val){\
 
 
 GEN_IS_IN_ARRAY_PTR(TYPE_STRING)
-GEN_IS_IN_ARRAY_NUM(TYPE_SIZE_T)
+GEN_IS_IN_ARRAY_PTR(TYPE_SIZE_T)
 
 /*
  * extract name test between () because the syntax is TEST(name_test)

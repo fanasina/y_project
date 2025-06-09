@@ -6,8 +6,10 @@ SOCDIR=$(PWD)
 #$(wildcard $(PWD)/**/include)
 
 YLISTDIR=$(PWD)/../list_t
+YWORKDIR=$(PWD)/../y_worker_t
 
-INCLUDE=-I$(INCLUDE_DIRS) -I$(YLISTDIR)/src
+
+INCLUDE=-I$(INCLUDE_DIRS) -I$(YLISTDIR)/src -I$(YWORKDIR)/include
 CFLAGS=-g -lpthread -Wall -Werror -fpic $(INCLUDE) #"-D DEBUG=1" 
 #LDFLAGS=
 
@@ -21,13 +23,15 @@ YNODESRC_O=$(YNODESRC:.c=.o)
 YLISTSRC=$(YLISTDIR)/src/list_t/list_t.c
 YLISTSRC_O=$(YLISTSRC:.c=.o)
 
+WORKSRC_0=$(YWORKDIR)/src/y_worker_t/y_worker_t.o
+YTASKSRC_0=$(YWORKDIR)/src/y_worker_t/y_task_t.o
 
 
 TOPTARGETS := all clean 
 
-DEPS=$(YLISTDIR) 
+DEPS=$(YLISTDIR) $(YWORKDIR)
 
-OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YLISTSRC_O)
+OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YLISTSRC_O) $(WORKSRC_0) $(YTASKSRC_0)
 
 $(TOPTARGETS): $(DEPS)
 

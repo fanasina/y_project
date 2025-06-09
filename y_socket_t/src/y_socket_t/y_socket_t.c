@@ -99,10 +99,100 @@ int get_fds_with_getaddrinfo(char *port /*service */, char * node, struct pollfd
 
 }
 
+struct get_fds_arg{
+	struct pollfd *fds;
+	//int size_fds;
+	char * port ;/*service */
+	char * addrDistant;
+};
+
+void *y_get_fds_func(void *arg){
+  struct get_fds_arg * argSock = (struct get_fds_arg*)arg;
+  struct pollfd *fds = argSock->fds;
+  fds[v4].fd=-1; fds[v4].events = POLLIN;
+  fds[v6].fd=-1; fds[v6].events = POLLIN;
+
+  struct addrinfo hints, *result, *rp;
+  int status;
+//  ssize_t nread;
+//  char buf[BUF_SIZE];
+  
+  memset(&hints, 0, sizeof(struct addrinfo));
+  hints.ai_family = AF_UNSPEC; // Allow all IPv4 and IPv6
+  hints.ai_socktype = SOCK_DGRAM; // udp
+  hints.ai_flags = AI_PASSIVE; // anyIP
+  // 
+  hints.ai_protocol = 0;
+  hints.ai_canonname = NULL;
+  hints.ai_addr = NULL;
+  hints.ai_next = NULL;
+
+  //status = getaddrinfo(NULL, argSock->port, &hints, &result);
+  status = getaddrinfo(argSock->addrDistant, argSock->port, &hints, &result);
+  if(status != 0){
+    fprintf(stderr, "getaddrinfo :%s\n", gai_strerror(status));
+    return NULL;
+  }
+  int af, optValueV6 = 1;
+
+  for(rp = result; rp != NULL; rp=rp->ai_next){
+    for(af=v4; af<=v6; ++af){
+      if((rp->ai_family == af_array[af]) && (fds[af].fd ==-1)){
+        fds[af].fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if(fds[af].fd == -1)
+          continue;
+// android
+#ifdef IPV6_V6ONLY 
+        if(af == v6){
+          if(setsockopt(fds[af].fd, IPPROTO_IPV6, IPV6_V6ONLY,
+            &optValueV6, sizeof(optValueV6)) == -1){
+            perror("error setsockopt v6 :");
+            close(fds[af].fd);
+            fds[af].fd = -1;
+            continue;
+          }
+        }
+#endif
+        if(bind(fds[af].fd, rp->ai_addr, rp->ai_addrlen)==-1){
+          close(fds[af].fd);
+          fds[af].fd=-1;
+        }
+      }
+    }
+  }
+
+  freeaddrinfo(result);
+
+//  ssize_t nread;
+//  char buf[BUF_SIZE];
+  
+//  int status, af; 
+//  status = get_fds_with_getaddrinfo(argSock->port, NULL, fds);
+  
+//  if(status != 0) 
+    /*
+    if(status == 1)
+      fprintf(stderr, " v4 or v6 not listening, we leave!");
+    else
+      fprintf(stderr, " not enough allocatation for fds, we leave!");
+    */
+
+	/*
+  if((fds[v4].fd==-1) || (fds[v6].fd==-1)){
+    fprintf(stderr, " v4 or v6 not listening, we leave!");
+    return NULL;
+  }*/
+	
+	return fds;
+
+}
+
 void *y_pollSocketsFunc(void *arg){
   struct y_socket_t * argSock = (struct y_socket_t*)arg;
   struct pollfd *fds = argSock->fds;
-  fds[v4].fd=-1; fds[v4].events = POLLIN;
+
+/*	
+	fds[v4].fd=-1; fds[v4].events = POLLIN;
   fds[v6].fd=-1; fds[v6].events = POLLIN;
 
   struct addrinfo hints, *result, *rp;
@@ -155,6 +245,8 @@ void *y_pollSocketsFunc(void *arg){
 
   freeaddrinfo(result);
 
+*/
+
 //  ssize_t nread;
 //  char buf[BUF_SIZE];
   
@@ -169,6 +261,14 @@ void *y_pollSocketsFunc(void *arg){
       fprintf(stderr, " not enough allocatation for fds, we leave!");
     */
 
+	struct get_fds_arg argGET_addr, *arg_get;//=malloc(sizeof(struct get_fds_arg) );
+	arg_get = &argGET_addr;
+	arg_get->fds = fds;
+	arg_get->addrDistant = NULL;
+	arg_get->port = argSock->port;
+
+	fds = (struct pollfd*) y_get_fds_func(arg_get);
+
   if((fds[v4].fd==-1) || (fds[v6].fd==-1)){
     fprintf(stderr, " v4 or v6 not listening, we leave!");
     return NULL;
@@ -182,6 +282,9 @@ void *y_pollSocketsFunc(void *arg){
   char buf_send[BUF_SIZE];
   int fd_file;
   int retread;
+	int af, status;
+  ssize_t nread;
+  char buf[BUF_SIZE];
 //  char msgRet[BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100];
 //  int len_msgRet;
   for(;;){

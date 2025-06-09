@@ -74,3 +74,13 @@ int set_addr_y_NODE_T(y_NODE_T *node, char * addrStr){
 }
 
 
+void set_port_y_NODE_T(y_NODE_T *node, int port){
+  int af = node->addr.ss_family;
+  if(af==AF_INET)
+    ((struct sockaddr_in*)(&(node->addr)))->sin_port = port;
+  else if(af == AF_INET6)
+    ((struct sockaddr_in6*)(&(node->addr)))->sin6_port = port;
+  
+}
+
+
