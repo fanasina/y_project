@@ -1012,10 +1012,11 @@ stat_end_run(size_t ntst, struct timespec start_t){
 bool is_in_array_##type(type *array, type val){\
   bool found = false;\
   for(size_t i = 0; i < cur_array_##type; ++i){\
-    char * strarr = type##_TO_STR(array[i]), *strval = type##_TO_STR(val);\
-    PRINT_DEBUG("compare |%s| in array and val: |%s|\n",strarr, strval);\
-    if(strcmp(#type, "TYPE_STRING" ) != 0 ){ free(strarr);free(strval); }\
-    /*PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));*/\
+		if(debug){\
+    	char * strarr = type##_TO_STR(array[i]), *strval = type##_TO_STR(val);\
+    	PRINT_DEBUG("compare |%s| in array and val: |%s|\n",strarr, strval);\
+    	if(strcmp(#type, "TYPE_STRING" ) != 0 ){ free(strarr);free(strval); }\
+		}/*PRINT_DEBUG("compare |%s| in array and val: |%s|\n",type##_TO_STR(array[i]), type##_TO_STR(val));*/\
     if(COMPARE_N_##type((void*)(&array[i]),(void*)&val  ) == 0 ){\
       found = true;\
       break;\
