@@ -272,17 +272,15 @@ void setup_variables_before_exec(){
     size_t len_bp = strlen(bar_progress);
     size_t len_db = strlen(default_bar_progress);
     if( len_bp >= len_db ){
-      char *tmp_bp=malloc(len_bp+1);
+      char tmp_bp[len_bp+1];
       strcpy(tmp_bp,bar_progress);  
       tmp_bp[2]='u';
-      //free(bar_progress);
       bar_progress=tmp_bp;
     }
     else{
-      char *tmp_bp=malloc(len_bp);
+      char tmp_bp[len_bp+1]; 
       strcpy(tmp_bp,default_bar_progress);  
       tmp_bp[2]='u';
-      //free(default_bar_progress);
       default_bar_progress=tmp_bp;
     }
   }
@@ -1519,8 +1517,6 @@ __attribute__((destructor))
 void
 purge_tests()
 {
-	if(strcmp(default_bar_progress,"  c")) free(default_bar_progress);
-	if(strcmp(bar_progress,"  c")) free(bar_progress);
 
  #if 1
   clear_all_func(&f_beging);
