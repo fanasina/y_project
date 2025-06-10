@@ -68,6 +68,9 @@ char *default_timeunit="ms";
 char *default_savelog="log_all_tests";
 char *default_bar_progress="  c";
 
+bool bar_progress_has_to_be_freed = 0;
+bool default_bar_progress_has_to_be_freed = 0;
+
 //size_t width = 80;
 
 char *colors_f[]={DEFAULT_K, GREEN_K, RED_K, YELLOW_K, BLUE_K, ""};
@@ -272,16 +275,18 @@ void setup_variables_before_exec(){
     size_t len_bp = strlen(bar_progress);
     size_t len_db = strlen(default_bar_progress);
     if( len_bp >= len_db ){
-      char tmp_bp[len_bp+1];
+      char *tmp_bp=malloc(len_bp+1);
       strcpy(tmp_bp,bar_progress);  
       tmp_bp[2]='u';
       bar_progress=tmp_bp;
+			bar_progress_has_to_be_freed = 1;
     }
     else{
-      char tmp_bp[len_bp+1]; 
+      char *tmp_bp=malloc(len_db+1); 
       strcpy(tmp_bp,default_bar_progress);  
       tmp_bp[2]='u';
       default_bar_progress=tmp_bp;
+			default_bar_progress_has_to_be_freed = 1;
     }
   }
 
@@ -892,7 +897,7 @@ void bar_progress_test_(){
   struct func *tmp;
   size_t num_test=0;
   
-  do{
+	do{
     tmp = current_fn;
     //UNLOCK(mut_current_test);
     if(tmp)
@@ -1517,7 +1522,9 @@ __attribute__((destructor))
 void
 purge_tests()
 {
-
+	
+	if(bar_progress_has_to_be_freed) free(bar_progress);
+	if(default_bar_progress_has_to_be_freed) free(default_bar_progress);
  #if 1
   clear_all_func(&f_beging);
   clear_all_falied_list(&failed_l);

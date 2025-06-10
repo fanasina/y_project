@@ -105,10 +105,16 @@ struct get_fds_arg{
 	char * port ;/*service */
 	char * addrDistant;
 };
-
+/*
 void *y_get_fds_func(void *arg){
   struct get_fds_arg * argSock = (struct get_fds_arg*)arg;
   struct pollfd *fds = argSock->fds;
+	char * port = argSock->port ;
+	char * addrDistant = argSock->addrDistant;
+*/	
+
+void  y_get_fds_func(struct pollfd * fds, char * port, char * addrDistant){
+
   fds[v4].fd=-1; fds[v4].events = POLLIN;
   fds[v6].fd=-1; fds[v6].events = POLLIN;
 
@@ -128,10 +134,11 @@ void *y_get_fds_func(void *arg){
   hints.ai_next = NULL;
 
   //status = getaddrinfo(NULL, argSock->port, &hints, &result);
-  status = getaddrinfo(argSock->addrDistant, argSock->port, &hints, &result);
+  //status = getaddrinfo(argSock->addrDistant, argSock->port, &hints, &result);
+  status = getaddrinfo(addrDistant, port, &hints, &result);
   if(status != 0){
     fprintf(stderr, "getaddrinfo :%s\n", gai_strerror(status));
-    return NULL;
+    return ;//NULL;
   }
   int af, optValueV6 = 1;
 
@@ -183,7 +190,7 @@ void *y_get_fds_func(void *arg){
     return NULL;
   }*/
 	
-	return fds;
+//	return fds;
 
 }
 
@@ -261,13 +268,15 @@ void *y_pollSocketsFunc(void *arg){
       fprintf(stderr, " not enough allocatation for fds, we leave!");
     */
 
-	struct get_fds_arg argGET_addr, *arg_get;//=malloc(sizeof(struct get_fds_arg) );
-	arg_get = &argGET_addr;
-	arg_get->fds = fds;
-	arg_get->addrDistant = NULL;
-	arg_get->port = argSock->port;
+//	struct get_fds_arg argGET_addr, *arg_get;//=malloc(sizeof(struct get_fds_arg) );
+//	arg_get = &argGET_addr;
+//	arg_get->fds = fds;
+//	arg_get->addrDistant = NULL;
+//	arg_get->port = argSock->port;
+//	fds = (struct pollfd*) y_get_fds_func(arg_get);
 
-	fds = (struct pollfd*) y_get_fds_func(arg_get);
+//	fds = (struct pollfd*)
+	y_get_fds_func(fds, argSock->port, NULL);
 
   if((fds[v4].fd==-1) || (fds[v6].fd==-1)){
     fprintf(stderr, " v4 or v6 not listening, we leave!");
