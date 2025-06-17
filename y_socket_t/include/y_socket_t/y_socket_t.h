@@ -11,8 +11,9 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <sys/sendfile.h>
 
-//#include <fcntl.h>
+#include <fcntl.h>
 
 #include <pthread.h>
 #include <poll.h>
@@ -50,7 +51,7 @@ GENERATE_LIST_ALL(y_ptr_STRING)
 GEN_HEAD_PTR_LIST(y_ptr_STRING)
 
 size_t total_size_list_y_ptr_STRING(struct main_list_y_ptr_STRING *mstr);
-size_t copy_list_y_ptr_STRING_to_one_string(char *dst_str, struct main_list_y_ptr_STRING *mstr);
+size_t copy_list_y_ptr_STRING_to_one_string(char **p_dst_str, struct main_list_y_ptr_STRING *mstr);
 
 struct y_socket_t{
   struct pollfd *fds;
@@ -71,6 +72,7 @@ struct argdst {
   char *addrStr;
 };
 
+//struct y_socket_t * y_socket_create_(char * port);
 struct y_socket_t * y_socket_create(char * port, size_t size_fds);
 
 void y_socket_free(struct y_socket_t *socket);

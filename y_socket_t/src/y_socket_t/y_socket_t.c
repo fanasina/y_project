@@ -14,6 +14,8 @@ struct y_string * create_y_ptr_STRING(const char *buf, size_t size){
 	return string;
 }
 
+GEN_LIST_ALL(y_ptr_STRING)
+
 GEN_FUNC_PTR_LIST_FREE(y_ptr_STRING){
 	free(arg->buf);
   free(arg);
@@ -24,22 +26,26 @@ size_t total_size_list_y_ptr_STRING(struct main_list_y_ptr_STRING *mstr){
 	for(move_current_to_begin_list_y_ptr_STRING(mstr); mstr->current_list; increment_list_y_ptr_STRING(mstr)){
 		total_size += mstr->current_list->value->size;
 	}
+	printf("debug: totalsize :%ld\n",total_size);
 	return total_size;
 }
 
-size_t copy_list_y_ptr_STRING_to_one_string(char *dst_str, struct main_list_y_ptr_STRING *mstr){
-	if(dst_str == NULL){
-		dst_str=malloc(total_size_list_y_ptr_STRING(mstr));
+size_t copy_list_y_ptr_STRING_to_one_string(char **p_dst_str, struct main_list_y_ptr_STRING *mstr){
+	if(*p_dst_str == NULL){
+		*p_dst_str=malloc(total_size_list_y_ptr_STRING(mstr));
 	}
+	char * dst_str = *p_dst_str;
 	char *cur_str = dst_str;
 	size_t local_size=0;
  	size_t count_size=0;
 	for(move_current_to_begin_list_y_ptr_STRING(mstr); mstr->current_list; increment_list_y_ptr_STRING(mstr)){
 		local_size = mstr->current_list->value->size;
+	printf("debug: local_size :%ld\n",local_size);
     for(size_t i=0; i<local_size; ++i){
 			cur_str[i]=mstr->current_list->value->buf[i];
 		}
 		count_size += local_size;
+	printf("debug: countsize :%ld dst_str=<%s>\n",count_size,dst_str);
 		cur_str = dst_str + count_size;
   }
 
@@ -64,7 +70,9 @@ struct y_socket_t * y_socket_create(char *port, size_t size_fds){
   pthread_mutex_init(sock_temp->mut_go_on, NULL);
   return sock_temp;
 }
-
+struct y_socket_t * y_socket_create_(char * port){
+	return y_socket_create(port, 2);
+}
 void y_socket_free(struct y_socket_t *socket){
   free(socket->fds);
   free_all_var_list_y_NODE_T(socket->nodes);
@@ -137,7 +145,13 @@ int get_fds_with_getaddrinfo(char *port /*service */, char * node, struct pollfd
             fds[af].fd=-1;
           }
         }
-      }
+		/*
+				int flags = fcntl(fds[af].fd, F_GETFL);
+				flags |= O_NONBLOCK;
+				flags |= MSG_DONTWAIT;
+				fcntl(fds[af].fd, F_SETFL, flags);
+      */
+			}
     }
   }
 
@@ -209,15 +223,17 @@ void send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *node
          fprintf(stderr,"error opening file |%s| for reading\n",filename);
          return /*NULL*/;
        }
-  
-       while((retread = read(fd_file, buf_send, BUF_SIZE) ) > 0 )
-       {
+ 				
+			
+       while((retread = read(fd_file, buf_send, BUF_SIZE) ) > 0 ){
+
           //memset(msgRet, 0, BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100);
   //        sprintf(msgRet, "from %s:%s =%s",host, service, buf);
           
   //        len_msgRet = strlen(msgRet);
           printf("sending response  %s :\n",buf_send);
-          FOR_LIST_FORM_BEGIN(y_NODE_T, nodes){
+          
+					FOR_LIST_FORM_BEGIN(y_NODE_T, nodes){
             c_af=(nodes->current_list->value).addr.ss_family;
             //memset(tempAddr, 0, BUF_SIZE);
             if(c_af==AF_INET){
@@ -233,7 +249,14 @@ void send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *node
                 fprintf(stderr, "error inet_ntop v6 :errno=%d\n",errno);
               }
             }
-                      
+#if 0
+						off_t offset = 0;  
+						ssize_t ret_sendfile ;
+						while((ret_sendfile = sendfile(fds[(c_af==AF_INET6)].fd ,fd_file, &offset, BUF_SIZE))>0){
+								
+						}
+#endif	
+#if 	1				
             if(sendto(fds[(c_af==AF_INET6)].fd, 
               buf_send, retread,
               /*msgRet, len_msgRet,*/ 
@@ -246,8 +269,10 @@ void send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *node
               fprintf(stderr, "Error sending response to %s\n",tempAddr);
             }else
               printf("sending response to %s\n",tempAddr);
+#endif 
           }
         }
+
         close(fd_file);
         printf("fd=%d closed: filename=%s\n",fd_file,filename);
 }
@@ -303,6 +328,10 @@ void  y_get_fds_func(struct pollfd * fds, char * port, char * addrDistant){
           close(fds[af].fd);
           fds[af].fd=-1;
         }
+				int flags = fcntl(fds[af].fd, F_GETFL);
+        flags |= O_NONBLOCK;
+        fcntl(fds[af].fd, F_SETFL, flags);
+
       }
     }
   }
@@ -311,7 +340,7 @@ void  y_get_fds_func(struct pollfd * fds, char * port, char * addrDistant){
 
 }
 void handler_(char * buf){
-	printf("%s\n",buf);
+	printf("debug:::::::::::::::::::::::::::handler: : %s\n",buf);
 }
 void *y_pollSocketsFunc(void *arg){
   struct y_socket_t * argSock = (struct y_socket_t*)arg;
@@ -347,27 +376,35 @@ void *y_pollSocketsFunc(void *arg){
       if(fds[af].revents && POLLIN){
 				remove_all_list_in_y_ptr_STRING(m_str);
         memset(buf, 0, BUF_SIZE);
-        while((nread = recvfrom(fds[af].fd, buf, BUF_SIZE, 0,
+				while((nread = recvfrom(fds[af].fd, buf, BUF_SIZE, 0,
         (struct sockaddr *)&(node.addr), &(node.addr_len))) == BUF_SIZE){
-        	if(nread == -1)
-          	fprintf(stderr,"error recvfrom\n");
-					else{
+        	if(buf[nread-1]=='\n') buf[nread-1]='\0';
+					buf[nread]='\0';
 						y_ptr_STRING y_buf = create_y_ptr_STRING(buf, nread);
 						push_back_list_y_ptr_STRING(m_str, y_buf);
-					}
+						printf("debug: push_back_list_y_ptr_STRING of <%s>\n",buf);
+
+					
+					printf("debug: nread: %ld vs  BUF_SIZE :%d \n",nread, BUF_SIZE);
 				}
-				if(nread > 0 && nread < BUF_SIZE){
-        	if(buf[nread-1]=='\n') buf[nread-1]='\0';
+						printf("debug: out nread: %ld vs BUF_SIZE :%d \n",nread, BUF_SIZE);
+				if(nread == -1)
+         	fprintf(stderr,"error recvfrom\n");
+				else if(nread >= 0 && nread < BUF_SIZE){
+        	if(nread && buf[nread-1]=='\n') buf[nread-1]='\0';
+					buf[nread]='\0';
           printf("msg: %s\n",buf);
 					y_ptr_STRING y_buf = create_y_ptr_STRING(buf, nread);
 					push_back_list_y_ptr_STRING(m_str, y_buf);
+					printf("debug: out push_back_list_y_ptr_STRING of <%s>\n",buf);
 				
         }
 				
 				char *temp_all_buf=NULL;
-				/*size_t total_buf = */ copy_list_y_ptr_STRING_to_one_string(temp_all_buf , m_str);
+				/*size_t total_buf = */ copy_list_y_ptr_STRING_to_one_string(&temp_all_buf , m_str);
 
 //printf("msg : %s\n",buf);
+			//printf("msg : %s\n",temp_all_buf);
 			
 			///
 			///
