@@ -51,7 +51,7 @@ $(PROJECT_LIB): $(OBJ)
 $(YSOCKSRC_O): $(YSOCKSRC) $(YNODESRC_O)
 	$(CC) -o $@ -c $< $(CFLAGS)
 
-$(YNODESRC_O): $(YNODESRC) $(YSOCKSRC_O) $(YLISTSRC_O) 
+$(YNODESRC_O): $(YNODESRC) $(YLISTSRC_O) 
 	$(CC) -o $@ -c $< $(CFLAGS)
 
 

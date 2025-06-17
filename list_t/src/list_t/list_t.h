@@ -272,7 +272,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
 
 #define GEN_HEAD_PTR_LIST(type)\
   void purge_ptr_type_list_##type(struct main_list_##type *var_list);\
-  void free_##type(void *arg);\
+  void free_##type(type arg);\
 
 
 
@@ -292,7 +292,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
     var_list->current_index = 0;\
 		free(var_list);\
   }\
-  void free_##type(void *arg)\
+  void free_##type(type arg)\
 
 
 GEN_HEAD_PTR_LIST(TYPE_PTR)

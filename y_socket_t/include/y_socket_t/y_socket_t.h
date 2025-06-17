@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <signal.h>
 
+#include <string.h>
 
 #include "y_socket_t/y_node_t.h"
 
@@ -37,19 +38,40 @@ enum ipVersions{
 
 extern const int af_array[nbIpVersion];//={AF_INET, AF_INET6};
 
+struct y_string{
+	char * buf;
+	size_t size;
+};
+
+typedef struct y_string * y_ptr_STRING;
+
+struct y_string * create_y_ptr_STRING(const char *buf, size_t size);
+GENERATE_LIST_ALL(y_ptr_STRING)
+GEN_HEAD_PTR_LIST(y_ptr_STRING)
+
+size_t total_size_list_y_ptr_STRING(struct main_list_y_ptr_STRING *mstr);
+size_t copy_list_y_ptr_STRING_to_one_string(char *dst_str, struct main_list_y_ptr_STRING *mstr);
+
 struct y_socket_t{
   struct pollfd *fds;
+	size_t size_fds; 
   char * port;
   struct main_list_y_NODE_T *nodes;
-  pthread_mutex_t mut_nodes;
+  pthread_mutex_t *mut_nodes;
+	int go_on;
+  pthread_mutex_t *mut_go_on;
 };
+
+
+//struct y_socket_t * create_y_socket_t(size_t size_fds, char *port);
+//void free_y_socket_t(struct y_socket_t *sock);
 
 struct argdst {
   char *port;
   char *addrStr;
 };
 
-struct y_socket_t * y_socket_create(char * port);
+struct y_socket_t * y_socket_create(char * port, size_t size_fds);
 
 void y_socket_free(struct y_socket_t *socket);
 
