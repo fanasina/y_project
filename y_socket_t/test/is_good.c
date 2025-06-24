@@ -167,7 +167,7 @@ TEST(pollThread){
   struct y_socket_t *argS=y_socket_create("1600", 2);
 
   pthread_t pollTh;
-  pthread_create(&pollTh, NULL, y_pollSocketsFunc, (void*)argS);
+  pthread_create(&pollTh, NULL, y_socket_poll_fds, (void*)argS);
 
 /*  
   struct argdst dstarg={

@@ -40,12 +40,12 @@ size_t copy_list_y_ptr_STRING_to_one_string(char **p_dst_str, struct main_list_y
  	size_t count_size=0;
 	for(move_current_to_begin_list_y_ptr_STRING(mstr); mstr->current_list; increment_list_y_ptr_STRING(mstr)){
 		local_size = mstr->current_list->value->size;
-	printf("debug: local_size :%ld\n",local_size);
+//	printf("debug: local_size :%ld\n",local_size);
     for(size_t i=0; i<local_size; ++i){
 			cur_str[i]=mstr->current_list->value->buf[i];
 		}
 		count_size += local_size;
-	printf("debug: countsize :%ld dst_str=<%s>\n",count_size,dst_str);
+//	printf("debug: countsize :%ld \n",count_size);
 		cur_str = dst_str + count_size;
   }
 
@@ -89,91 +89,6 @@ int check_y_socket_go_on(struct y_socket_t *sock){
 	pthread_mutex_unlock(sock->mut_go_on);
 	return ret;
 }
-// node = NULL for anyIP or str address of the server
-int get_fds_with_getaddrinfo(char *port /*service */, char * node, struct pollfd *fds){
-  /*
-  if(sizeof(fds) < nbIpVersion*sizeof(struct pollfd)){
-    printf("%ld vs %ld vs %ld \n", sizeof(struct pollfd),sizeof(fds) , nbIpVersion*sizeof(struct pollfd));
-    return -1;
-  }
-  */
-  fds[v4].fd=-1; fds[v4].events = POLLIN;
-  fds[v6].fd=-1; fds[v6].events = POLLIN;
-  
-  struct addrinfo hints, *result, *rp;
-  int status;
-  int af, optValueV6 = 1;
-  
-  memset(&hints, 0, sizeof(struct addrinfo));
-  hints.ai_family = AF_UNSPEC; // Allow all IPv4 and IPv6
-  hints.ai_socktype = SOCK_DGRAM; // udp
-  hints.ai_flags = AI_PASSIVE; // anyIP
-  //below no need because of memset(&hints,0 ...
-  hints.ai_protocol = 0;
-  hints.ai_canonname = NULL;
-  hints.ai_addr = NULL;
-  hints.ai_next = NULL;
-
-  status = getaddrinfo(node, port, &hints, &result);
-  if(status != 0){
-    fprintf(stderr, "getaddrinfo :%s\n", gai_strerror(status));
-    return -2;
-  }
-
-  for(rp = result; rp != NULL; rp=rp->ai_next){
-    for(af=v4; af<=v6; ++af){
-      if((rp->ai_family == af_array[af]) && (fds[af].fd ==-1)){
-        fds[af].fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if(fds[af].fd == -1)
-          continue;
-
-        if(node == NULL){
-// android
-#ifdef IPV6_V6ONLY 
-          if(af == v6){
-            if(setsockopt(fds[af].fd, IPPROTO_IPV6, IPV6_V6ONLY,
-              &optValueV6, sizeof(optValueV6)) == -1){
-              perror("error setsockopt v6 :");
-              close(fds[af].fd);
-              fds[af].fd = -1;
-              continue;
-            }
-          }
-#endif
-          if(bind(fds[af].fd, rp->ai_addr, rp->ai_addrlen)==-1){
-            close(fds[af].fd);
-            fds[af].fd=-1;
-          }
-        }
-		/*
-				int flags = fcntl(fds[af].fd, F_GETFL);
-				flags |= O_NONBLOCK;
-				flags |= MSG_DONTWAIT;
-				fcntl(fds[af].fd, F_SETFL, flags);
-      */
-			}
-    }
-  }
-
-  freeaddrinfo(result);
-
-  if((fds[v4].fd == -1) && (fds[v6].fd == -1)){
-    fprintf(stderr, " v4 or v6 not listening, we leave!");
-      return 3;
-  }
-  if((fds[v4].fd != -1) && (fds[v6].fd == -1)){
-    fprintf(stderr, " only v4 listening!");
-      return 1;
-  }
-  if((fds[v4].fd == -1) && (fds[v6].fd != -1)){
-    fprintf(stderr, " only v6 listening!");
-      return 2;
-  }
-
-  return 0;
- 
-
-}
 
 void update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes){
   char host[NI_MAXHOST], service[NI_MAXSERV];
@@ -195,7 +110,7 @@ struct send_arg{
 	char * filename;
 };
 
-void send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *nodes, char * filename){
+void y_socket_send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *nodes, char * filename){
    char tempAddr[BUF_SIZE];
   int c_af;
 //  char host[NI_MAXHOST], service[NI_MAXSERV];
@@ -255,7 +170,8 @@ void send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *node
 						while((ret_sendfile = sendfile(fds[(c_af==AF_INET6)].fd ,fd_file, &offset, BUF_SIZE))>0){
 								
 						}
-#endif	
+#endif
+
 #if 	1				
             if(sendto(fds[(c_af==AF_INET6)].fd, 
               buf_send, retread,
@@ -277,7 +193,7 @@ void send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *node
         printf("fd=%d closed: filename=%s\n",fd_file,filename);
 }
 
-void  y_get_fds_func(struct pollfd * fds, char * port, char * addrDistant){
+void  y_socket_get_fds(struct pollfd * fds, char * port, char * addrDistant){
 
   fds[v4].fd=-1; fds[v4].events = POLLIN;
   fds[v6].fd=-1; fds[v6].events = POLLIN;
@@ -328,10 +244,16 @@ void  y_get_fds_func(struct pollfd * fds, char * port, char * addrDistant){
           close(fds[af].fd);
           fds[af].fd=-1;
         }
-				int flags = fcntl(fds[af].fd, F_GETFL);
+#if 0
+int flags = fcntl(fds[af].fd, F_GETFL);
         flags |= O_NONBLOCK;
         fcntl(fds[af].fd, F_SETFL, flags);
-
+#endif
+         //set timer for recv_socket
+#if 0
+      static int timeout = TIMEOUT_MS;
+      setsockopt(fds[af].fd, SOL_SOCKET, SO_RCVTIMEO,(char*)&timeout,sizeof(timeout));
+#endif
       }
     }
   }
@@ -339,14 +261,20 @@ void  y_get_fds_func(struct pollfd * fds, char * port, char * addrDistant){
   freeaddrinfo(result);
 
 }
-void handler_(char * buf){
-	printf("debug:::::::::::::::::::::::::::handler: : %s\n",buf);
+void y_socket_handler_(char * buf, struct pollfd *fds, struct main_list_y_NODE_T *nodes) {
+	printf("\n\n:::::::::::::::::::::::::::handler: : \n\n%s\n\n::::::::::::::::::::::::::\n",buf);
+  if(strncmp(buf, "GET", 3)==0){
+    if(strncmp(buf+4,"file",4)==0){
+      char *filename = buf + 9;
+      y_socket_send_file_for_all_nodes(fds, nodes,  filename) ;
+    }
+  }
 }
-void *y_pollSocketsFunc(void *arg){
+void *y_socket_poll_fds(void *arg){
   struct y_socket_t * argSock = (struct y_socket_t*)arg;
   struct pollfd *fds = argSock->fds;
 
-	y_get_fds_func(fds, argSock->port, NULL);
+	y_socket_get_fds(fds, argSock->port, NULL);
 
   if((fds[v4].fd==-1) || (fds[v6].fd==-1)){
     fprintf(stderr, " v4 or v6 not listening, we leave!");
@@ -361,6 +289,9 @@ void *y_pollSocketsFunc(void *arg){
 	struct main_list_y_ptr_STRING *m_str=create_var_list_y_ptr_STRING();
 //  char msgRet[BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100];
 //  int len_msgRet;
+  
+  node.addr_len = sizeof(struct sockaddr_storage);
+  
   for(;check_y_socket_go_on(argSock);){
     printf("poll: wait events\n");
     status = poll(fds, nbIpVersion, -1);
@@ -371,7 +302,6 @@ void *y_pollSocketsFunc(void *arg){
       }
       continue;
     }
-    node.addr_len = sizeof(struct sockaddr_storage);
     for(af = v4; af<=v6;++af){
       if(fds[af].revents && POLLIN){
 				remove_all_list_in_y_ptr_STRING(m_str);
@@ -382,24 +312,26 @@ void *y_pollSocketsFunc(void *arg){
 					buf[nread]='\0';
 						y_ptr_STRING y_buf = create_y_ptr_STRING(buf, nread);
 						push_back_list_y_ptr_STRING(m_str, y_buf);
-						printf("debug: push_back_list_y_ptr_STRING of <%s>\n",buf);
+						///printf("debug: push_back_list_y_ptr_STRING of <%s>\n",buf);
 
 					
-					printf("debug: nread: %ld vs  BUF_SIZE :%d \n",nread, BUF_SIZE);
+					//printf("debug: nread: %ld vs  BUF_SIZE :%d \n",nread, BUF_SIZE);
 				}
-						printf("debug: out nread: %ld vs BUF_SIZE :%d \n",nread, BUF_SIZE);
+						//printf("debug: out nread: %ld vs BUF_SIZE :%d \n",nread, BUF_SIZE);
 				if(nread == -1)
          	fprintf(stderr,"error recvfrom\n");
 				else if(nread >= 0 && nread < BUF_SIZE){
         	if(nread && buf[nread-1]=='\n') buf[nread-1]='\0';
 					buf[nread]='\0';
-          printf("msg: %s\n",buf);
+          //printf("msg: %s\n",buf);
 					y_ptr_STRING y_buf = create_y_ptr_STRING(buf, nread);
 					push_back_list_y_ptr_STRING(m_str, y_buf);
-					printf("debug: out push_back_list_y_ptr_STRING of <%s>\n",buf);
+					//printf("debug: out push_back_list_y_ptr_STRING of <%s>\n",buf);
 				
         }
 				
+        update_nodes(node, argSock->nodes);
+
 				char *temp_all_buf=NULL;
 				/*size_t total_buf = */ copy_list_y_ptr_STRING_to_one_string(&temp_all_buf , m_str);
 
@@ -408,7 +340,7 @@ void *y_pollSocketsFunc(void *arg){
 			
 			///
 			///
-				handler_(temp_all_buf);
+				y_socket_handler_(temp_all_buf, fds, argSock->nodes);
 
 			///
       }

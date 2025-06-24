@@ -29,6 +29,7 @@
 
 
 #define BUF_SIZE 500
+#define TIMEOUT_MS 100
 
 #define type4 
 #define type6 6
@@ -77,7 +78,7 @@ struct y_socket_t * y_socket_create(char * port, size_t size_fds);
 
 void y_socket_free(struct y_socket_t *socket);
 
-void *y_pollSocketsFunc(void *arg);
+void *y_socket_poll_fds(void *arg);
 void *threadFuncSend(void *arg);
 
 // type = nothing if v4, 6 if v6
