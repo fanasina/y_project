@@ -18,3 +18,5 @@ $(FMOCK_O): $(FMOCK_SRC) $(FTEST_O)
 clean:
 	rm -f $(FMOCK_O)
 
+mrproper: clean
+

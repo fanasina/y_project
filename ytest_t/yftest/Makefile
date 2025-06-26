@@ -25,3 +25,5 @@ $(FTEST_O): $(FTEST_SRC) $(TOOLS_O) $(BARPROGES_O)
 clean:
 	rm -f $(FTEST_O)
 
+mrproper: clean
+

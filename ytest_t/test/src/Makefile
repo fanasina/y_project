@@ -4,7 +4,8 @@ CC=gcc
 LDFLAGS=-lpthread
 ROOT_DIR=$(shell pwd)
 INCLUDE_DIR=$(ROOT_DIR)
-CFLAGS=-I$(INCLUDE_DIR)
+PERMDIR=$(ROOT_DIR)/../../../ypermutation_t
+CFLAGS=-I$(INCLUDE_DIR) -I$(PERMDIR)/src/
 SRC_DIR=$(ROOT_DIR)
 SRC=$(wildcard src/*/*.c) 
 OBJ=$(SRC:.c=.o)
@@ -25,7 +26,7 @@ TESTSRC_O=$(TESTSRC:.c=.o)
 all: $(EXEC)
 
 $(EXEC):	$(EXECSRC) $(OBJ)
-	$(CC) -o $@ $^ -I$(INCLUDE_DIR) $(LDFLAGS)
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
 
 $(TESTSRC_O): $(TESTSRC) $(TOOLSRC_O) 

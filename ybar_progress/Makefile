@@ -15,3 +15,4 @@ $(BARPROGES_O): $(BARPROGES_SRC)
 clean:
 	rm -f $(BARPROGES_O)
 
+mrproper: clean

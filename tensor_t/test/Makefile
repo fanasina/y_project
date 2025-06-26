@@ -34,7 +34,6 @@ PERMSRC_O=$(YPERMDIR)/src/permutation_t/permutation_t.o
 
 DIMSRC_O=$(DIMDIR)/src/dimension_t/dimension_t.o
 
-TOPTARGETS := all clean 
 
 DEPS=$(DIMDIR) $(YPERMDIR) $(YTESTDIR) $(TENSDIR)
 
@@ -42,6 +41,7 @@ OBJ=$(DIMSRC_O) $(PERMSRC_O) $(TENSRC_O)
 
 LIB_YTEST=$(YTESTDIR)/libytest.so
 
+TOPTARGETS := all clean 
 
 $(TOPTARGETS): $(DEPS) 
 
@@ -61,7 +61,9 @@ all: $(EXEC) $(LIB_YTEST)
 $(EXEC):	$(EXECSRC) $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
-.PHONY: clean mrproper
+.PHONY: all clean mrproper
+
+$(LIB_YTEST): $(YTESTDIR)
 
 clean:
 	rm -f $(OBJ)

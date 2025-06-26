@@ -23,10 +23,10 @@ SUBDIRS :=$(wildcard y*) $(TOOLDIR) $(BARPDIR)
 
 export
 
+all: $(PROJECT_LIB) update_headers
 
 $(TOPTARGETS): $(SUBDIRS)
 
-all: $(PROJECT_LIB) update_headers
 
 
 $(PROJECT_LIB): $(OBJ)
@@ -42,7 +42,7 @@ $(SUBDIRS):
 update_headers: $(PROJECT_LIB)
 	for file_h in $(SUBDIRS); do cp -r "$$file_h/include/" include_ytest/;	done	
 
-.PHONY: $(TOPTARGETS) $(SUBDIRS)
+.PHONY: all $(TOPTARGETS) $(SUBDIRS)
 
 mrproper: clean
 	rm -f $(PROJECT_LIB)

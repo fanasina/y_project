@@ -15,3 +15,4 @@ $(TOOLS_O): $(TOOLS_SRC)
 clean:
 	rm -f $(TOOLS_O)
 
+mrproper: clean

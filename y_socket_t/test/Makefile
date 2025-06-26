@@ -37,30 +37,34 @@ YLISTSRC_O=$(YLISTSRC:.c=.o)
 YWORKSRC_0=$(YWORKDIR)/src/y_worker_t/y_worker_t.o
 YTASKSRC_0=$(YWORKDIR)/src/y_worker_t/y_task_t.o
 
+
 TOPTARGETS := all clean
 
-DEPS=$(YTESTDIR) $(YLISTDIR) $(YWORKDIR)  $(ROOT_DIR)
+DEPS := $(YTESTDIR) $(YLISTDIR) $(YWORKDIR)  $(ROOT_DIR)
 
 OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YLISTSRC_O) $(YWORKSRC_0) $(YTASKSRC_0)
 
 
 LIB_YTEST=$(YTESTDIR)/libytest.so
 
-LIB_YSOCK=$(PWD)/../libysocket.so
+LIB_YSOCK=$(ROOT_DIR)/libysocket.so
+
+all: $(EXEC) $(LIB_YSOCK)  
 
 $(TOPTARGETS): $(DEPS)
 
 $(DEPS):  
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
+$(LIB_YTEST): $(YTESTDIR)
+
+$(LIB_YSOCK): $(ROOT_DIR)
 
 
-all: $(EXEC) $(LIB_YSOCK)  $(LIB_YTEST)
-
-$(EXEC):	$(EXECSRC) $(OBJ)
+$(EXEC):	$(EXECSRC) $(OBJ) $(LIB_YTEST)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
-.PHONY: clean mrproper
+.PHONY: all clean mrproper
 
 clean:
 	rm -f $(OBJ)

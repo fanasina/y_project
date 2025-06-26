@@ -27,16 +27,17 @@ WORKSRC_0=$(YWORKDIR)/src/y_worker_t/y_worker_t.o
 YTASKSRC_0=$(YWORKDIR)/src/y_worker_t/y_task_t.o
 
 
+all: $(PROJECT_LIB) 
+
 TOPTARGETS := all clean 
 
-DEPS=$(YLISTDIR) $(YWORKDIR)
+DEPS:=$(YLISTDIR) $(YWORKDIR)
 
 OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YLISTSRC_O) $(WORKSRC_0) $(YTASKSRC_0)
 
 $(TOPTARGETS): $(DEPS)
 
 
-all: $(PROJECT_LIB) 
 
 
 
@@ -61,7 +62,7 @@ $(DEPS):
 
 # .PHONY: $(TOPTARGETS) $(SUBDIRS)
 
-.PHONY: clean
+.PHONY: all clean
 
 clean: 
 	rm -f $(OBJ)

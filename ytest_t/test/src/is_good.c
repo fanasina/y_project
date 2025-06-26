@@ -90,7 +90,7 @@ TEST(expect){
   int b = 6;
   EXPECT_EQ(a,b);
   //SKIP();
-  SKIP("on skip eq string\n");
+  SKIP("%s\n","on skip eq string");
   EXPECT_EQ_TYPE_STRING("hello","hello");
   float f1 = 1.00019999, f2=1.00019999;
   EXPECT_EQ_TYPE_FLOAT(f1,f2);
