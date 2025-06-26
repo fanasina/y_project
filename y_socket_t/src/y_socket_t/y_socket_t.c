@@ -111,14 +111,14 @@ struct send_arg{
 };
 
 void y_socket_send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *nodes, char * filename){
-   char tempAddr[BUF_SIZE];
+   char tempAddr[BUF_SIZE+1];
   int c_af;
 //  char host[NI_MAXHOST], service[NI_MAXSERV];
-  char buf_send[BUF_SIZE];
+  char buf_send[BUF_SIZE+1];
   int fd_file;
   int retread;
-	
-				/*int status = getnameinfo((struct sockaddr*)&(node.addr), node.addr_len, host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICHOST);
+#if 0	
+				int status = getnameinfo((struct sockaddr*)&(node.addr), node.addr_len, host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICHOST);
         if(status)
        //   printf("debug: status ==0 : success: Received successfully from %s:%s\n", host,service);
        // else
@@ -127,12 +127,8 @@ void y_socket_send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NOD
 
         if(NULL ==  search_node_in_list_y_NODE_T(nodes, node))
           push_back_list_y_NODE_T(nodes, node);
-       */ 
-        /*
-        //UPPER
-        for(int i=0; i<nread; ++i)
-          if((buf[i] >='a') && (buf[i]<='z'))
-            buf[i]=buf[i]+'A'-'a';*/
+        
+#endif        
        fd_file = open( filename , O_RDONLY);
        if(fd_file == -1){
          fprintf(stderr,"error opening file |%s| for reading\n",filename);
@@ -140,17 +136,18 @@ void y_socket_send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NOD
        }
  				
 			
+       //memset(buf_send, 0, BUF_SIZE+1);
        while((retread = read(fd_file, buf_send, BUF_SIZE) ) > 0 ){
-
+          buf_send[retread]='\0';
           //memset(msgRet, 0, BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100);
   //        sprintf(msgRet, "from %s:%s =%s",host, service, buf);
           
   //        len_msgRet = strlen(msgRet);
-          printf("sending response  %s :\n",buf_send);
+          printf("debug: sending response  %s :\n",buf_send);
           
 					FOR_LIST_FORM_BEGIN(y_NODE_T, nodes){
+            //memset(tempAddr, 0, BUF_SIZE+1);
             c_af=(nodes->current_list->value).addr.ss_family;
-            //memset(tempAddr, 0, BUF_SIZE);
             if(c_af==AF_INET){
                if(NULL == inet_ntop(c_af, 
                 &(GET_IN_type_ADDR(&(nodes->current_list->value),)),
@@ -171,6 +168,7 @@ void y_socket_send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NOD
 								
 						}
 #endif
+          printf("debug: destination %s :\n",tempAddr);
 
 #if 	1				
             if(sendto(fds[(c_af==AF_INET6)].fd, 
@@ -184,9 +182,10 @@ void y_socket_send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NOD
               ){
               fprintf(stderr, "Error sending response to %s\n",tempAddr);
             }else
-              printf("sending response to %s\n",tempAddr);
+              printf("debug: sending response to %s\n",tempAddr);
 #endif 
           }
+          //memset(buf_send, 0, BUF_SIZE+1);
         }
 
         close(fd_file);
@@ -261,13 +260,21 @@ int flags = fcntl(fds[af].fd, F_GETFL);
   freeaddrinfo(result);
 
 }
-void y_socket_handler_(char * buf, struct pollfd *fds, struct main_list_y_NODE_T *nodes) {
+void y_socket_handler_(char * buf, struct pollfd *fds, struct y_socket_t *sock){ 
+  struct main_list_y_NODE_T *nodes = sock->nodes;
 	printf("\n\n:::::::::::::::::::::::::::handler: : \n\n%s\n\n::::::::::::::::::::::::::\n",buf);
   if(strncmp(buf, "GET", 3)==0){
     if(strncmp(buf+4,"file",4)==0){
       char *filename = buf + 9;
       y_socket_send_file_for_all_nodes(fds, nodes,  filename) ;
     }
+  }
+  if(strncmp(buf, "UPDATE", 6)==0){
+    if(strncmp(buf+7,"kill",4)==0){
+      pthread_mutex_lock(sock->mut_go_on);
+      sock->go_on = 0;
+      pthread_mutex_unlock(sock->mut_go_on);
+    } 
   }
 }
 void *y_socket_poll_fds(void *arg){
@@ -287,6 +294,7 @@ void *y_socket_poll_fds(void *arg){
   ssize_t nread;
   char buf[BUF_SIZE];
 	struct main_list_y_ptr_STRING *m_str=create_var_list_y_ptr_STRING();
+	char *temp_all_buf=NULL;
 //  char msgRet[BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100];
 //  int len_msgRet;
   
@@ -304,7 +312,7 @@ void *y_socket_poll_fds(void *arg){
     }
     for(af = v4; af<=v6;++af){
       if(fds[af].revents && POLLIN){
-				remove_all_list_in_y_ptr_STRING(m_str);
+				remove_all_ptr_type_list_y_ptr_STRING(m_str);
         memset(buf, 0, BUF_SIZE);
 				while((nread = recvfrom(fds[af].fd, buf, BUF_SIZE, 0,
         (struct sockaddr *)&(node.addr), &(node.addr_len))) == BUF_SIZE){
@@ -332,7 +340,10 @@ void *y_socket_poll_fds(void *arg){
 				
         update_nodes(node, argSock->nodes);
 
-				char *temp_all_buf=NULL;
+				if(temp_all_buf){
+          free(temp_all_buf);
+          temp_all_buf=NULL;
+        }
 				/*size_t total_buf = */ copy_list_y_ptr_STRING_to_one_string(&temp_all_buf , m_str);
 
 //printf("msg : %s\n",buf);
@@ -340,18 +351,29 @@ void *y_socket_poll_fds(void *arg){
 			
 			///
 			///
-				y_socket_handler_(temp_all_buf, fds, argSock->nodes);
+				y_socket_handler_(temp_all_buf, fds, argSock);
 
 			///
       }
     }
+
+#if 0
 //    printf("nread = %ld: buf=%s\nlen_buf=%ld\ncmp=%d\n",nread,buf,strlen(buf),strncmp(buf,"SHUTDOWN SERVER",15));
       if(strncmp(buf,"SHUTDOWN SERVER",15) == 0){
         printf("leave poll thread, bye!\n");
      		break;
 		 		//return NULL;
       }
+#endif
+
   }
+
+  purge_ptr_type_list_y_ptr_STRING(m_str);
+  if(temp_all_buf){
+    free(temp_all_buf);
+    temp_all_buf=NULL;
+  }
+  
 	return NULL;
 }
 #define str(x) # x
