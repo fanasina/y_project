@@ -62,6 +62,7 @@ struct y_socket_t{
   pthread_mutex_t *mut_nodes;
 	int go_on;
   pthread_mutex_t *mut_go_on;
+  int nb_workers;
 };
 
 
@@ -74,7 +75,8 @@ struct argdst {
 };
 
 //struct y_socket_t * y_socket_create_(char * port);
-struct y_socket_t * y_socket_create(char * port, size_t size_fds);
+struct y_socket_t * y_socket_create(char * port, size_t size_fds, int nb_workers);
+struct y_socket_t * y_socket_create_(char * port);
 
 void y_socket_free(struct y_socket_t *socket);
 

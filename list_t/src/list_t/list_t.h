@@ -30,11 +30,13 @@
   void remove_all_list_in_##type(struct main_list_##type *var_list);\
   void increment_list_##type(struct main_list_##type * var_list);\
   void decrement_list_##type(struct main_list_##type * var_list);\
-  struct list_##type * search_first_occ_with_mov_from_curr_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type), void (*incr_or_decr_mov)(struct main_list_##type *));\
+  struct list_##type * search_first_occ_with_mov_from_curr_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type),  struct list_##type * (*incr_or_decr_mov)(struct list_##type *));\
   struct list_##type * search_first_occ_from_begin_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type));\
   struct list_##type * pull_end_from_list_##type(struct main_list_##type *var_list);\
   struct list_##type * pull_begin_from_list_##type(struct main_list_##type *var_list);\
   void append_list_##type(struct main_list_##type *var_list, struct list_##type *list);\
+  struct list_##type * local_increment_list_##type(struct list_##type *list);\
+  struct list_##type * local_decrement_list_##type(struct list_##type *list);\
  
 
 GENERATE_LIST_ALL(TYPE_CHAR)
@@ -185,11 +187,11 @@ GENERATE_LIST_ALL(TYPE_PTR)
     }\
   }\
   void remove_all_list_in_##type(struct main_list_##type *var_list){\
-    struct list_##type *tmp = var_list->begin_list;\
+    struct list_##type *tmp = var_list->begin_list, *prec_tmp;\
     while(tmp){\
-      var_list->current_list = tmp;\
+      prec_tmp = tmp;\
       tmp = tmp->next;\
-      free(var_list->current_list);\
+      free(prec_tmp);\
     }\
     var_list->begin_list = NULL;\
     var_list->current_list = NULL;\
@@ -209,16 +211,23 @@ GENERATE_LIST_ALL(TYPE_PTR)
     var_list->current_list = (var_list->current_list)->preview;\
     --(var_list->current_index);\
   }\
-  struct list_##type * search_first_occ_with_mov_from_curr_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type), void (*incr_or_decr_mov)(struct main_list_##type *)){\
-    for(; var_list->current_list; incr_or_decr_mov(var_list)){\
-      if(0 == funcCmp(value, var_list->current_list->value))\
-        return var_list->current_list;\
+  struct list_##type * local_increment_list_##type(struct list_##type *list){\
+    if(list) return list->next;\
+    return NULL;\
+  }\
+  struct list_##type * local_decrement_list_##type(struct list_##type *list){\
+    if (list) return list->preview;\
+    return NULL;\
+  }\
+  struct list_##type * search_first_occ_with_mov_from_curr_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type), struct list_##type * (*incr_or_decr_mov)(struct list_##type *)){\
+    for(struct list_##type *list_cur = var_list->current_list; list_cur; list_cur = incr_or_decr_mov(list_cur)){\
+      if(0 == funcCmp(value, list_cur->value))\
+        return list_cur;\
     }\
     return NULL;\
   }\
   struct list_##type * search_first_occ_from_begin_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type)){\
-    move_current_to_begin_list_##type(var_list);\
-    return search_first_occ_with_mov_from_curr_in_list_##type(var_list, value, funcCmp, increment_list_##type);\
+    return search_first_occ_with_mov_from_curr_in_list_##type(var_list, value, funcCmp, local_increment_list_##type);\
   }\
   struct list_##type * pull_end_from_list_##type(struct main_list_##type *var_list){\
     struct list_##type *ret = var_list->end_list;\
@@ -279,12 +288,12 @@ GENERATE_LIST_ALL(TYPE_PTR)
 
 #define GEN_FUNC_PTR_LIST_FREE(type)\
   void remove_all_ptr_type_list_##type(struct main_list_##type *var_list){\
-    struct list_##type *tmp = var_list->begin_list;\
+    struct list_##type *tmp = var_list->begin_list, *prec_tmp;\
     while(tmp){\
-      var_list->current_list = tmp;\
+      prec_tmp = tmp;\
       tmp = tmp->next;\
-      free_##type(var_list->current_list->value);\
-      free(var_list->current_list);\
+      free_##type(prec_tmp->value);\
+      free(prec_tmp);\
     }\
     var_list->begin_list = NULL;\
     var_list->current_list = NULL;\
@@ -293,12 +302,12 @@ GENERATE_LIST_ALL(TYPE_PTR)
     var_list->current_index = 0;\
   }\
   void purge_ptr_type_list_##type(struct main_list_##type *var_list){\
-    struct list_##type *tmp = var_list->begin_list;\
+    struct list_##type *tmp = var_list->begin_list, *prec_tmp;\
     while(tmp){\
-      var_list->current_list = tmp;\
+      prec_tmp = tmp;\
       tmp = tmp->next;\
-      free_##type(var_list->current_list->value);\
-      free(var_list->current_list);\
+      free_##type(prec_tmp->value);\
+      free(prec_tmp);\
     }\
     var_list->begin_list = NULL;\
     var_list->current_list = NULL;\

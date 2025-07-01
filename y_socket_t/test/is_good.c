@@ -25,7 +25,7 @@
 
 TEST(first){
   
-  struct y_socket_t *firstSock = y_socket_create("1600", 2);
+  struct y_socket_t *firstSock = y_socket_create_("1600");
   LOG("create y_socket_t in port |%s|\n",firstSock->port);
 
   y_socket_free(firstSock);
@@ -164,7 +164,7 @@ TEST(searchNode){
 
 
 TEST(pollThread){
-  struct y_socket_t *argS=y_socket_create("1600", 2);
+  struct y_socket_t *argS=y_socket_create("1600", 2, 3);
 
   pthread_t pollTh;
   pthread_create(&pollTh, NULL, y_socket_poll_fds, (void*)argS);
