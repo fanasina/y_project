@@ -18,6 +18,10 @@ ptr_y_WORKER_T create_ptr_y_WORKER_T(struct main_list_ptr_y_WORKER_T * workers,
                                      struct argExecTasQ *argx, int exec, int id ){
 	ptr_y_WORKER_T pworker = malloc(sizeof(y_WORKER_T));
 	pworker->exec=exec;
+	pworker->mut_exec = malloc(sizeof(pthread_mutex_t));
+	pthread_mutex_init(pworker->mut_exec, NULL);
+	pworker->cond_exec = malloc(sizeof(pthread_cond_t));
+	pthread_cond_init(pworker->cond_exec, NULL);
 	pworker->status=WORKER_OFF;
 	pworker->mut_worker = malloc(sizeof(pthread_mutex_t));
 	pthread_mutex_init(pworker->mut_worker, NULL);
@@ -39,13 +43,18 @@ ptr_y_WORKER_T create_ptr_y_WORKER_T(struct main_list_ptr_y_WORKER_T * workers,
   push_back_list_ptr_y_WORKER_T(workers, pworker);
   pthread_mutex_unlock(mut_workers);
   
-  pthread_create(pworker->thread,NULL,execute_work,(void*)(pworker->arg));
+  //pthread_create(pworker->thread,NULL,execute_work,(void*)(pworker->arg));
+  pthread_create(pworker->thread,NULL,execute_task,(void*)(pworker->arg->argx));
   
 
 	return pworker;
 }
 void __free_ptr_y_WORKER_T(void* p_worker){
 	ptr_y_WORKER_T pworker = (struct y_worker_t*)p_worker;
+	pthread_mutex_destroy(pworker->mut_exec);
+	free(pworker->mut_exec);
+	pthread_cond_destroy(pworker->cond_exec);
+	free(pworker->cond_exec);
 	pthread_mutex_destroy(pworker->mut_worker);
 	free(pworker->mut_worker);
 	pthread_cond_destroy(pworker->cond_worker);
@@ -77,25 +86,28 @@ void* execute_work(void* arg){
   struct argExecTasQ *argx=argw->argx;
 //  pthread_mutex_t *mut_workers=argw->mut_workers;
   struct y_worker_t * pworker = argw->pworker;
-
-  size_t id_thread=pthread_self();
   int exec;
+  size_t id_thread=pthread_self();
   pthread_mutex_lock(pworker->mut_worker);
-  exec=pworker->exec;
   pworker->status=WORKER_ON;
   pworker->id_thread=id_thread;
   pthread_mutex_unlock(pworker->mut_worker);
 	pthread_cond_signal(pworker->cond_worker);
     //printf("debug: ############################ execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
-  do{
+//  do{
     //printf("debug: execute_task call : thread_id:%ld, self=%ld \n",pworker->id,id_thread);
     execute_task((void*)argx);
     //printf("debug: <<<<>>>> execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
-  pthread_mutex_lock(pworker->mut_worker);
-  exec=pworker->exec;
-  pthread_mutex_unlock(pworker->mut_worker);
-    //printf("debug: execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
-  }while(exec);
+/*
+  pthread_mutex_lock(pworker->mut_exec);
+  while(pworker->exec == 1){
+    pthread_cond_wait(pworker->cond_exec, pworker->mut_exec);
+  }
+  exec = pworker->exec;
+  pthread_mutex_unlock(pworker->mut_exec);
+*/
+    printf("debug: execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
+//  }while(exec);
 
   
   pthread_mutex_lock(pworker->mut_worker);
@@ -108,8 +120,11 @@ void* execute_work(void* arg){
 }
 
 void wait_workers(struct main_list_ptr_y_WORKER_T *workers){
-  for(move_current_to_begin_list_ptr_y_WORKER_T(workers); workers->current_list;increment_list_ptr_y_WORKER_T(workers)){
-      pthread_join(*(workers->current_list->value->thread) ,NULL);
+ // for(move_current_to_begin_list_ptr_y_WORKER_T(workers); workers->current_list;increment_list_ptr_y_WORKER_T(workers)){
+ //     pthread_join(*(workers->current_list->value->thread) ,NULL);
+ // }
+  for(struct list_ptr_y_WORKER_T * loc_current_list = workers->begin_list; loc_current_list; loc_current_list = loc_current_list->next ){
+      pthread_join(*(loc_current_list->value->thread) ,NULL);
   }
 }
 
@@ -124,6 +139,10 @@ int check_worker_status(struct y_worker_t * pworker ){
 
 GEN_FUNC_PTR_LIST_FREE(ptr_y_WORKER_T){
   ptr_y_WORKER_T pworker = (struct y_worker_t*)arg;
+	pthread_mutex_destroy(pworker->mut_exec);
+	free(pworker->mut_exec);
+	pthread_cond_destroy(pworker->cond_exec);
+	free(pworker->cond_exec);
   pthread_mutex_destroy(pworker->mut_worker);
   free(pworker->mut_worker);
   pthread_cond_destroy(pworker->cond_worker);
@@ -137,17 +156,20 @@ void kill_all_workers ( struct argWorker *argw){
   	struct main_list_ptr_y_WORKER_T * workers  = argw->workers;
 	  struct argExecTasQ *argx = argw->argx;
 
-  for(move_current_to_begin_list_ptr_y_WORKER_T(workers); workers->current_list;increment_list_ptr_y_WORKER_T(workers)){
-      pthread_mutex_lock(workers->current_list->value->mut_worker);
-      workers->current_list->value->exec=KILL_WORKER;
-      pthread_mutex_unlock(workers->current_list->value->mut_worker);
+//  for(move_current_to_begin_list_ptr_y_WORKER_T(workers); workers->current_list;increment_list_ptr_y_WORKER_T(workers)){}
+  for(struct list_ptr_y_WORKER_T * loc_current_list = workers->begin_list; loc_current_list; loc_current_list = loc_current_list->next ){
+      pthread_mutex_lock(loc_current_list->value->mut_exec);
+      loc_current_list->value->exec=KILL_WORKER;
+      pthread_mutex_unlock(loc_current_list->value->mut_exec);
+      pthread_cond_signal(loc_current_list->value->cond_exec);
   }
 
   pthread_mutex_lock(argx->tasQ->mut_tasQ);
   (argx->go_on)=0;
   pthread_mutex_unlock(argx->tasQ->mut_tasQ);
 
-  for(move_current_to_begin_list_ptr_y_WORKER_T(workers); workers->current_list;increment_list_ptr_y_WORKER_T(workers)){
+//  for(move_current_to_begin_list_ptr_y_WORKER_T(workers); workers->current_list;increment_list_ptr_y_WORKER_T(workers)){}
+  for(struct list_ptr_y_WORKER_T * loc_current_list = workers->begin_list; loc_current_list; loc_current_list = loc_current_list->next ){
 ///    if(check_worker_status(workers->current_list->value) == WORKER_ON)
     {
       struct y_task_t task = {
@@ -159,7 +181,7 @@ void kill_all_workers ( struct argWorker *argw){
     }
   }
 ///}
-  
+ 
 
   wait_workers(workers);
  

@@ -4,6 +4,8 @@
 
 #include <time.h>
 
+#include <poll.h>
+
 // for sleep !
 #ifdef __linux__ 
   #include <unistd.h>
@@ -57,7 +59,7 @@ void* funcPrintSelf(void* arg){
 //  struct argExecTasQ *argx=(struct argExecTasQ*)arg;
   size_t thread_id=pthread_self();
   LOG("func:  number=%d; threadid=%ld\n", *count, thread_id);
-  usleep(200000);
+  usleep(2000);
   LOG("func: end func %d; in thread=%ld\n",*count,thread_id);
 //  free(count);
   return NULL;
@@ -69,7 +71,7 @@ void* funcEnd(void* arg){
   static long int count = 0; //randomm=rand()%1000;
   size_t thread_id=pthread_self();
   LOG("funcEnd: my status=%d, func number=%ld; threadid=%ld\n",(argx->go_on), count, thread_id);
-  usleep(20000);
+  usleep(2000);
   LOG("funcEnd: end func %ld; in thread=%ld\n",count,thread_id);
 	++count;
   return NULL;
@@ -80,7 +82,7 @@ void* funcDepRel(void* arg){
   struct dependency_task *dep = (struct dependency_task*)arg;
   size_t thread_id=pthread_self();
   LOG("func: threadid=%ld\n", thread_id);
-  usleep(300000);
+  usleep(3000);
   release_dependancy_task(dep);
   LOG("==============-------------------> func: end func release in thread=%ld\n",thread_id);
   return NULL;
@@ -116,7 +118,7 @@ int nb_worker=4;
   LOG(" - / -----  -- / ---  %d workers %ld created\n",nb_worker,(pw->arg->pworker->id));
 //usleep(500);
   }
-usleep(50000);
+usleep(500);
  
 int nb_task=59;
   for(int i=0; i<nb_task;++i)
@@ -162,7 +164,7 @@ int nb_task=59;
 
  LOG("another %d workers created\n",4);
 
-  usleep(2000000);
+  usleep(2000);
  
 	kill_all_workers(workers->begin_list->value->arg);
 
@@ -192,9 +194,9 @@ int nb_worker=4;
   LOG(" - / -----  -- / ---  %d workers %ld created\n",nb_worker,(pw->arg->pworker->id));
 //usleep(500);
   }
-usleep(50000);
+usleep(500);
  
-int nb_task=59;
+int nb_task=9;
   for(int i=0; i<nb_task;++i)
   { 
     int *j=malloc(sizeof(int));
@@ -237,8 +239,17 @@ int nb_task=59;
   }
 
  LOG("another %d workers created\n",4);
+ 
+ LOG("before kill all workers \n");
 
-  usleep(2000000);
+ //getchar();
+
+ struct pollfd fd[1];
+ fd[0].fd=0;
+ fd[0].events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI;
+ poll(fd, 1, -1);
+
+//  usleep(200000000);
  
 	kill_all_workers(workers->begin_list->value->arg);
 

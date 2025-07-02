@@ -19,6 +19,8 @@ struct argWorker;
 
 typedef struct y_worker_t{
   int exec;
+  pthread_mutex_t *mut_exec;
+  pthread_cond_t *cond_exec;
   int status;
   pthread_mutex_t *mut_worker;
   pthread_cond_t *cond_worker;

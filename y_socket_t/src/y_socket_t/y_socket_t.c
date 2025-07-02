@@ -331,6 +331,7 @@ void* y_socket_handler_(void *arg){
 //      printf("debug: kill_all\n");
     } 
   }
+  return NULL;
 }
 void *y_socket_poll_fds(void *arg){
   struct y_socket_t * argSock = (struct y_socket_t*)arg;
