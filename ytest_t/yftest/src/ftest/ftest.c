@@ -108,6 +108,7 @@ bool progress = true; // false;
 
 char *bar_progress = "  c"; /*{fill_bar,fill_dot,colored} */
 bool is_bar_progress = true;
+size_t count_para_progress = 0;
 
 FILE **f_ou_th;
 
@@ -171,6 +172,10 @@ pthread_mutex_t mut_count_pass_global;
 pthread_mutex_t mut_count_fail_global;
 pthread_mutex_t mut_count_pass_local;
 pthread_mutex_t mut_count_fail_local;
+
+pthread_mutex_t mut_count_para_progress;
+pthread_cond_t cond_count_para_progress;
+
 
 /*
  * end of the global variables of test_t.c
@@ -890,14 +895,21 @@ unsigned nnsleep(long long x) {
 }
 
 
-
 void bar_progress_test_(){
   bar_progress_start();
   
   struct func *tmp;
   size_t num_test=0;
-  
+  size_t current_local_count_progress=0;
+
 	do{
+    pthread_mutex_lock(&mut_count_para_progress);
+    while(current_local_count_progress == count_para_progress && count_para_progress <= count_tests){
+      pthread_cond_wait(&cond_count_para_progress, &mut_count_para_progress);
+    }
+    current_local_count_progress = count_para_progress;
+    pthread_mutex_unlock(&mut_count_para_progress);
+    
     tmp = current_fn;
     //UNLOCK(mut_current_test);
     if(tmp)
@@ -906,6 +918,7 @@ void bar_progress_test_(){
       bar_progress_step_msg(num_test, count_tests, "test N°", default_bar_progress[0],default_bar_progress[1],default_bar_progress[2]=='c'); 
     else bar_progress_step_msg(num_test, count_tests, "test N°", bar_progress[0],bar_progress[1],bar_progress[2]=='c'); 
     nnsleep(200000000);// 200 milliseconds
+    //nnsleep(2000000000);// 2000 milliseconds
   }while(tmp);
 
 
@@ -1101,6 +1114,10 @@ void execute_all(struct func *fun){
   bool exec_test=0;
   //PRINT_HK_C(colors_f[k_GREEN], tab_hk_f[hk_EQ]," Running %lu tests.\n",count_tests);
   while(tmp){
+   pthread_mutex_lock(&mut_count_para_progress);
+   ++count_para_progress;
+   pthread_mutex_unlock(&mut_count_para_progress);
+   pthread_cond_signal(&cond_count_para_progress); 
     current_fn = tmp;
     CHECK_IF_SELECTED_TEST(tmp->name)
     if(exec_test){
@@ -1111,6 +1128,10 @@ void execute_all(struct func *fun){
     tmp = tmp->next;
   }
   current_fn = tmp;
+   pthread_mutex_lock(&mut_count_para_progress);
+   ++count_para_progress;
+   pthread_mutex_unlock(&mut_count_para_progress);
+   pthread_cond_signal(&cond_count_para_progress); 
 }
 
 void _purge_t();
@@ -1172,7 +1193,7 @@ stat_end_parallel_run(size_t ntst, struct timespec start_t, size_t id_thrd){
   else PRINT_HK_C(colors_f[k_GREEN], tab_hk_f[hk_EQ]," %lu tests ran on thread[%ld]. (%lf ms total)\n",ntst, id_thrd, diff_timespec_milliseconds(end_t, start_t));
   
   PRINT_HK_C(colors_f[k_GREEN], tab_hk_f[hk_PS]," %lu tests passed on thread[%ld]\n", count_pass_thread[id_thrd], id_thrd);
-  if(thread_test_failed_l[id_thrd] != NULL){
+  if(thread_test_failed_l[id_thrd] != NULL){  
     PRINT_HK_C(colors_f[k_RED], tab_hk_f[hk_FL]," %lu tests failed on thread[%ld], listed below:\n",count_fail_thread[id_thrd],id_thrd); 
     list_failed_test(thread_test_failed_l[id_thrd], __func__);
   }
@@ -1242,6 +1263,10 @@ void execute_test_parallel(size_t id_thrd){
   bool exec_test=0;
  
   do{ 
+   pthread_mutex_lock(&mut_count_para_progress);
+   ++count_para_progress;
+   pthread_mutex_unlock(&mut_count_para_progress);
+   pthread_cond_signal(&cond_count_para_progress); 
     LOCK(mut_current_test);
     tmp = current_fn;
     if(tmp){
@@ -1259,11 +1284,17 @@ void execute_test_parallel(size_t id_thrd){
       UNLOCK(mut_current_test);
     }
   }while(tmp);
+
+   pthread_mutex_lock(&mut_count_para_progress);
+   ++count_para_progress;
+   pthread_mutex_unlock(&mut_count_para_progress);
+   pthread_cond_signal(&cond_count_para_progress); 
 }
 
 void*
 run_parallel_tests(void *id)
 {
+
    size_t id_th=*(size_t*)id;
    id_thread_self[id_th] = pthread_self();
    struct timespec start_t;
@@ -1333,6 +1364,8 @@ init_parallel_test_()
   pthread_mutex_init(&mut_count_fail_global, NULL);
   pthread_mutex_init(&mut_count_pass_local, NULL);
   pthread_mutex_init(&mut_count_fail_local, NULL);
+  pthread_mutex_init(&mut_count_para_progress, NULL);
+  pthread_cond_init(&cond_count_para_progress, NULL);
 }
 /*
  * finalisation, cleanup
@@ -1362,6 +1395,8 @@ final_parallel_test_()
   pthread_mutex_destroy(&mut_count_fail_global);
   pthread_mutex_destroy(&mut_count_pass_local);
   pthread_mutex_destroy(&mut_count_fail_local);
+  pthread_mutex_destroy(&mut_count_para_progress);
+  pthread_cond_destroy(&cond_count_para_progress);
 
 
   char reader[256]="Here are the ordered results for each thread"; 
