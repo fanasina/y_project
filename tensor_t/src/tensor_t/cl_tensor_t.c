@@ -50,7 +50,8 @@
     ret = clGetDeviceIDs( *platform_id, CL_DEVICE_TYPE_DEFAULT, 0, NULL, &ret_num_devices);/*platform_id[0] */ \
     checkError(ret,__func__,"Error: Failed to get num devices  ");\
     device_id = malloc(sizeof(cl_device_id)*ret_num_devices);\
-    ret = clGetDeviceIDs( *platform_id, CL_DEVICE_TYPE_DEFAULT, ret_num_devices, device_id, NULL);/*platform_id[0] */ \
+    ret = clGetDeviceIDs( *platform_id,CL_DEVICE_TYPE_GPU /*CL_DEVICE_TYPE_DEFAULT*/, ret_num_devices, device_id, NULL);/*platform_id[0] */ \
+    if(ret == CL_DEVICE_NOT_FOUND) ret = clGetDeviceIDs( *platform_id,CL_DEVICE_TYPE_CPU /*CL_DEVICE_TYPE_DEFAULT*/, ret_num_devices, device_id, NULL);/*platform_id[0] */ \
     checkError(ret,__func__,"Error: Failed to get num devices  ");\
     size_t returned_size = 0;\
 	  size_t max_workgroup_size = 0;\

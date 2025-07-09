@@ -1,11 +1,12 @@
 
 NAME_TEST=is_good
 CC=gcc
-LDFLAGS=-lpthread
 ROOT_DIR=$(shell pwd)
-INCLUDE_DIR=$(ROOT_DIR)
+YTESTDIR=$(ROOT_DIR)/../..
+INCLUDE_DIR=$(YTESTDIR)/include_ytest/include/
 PERMDIR=$(ROOT_DIR)/../../../ypermutation_t
 CFLAGS=-I$(INCLUDE_DIR) -I$(PERMDIR)/src/
+LDFLAGS=-L$(YTESTDIR)  -lpthread -lytest
 SRC_DIR=$(ROOT_DIR)
 SRC=$(wildcard src/*/*.c) 
 OBJ=$(SRC:.c=.o)

@@ -244,12 +244,20 @@ int nb_task=9;
 
  //getchar();
 
+#if 0
  struct pollfd fd[1];
  fd[0].fd=0;
  fd[0].events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI;
  poll(fd, 1, -1);
+#endif 
+  usleep(2000000);
 
-//  usleep(200000000);
+	standby_all_workers(workers->begin_list->value->arg);
+  usleep(2000000);
+
+  wakeup_all_workers(workers->begin_list->value->arg);
+  usleep(2000000);
+
  
 	kill_all_workers(workers->begin_list->value->arg);
 

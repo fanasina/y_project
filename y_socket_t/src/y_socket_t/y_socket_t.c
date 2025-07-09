@@ -329,7 +329,8 @@ void* y_socket_handler_(void *arg){
       pthread_mutex_unlock(sock->mut_go_on);
 //      kill_all_workers(argw);
 //      printf("debug: kill_all\n");
-    } 
+    }
+
   }
   return NULL;
 }
@@ -436,6 +437,22 @@ void *y_socket_poll_fds(void *arg){
         char * temp_all_buf = NULL;
         copy_list_y_ptr_STRING_to_one_string(&temp_all_buf , m_str);
         push_back_list_TYPE_PTR(list_arg, temp_all_buf);
+  
+    if(strncmp(temp_all_buf,"update standby",14)==0){
+      //pthread_mutex_lock(sock->mut_go_on);
+      //sock->go_on = 0;
+      //pthread_mutex_unlock(sock->mut_go_on);
+      standby_all_workers(workers->begin_list->value->arg);
+//      printf("debug: kill_all\n");
+    }
+    else if(strncmp(temp_all_buf,"update wakeup",13)==0){
+      //pthread_mutex_lock(sock->mut_go_on);
+      //sock->go_on = 0;
+      //pthread_mutex_unlock(sock->mut_go_on);
+      wakeup_all_workers(workers->begin_list->value->arg);
+//      printf("debug: kill_all\n");
+    }
+    else{
         struct arg_handler_ *ptr_argHandl = malloc(sizeof(struct arg_handler_));
           ptr_argHandl->buf = temp_all_buf;
           ptr_argHandl->fds=fds;
@@ -450,6 +467,7 @@ void *y_socket_poll_fds(void *arg){
           .status=TASK_PENDING,
         };
         push_tasQ(argx->tasQ, task_handl);
+      }
 			///
 				//y_socket_handler_(temp_all_buf, fds, argSock);
 

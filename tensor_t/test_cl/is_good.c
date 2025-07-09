@@ -33,7 +33,8 @@ TEST(rank){
   tensor_TYPE_FLOAT *tf = CREATE_TENSOR_TYPE_FLOAT(D);
   EXPECT_EQ(tf->dim->rank, 180);
 
-  free_dimension(D);
+//  free_dimension(D);
+  free_tensor_TYPE_FLOAT(tf);
 }
 
 void print_tensor_float(tensor_TYPE_FLOAT *M, char *msg){
@@ -204,7 +205,7 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
   extern long int  PRECISION_TYPE_DOUBLE;
 
 TEST(cl_tensorContractnProd_TYPE_FLOAT2 ){
-  PRECISION_TYPE_DOUBLE=1000;
+  PRECISION_TYPE_FLOAT=100;
 
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
@@ -254,6 +255,7 @@ TEST(cl_tensorContractnProd_TYPE_FLOAT2 ){
 }
 
 TEST(cl_tensorContractnProd_TYPE_DOUBLE2 ){
+  PRECISION_TYPE_DOUBLE=1000;
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
 

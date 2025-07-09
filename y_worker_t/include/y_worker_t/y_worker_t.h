@@ -10,17 +10,19 @@
 
 #define KILL_WORKER 0
 #define GO_ON_WORKER 1
+#define STANDBY_WORKER 2
 
 #define WORKER_ON 1
 #define WORKER_OFF 0
+#define WORKER_STANDBY 2
 
 
 struct argWorker;
 
 typedef struct y_worker_t{
   int exec;
-  pthread_mutex_t *mut_exec;
-  pthread_cond_t *cond_exec;
+//  pthread_mutex_t *mut_exec;
+//  pthread_cond_t *cond_exec;
   int status;
   pthread_mutex_t *mut_worker;
   pthread_cond_t *cond_worker;
@@ -63,6 +65,9 @@ struct argWorker {
 void* execute_work(void* arg);
 
 void kill_all_workers(struct argWorker *argw);
+
+void wakeup_all_workers ( struct argWorker *argw);
+void standby_all_workers ( struct argWorker *argw);
 
 //void kill_all_workers(struct main_list_ptr_y_WORKER_T * workers, struct argExecTasQ *argx);
 //void wait_workers(struct main_list_ptr_y_WORKER_T *workers);
