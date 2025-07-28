@@ -855,7 +855,7 @@ TEST(tensorProd_vs2d ){
   tensorProd_TYPE_FLOAT(&M,M0,M1);
   //cl2d_tensorProd_TYPE_FLOAT(&Mn,M0,M1,24,24);
   //cl2d_tensorProd_TYPE_FLOAT(&Mn,M0,M1,32,32);
-  cl2d_tensorProd_TYPE_FLOAT(&Mn,M0,M1,64,16);
+  cl2d_tensorProd_TYPE_FLOAT(&Mn,M0,M1,16,16);
   LOG("M->dim->rank = %ld\n",M->dim->rank);
 
   //print_tensor_float(M,"M");

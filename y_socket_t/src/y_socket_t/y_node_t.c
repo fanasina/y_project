@@ -54,6 +54,7 @@ struct list_y_NODE_T * search_node_in_list_y_NODE_T(struct main_list_y_NODE_T *l
 }
 
 int set_addr_y_NODE_T(y_NODE_T *node, char * addrStr){
+		//memset(&(node->addr), 0, sizeof(struct sockaddr_storage));
   int af = AF_INET, ret = -2;
   for(int i=0; i<strlen(addrStr); ++i){
     if(addrStr[i]=='.')
@@ -66,9 +67,11 @@ int set_addr_y_NODE_T(y_NODE_T *node, char * addrStr){
   node->addr.ss_family = af;
   if(af==AF_INET)
     ret = inet_pton(af, addrStr, &(GET_IN_type_ADDR(&(node->addr),)));
-  else if(af == AF_INET6)
-    ret = inet_pton(af, addrStr, (GET_IN_type_ADDR(&(node->addr), 6)));
+  else if(af == AF_INET6){
+		//((struct sockaddr_in6*)(&(node->addr)))->sin6_flowinfo = 0; 
+		ret = inet_pton(af, addrStr, (GET_IN_type_ADDR(&(node->addr), 6)));
   
+	}
   return ret;
   
 }
@@ -77,10 +80,43 @@ int set_addr_y_NODE_T(y_NODE_T *node, char * addrStr){
 void set_port_y_NODE_T(y_NODE_T *node, int port){
   int af = node->addr.ss_family;
   if(af==AF_INET)
-    ((struct sockaddr_in*)(&(node->addr)))->sin_port = port;
+    ((struct sockaddr_in*)(&(node->addr)))->sin_port = htons(port);
   else if(af == AF_INET6)
-    ((struct sockaddr_in6*)(&(node->addr)))->sin6_port = port;
+    ((struct sockaddr_in6*)(&(node->addr)))->sin6_port = htons(port);
   
 }
+void set_str_port_y_NODE_T(y_NODE_T *node, char *str_port){
+	int port = atoi(str_port);
+	set_port_y_NODE_T(node, port);
+}
 
+const char * put_y_NODE_T_in_string(y_NODE_T *node, char * dst){
+#if 0
+				char host[NI_MAXHOST], service[NI_MAXSERV];
+        int status = getnameinfo((struct sockaddr*)&(node->addr), node->addr_len, host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICHOST);
+        if(status==0)
+					return NULL;
+       //   printf("debug: status ==0 : success: Received successfully from %s:%s\n", host,service);
+       // else
+         printf("getnameinfo: %s\n", gai_strerror(status));
+	sprintf(dst,"%s:[%s]",host,service);
+#endif
+  char temp_addr[INET6_ADDRSTRLEN];	
+	if(node->addr.ss_family == AF_INET){
+		struct sockaddr_in *sinaddrv4 = ((struct sockaddr_in*)&(node->addr));
+		if(inet_ntop(node->addr.ss_family, &(sinaddrv4->sin_addr),
+          temp_addr, INET6_ADDRSTRLEN) == NULL){
+			return NULL;
+		}
 
+  	sprintf(dst, "%s:[%d]",temp_addr, ntohs(sinaddrv4->sin_port ));
+	}else if(node->addr.ss_family == AF_INET6){
+		struct sockaddr_in6 *sinaddrv6 = ((struct sockaddr_in6*)&(node->addr));
+		if(inet_ntop(node->addr.ss_family, &(sinaddrv6->sin6_addr),
+          temp_addr, INET6_ADDRSTRLEN) == NULL){
+			return NULL;
+		}
+		sprintf(dst, "%s:[%d]",temp_addr, ntohs(((struct sockaddr_in6*)&(node->addr))->sin6_port ));
+	}
+	return dst;
+}

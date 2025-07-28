@@ -27,5 +27,8 @@ int y_NODE_T_cmp(y_NODE_T nodeA, y_NODE_T nodeB);
 struct list_y_NODE_T * search_node_in_list_y_NODE_T(struct main_list_y_NODE_T *listNodes, y_NODE_T node);
 int set_addr_y_NODE_T(y_NODE_T *node, char * addrStr);
 void set_port_y_NODE_T(y_NODE_T *node, int port);
+void set_str_port_y_NODE_T(y_NODE_T *node, char *str_port);
+
+const char * put_y_NODE_T_in_string(y_NODE_T *node, char * dst);
 
 #endif /* __Y_NODE_T_H__C */
