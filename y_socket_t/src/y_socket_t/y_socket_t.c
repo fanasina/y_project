@@ -1,4 +1,5 @@
 #include "y_socket_t/y_socket_t.h"
+#include "y_socket_t/y_file_handler.h"
 
 const int af_array[nbIpVersion]={AF_INET, AF_INET6};
 
@@ -98,7 +99,7 @@ struct arg_update_nodes{
   y_NODE_T node; 
   struct main_list_y_NODE_T *nodes;
 };
-void update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes){
+void __update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes){
 #if 0
 void* update_nodes(void* arg)
   struct arg_update_nodes * argU=(struct arg_update_nodes*)arg;
@@ -122,6 +123,18 @@ void* update_nodes(void* arg)
         
 //  return NULL;
 } 
+
+void __fileNameDateScore(char* filename, char * pre, char* post,size_t score){
+ // char *filename=malloc(256);
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  sprintf(filename,"%s%d%02d%02d_%02dh%02dm%02ds_%ld%s",pre, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,score,post);
+
+  //return filename;
+}
+
+
+#if 0
 
 struct arg_send_file{
 	struct pollfd *fds;
@@ -229,6 +242,8 @@ void* y_socket_send_file_for_all_nodes(void* arg){
         printf("debug: fd=%d closed: filename=%s\n",fd_file,filename);
   return NULL;
 }
+#endif 
+
 
 void  y_socket_get_fds(struct pollfd * fds, char * port, char * addrDistant){
 
@@ -501,7 +516,7 @@ void *y_socket_poll_fds(void *arg){
       printf("message saisi : %s\n len = %ld\n",buf, buf_len);
 			if(buf_len>6){
 #if 1
-					char cmd[BUF_SIZE], dst_addr[BUF_SIZE], msg_buf[BUF_SIZE];
+					char cmd[BUF_SIZE], dst_addr[BUF_SIZE];//, msg_buf[BUF_SIZE];
 					int index_buf=0, index_str=0;
 					for(; buf[index_buf]!=' '; ++index_buf){
 						cmd[index_str++]=buf[index_buf];
@@ -516,10 +531,10 @@ void *y_socket_poll_fds(void *arg){
 					}
 					dst_addr[index_str]='\0';
 					while(buf[index_buf]==' '){++index_buf;}
-					index_str=0;
+					/*index_str=0;
 					for(; buf[index_buf]!='\n'; ++index_buf)
 						msg_buf[index_str++]=buf[index_buf];
-					msg_buf[index_str++]='\0';
+					msg_buf[index_str++]='\0';*/
 
 				printf("debug : index_str=%d, dst_addr=[%s]\n", index_str, dst_addr);
 #endif
@@ -536,8 +551,8 @@ void *y_socket_poll_fds(void *arg){
 					
 					printf("debug : af = AF_INET=%d, af = AF_INET6=%d, vs  af=[%d]\n",AF_INET, AF_INET6, af);
 
-					if(sendto(fds[af].fd, /*buf+index_buf  , buf_len-index_buf,*/ 
-																	msg_buf, index_str,
+					if(sendto(fds[af].fd, buf+index_buf  , buf_len-index_buf, 
+	                    //	msg_buf, index_str,
 																	0,
           	(struct sockaddr*)(&(node.addr)), node.addr_len) == -1){
       			printf("message erreur sendto : %s\n\n",buf);

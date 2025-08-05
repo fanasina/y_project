@@ -28,6 +28,9 @@ EXEC=launch_$(NAME_TEST)_m
 YSOCKSRC=$(ROOT_DIR)/src/y_socket_t/y_socket_t.c
 YSOCKSRC_O=$(YSOCKSRC:.c=.o)
 
+YFILEHANDLSRC=$(ROOT_DIR)/src/y_socket_t/y_file_handler.c
+YFILEHANDLSRC_O=$(YFILEHANDLSRC:.c=.o)
+
 YNODESRC=$(ROOT_DIR)/src/y_socket_t/y_node_t.c
 YNODESRC_O=$(YNODESRC:.c=.o)
 
@@ -42,7 +45,7 @@ TOPTARGETS := all clean
 
 DEPS := $(YTESTDIR) $(YLISTDIR) $(YWORKDIR)  $(ROOT_DIR)
 
-OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YLISTSRC_O) $(YWORKSRC_0) $(YTASKSRC_0)
+OBJ=$(YSOCKSRC_O)  $(YFILEHANDLSRC_O) $(YNODESRC_O) $(YLISTSRC_O) $(YWORKSRC_0) $(YTASKSRC_0)
 
 
 LIB_YTEST=$(YTESTDIR)/libytest.so

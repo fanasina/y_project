@@ -120,3 +120,29 @@ const char * put_y_NODE_T_in_string(y_NODE_T *node, char * dst){
 	}
 	return dst;
 }
+
+void update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes){
+#if 0
+void* update_nodes(void* arg)
+  struct arg_update_nodes * argU=(struct arg_update_nodes*)arg;
+  y_NODE_T node=argU->node;
+  struct main_list_y_NODE_T *nodes=argU->nodes;
+#endif
+
+
+#if 0
+
+  char host[NI_MAXHOST], service[NI_MAXSERV];
+        int status = getnameinfo((struct sockaddr*)&(node.addr), node.addr_len, host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICHOST);
+        if(status)
+       //   printf("debug: status ==0 : success: Received successfully from %s:%s\n", host,service);
+       // else
+          fprintf(stderr, "getnameinfo: %s\n", gai_strerror(status));
+
+#endif
+        if(NULL ==  search_node_in_list_y_NODE_T(nodes, node))
+          push_back_list_y_NODE_T(nodes, node);
+
+//  return NULL;
+}
+

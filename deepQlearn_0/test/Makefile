@@ -29,7 +29,7 @@ TEST_DIR=$(PWD)
 EXECSRC=$(NAME_TEST).c 
 #EXECSRC=openF.c
 
-EXEC=l1aunch_$(NAME_TEST)_m
+EXEC=launch_$(NAME_TEST)_m
 
 NEUROSRC=$(NEURODIR)/src/neuron_t/neuron_t.c
 NEUROSRC_O=$(NEUROSRC:.c=.o)
