@@ -228,7 +228,7 @@ void receve_from_node(struct pollfd *fds, char *msg, size_t count){
 
             write(fd_file, buf, nread);
         }
-        printf("close nread==%ld\n",nread);
+        printf("debug: <receve_from_node> close nread==%ld\n",nread);
         close(fd_file);
 
 
