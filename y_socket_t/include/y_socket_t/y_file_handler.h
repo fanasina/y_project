@@ -12,5 +12,7 @@ struct arg_send_file{
 };
 
 void* y_socket_send_file_for_all_nodes(void* arg);
+void receve_from_node(struct pollfd *fds, char *msg, size_t count);
+
 
 #endif /*Y_FILE_HANDLER_T_H__C*/

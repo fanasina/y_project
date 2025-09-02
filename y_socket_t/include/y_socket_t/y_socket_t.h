@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "y_socket_t/y_node_t.h"
+#include "y_socket_t/y_file_handler.h"
 
 #include "y_worker_t/y_worker_t.h"
 #include "y_worker_t/y_task_t.h"
