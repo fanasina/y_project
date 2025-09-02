@@ -351,7 +351,7 @@ void* y_socket_handler_(void *arg){
       //y_socket_send_file_for_all_nodes(fds, nodes,  filename) ;
     }
   }
-  if(strncmp(buf, "update", 6)==0){
+  else if(strncmp(buf, "update", 6)==0){
     if(strncmp(buf+7,"kill",4)==0){
       pthread_mutex_lock(sock->mut_go_on);
       sock->go_on = 0;
@@ -361,6 +361,26 @@ void* y_socket_handler_(void *arg){
     }
 
   }
+  else if(strncmp(buf, "post", 4)==0){
+    if(strncmp(buf+5,"file",4)==0){
+      char filename[BUF_SIZE];
+      strcpy(filename, buf + 9);
+
+
+      receve_from_node(fds, filename, strlen(filename));
+      /*
+      pthread_mutex_lock(sock->mut_go_on);
+      sock->go_on = 0;
+      pthread_mutex_unlock(sock->mut_go_on);
+      */
+//      kill_all_workers(argw);
+//      printf("debug: kill_all\n");
+    }
+
+  }
+  
+
+
   return NULL;
 }
 void *y_socket_poll_fds(void *arg){
