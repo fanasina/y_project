@@ -33,9 +33,10 @@ void y_send_post_file_to_all_nodes(void *arg){
 #endif
   int c_af;
 //  char host[NI_MAXHOST], service[NI_MAXSERV];
-  char buf_send[BUF_SIZE+1];
+  char buf_send[BUF_SIZE+1]={0};
   int fd_file;
   int retsprintf = sprintf(buf_send,"post file %s", filename );
+  printf("debug: buf_send=%s, size=%d\n",buf_send, retsprintf);
 
       for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
             //memset(tempAddr, 0, BUF_SIZE+1);
@@ -78,7 +79,7 @@ void y_send_post_file_to_all_nodes(void *arg){
 #endif
 						}else{
 #if TEMP_ADDR
-							printf("debug: sending response to < %s >",tempAddr);
+							printf("debug: sending %s to < %s >",buf_send,tempAddr);
 #endif
 						}
           }

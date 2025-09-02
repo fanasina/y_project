@@ -365,7 +365,7 @@ void* y_socket_handler_(void *arg){
       char filename[BUF_SIZE];
       strcpy(filename, buf + 9);
 
-
+      printf("debug: receve_from_node : file: %s\n",filename);
       receve_from_node(fds, filename, strlen(filename));
       /*
       pthread_mutex_lock(sock->mut_go_on);
