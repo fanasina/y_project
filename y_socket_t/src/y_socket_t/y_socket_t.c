@@ -363,7 +363,7 @@ void* y_socket_handler_(void *arg){
   else if(strncmp(buf, "post", 4)==0){
     if(strncmp(buf+5,"file",4)==0){
       char filename[BUF_SIZE];
-      strcpy(filename, buf + 9);
+      strcpy(filename, buf + 10);
 
       printf("debug: receve_from_node : file: %s\n",filename);
       receve_from_node(fds, filename, strlen(filename));

@@ -121,7 +121,8 @@ void* y_socket_send_file_for_all_nodes(void* arg){
          return NULL;
        }
  				
-		   y_send_post_file_to_all_nodes(arg);
+		 //  y_send_post_file_to_all_nodes(arg);
+          for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
 
        //memset(buf_send, 0, BUF_SIZE+1);
        while((retread = read(fd_file, buf_send, BUF_SIZE) ) > 0 ){
@@ -133,7 +134,7 @@ void* y_socket_send_file_for_all_nodes(void* arg){
          ///printf("debug: sending response  %s :\n",buf_send);
           
 					//FOR_LIST_FORM_BEGIN(y_NODE_T, nodes)
-          for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
+          //for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next )
             //memset(tempAddr, 0, BUF_SIZE+1);
             c_af=(local_list_current->value).addr.ss_family;
 #if TEMP_ADDR
@@ -181,6 +182,21 @@ void* y_socket_send_file_for_all_nodes(void* arg){
           }
 #endif 
           //memset(buf_send, 0, BUF_SIZE+1);
+          retread = sprintf(buf_send, "post file %s", filename);
+          if(sendto(fds[(c_af==AF_INET6)].fd, 
+              buf_send, retread,
+              /*msgRet, len_msgRet,*/ 
+              0, 
+              (struct sockaddr*)&((local_list_current->value).addr), 
+              (local_list_current->value).addr_len) != 
+              retread
+              /*len_msgRet*/
+              ){
+							fprintf(stderr, "Error sending response to %s\n",tempAddr);
+					}else{
+							printf("debug: sending response to < %s >",tempAddr);
+					}
+
         }
 
         close(fd_file);
