@@ -121,7 +121,8 @@ void* y_socket_send_file_for_all_nodes(void* arg){
          return NULL;
        }
  				
-		   //y_send_post_file_to_all_nodes(arg);
+		   y_send_post_file_to_all_nodes(arg);
+       usleep(100);
        //for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next )
 
        //memset(buf_send, 0, BUF_SIZE+1);
