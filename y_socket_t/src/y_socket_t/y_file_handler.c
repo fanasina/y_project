@@ -121,7 +121,7 @@ void* y_socket_send_file_for_all_nodes(void* arg){
          return NULL;
        }
  				
-		   y_send_post_file_to_all_nodes(arg);
+		   //y_send_post_file_to_all_nodes(arg);
        //for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next )
 
        //memset(buf_send, 0, BUF_SIZE+1);
@@ -209,7 +209,7 @@ void* y_socket_send_file_for_all_nodes(void* arg){
 
 
 void receve_from_node(struct pollfd *fds, char *msg, size_t count){
-    printf("\ndebug: <<<< receve_from_node %s %d\n\n",msg,count); 
+    printf("\ndebug: <<<< receve_from_node %s %ld\n\n",msg,count); 
     char filename[500];
     int fd_file;
     long int nread;
