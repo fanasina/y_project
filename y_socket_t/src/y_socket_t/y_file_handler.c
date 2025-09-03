@@ -215,7 +215,7 @@ void receve_from_node(struct pollfd *fds, char *msg, size_t count){
     socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
     //update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes);
 
-    fileNameDateScore(filename, "_",msg,count);
+    fileNameDateScore(filename, "__",msg,count);
         if((fd_file = open(filename, O_WRONLY | O_CREAT ,
           S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
           fprintf(stderr,"erreur write %s\n",filename);
