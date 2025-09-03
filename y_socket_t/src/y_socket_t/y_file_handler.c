@@ -35,7 +35,7 @@ void y_send_post_file_to_all_nodes(void *arg){
 //  char host[NI_MAXHOST], service[NI_MAXSERV];
   char buf_send[BUF_SIZE+1]={0};
   int fd_file;
-  int retsprintf = sprintf(buf_send,"post file %s", filename );
+  int retsprintf = snprintf(buf_send, 50,"post file %s", filename );
   printf("debug: buf_send=%s, size=%d\n",buf_send, retsprintf);
 
       for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
@@ -121,13 +121,11 @@ void* y_socket_send_file_for_all_nodes(void* arg){
          return NULL;
        }
  				
-       int len_header = sprintf(buf_send, "post file %s :",filename);
-       
-		   //y_send_post_file_to_all_nodes(arg);
+		   y_send_post_file_to_all_nodes(arg);
        //for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next )
 
        //memset(buf_send, 0, BUF_SIZE+1);
-       while((retread = read(fd_file, buf_send+len_header, BUF_SIZE-len_header) ) > 0 ){
+       while((retread = read(fd_file, buf_send, BUF_SIZE) ) > 0 ){
           buf_send[retread]='\0';
           //memset(msgRet, 0, BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100);
   //        sprintf(msgRet, "from %s:%s =%s",host, service, buf);
@@ -211,12 +209,12 @@ void* y_socket_send_file_for_all_nodes(void* arg){
 
 
 void receve_from_node(struct pollfd *fds, char *msg, size_t count){
-    
+    printf("\ndebug: <<<< receve_from_node %s %d\n\n",msg,count); 
     char filename[500];
     int fd_file;
     long int nread;
     char buf[BUF_SIZE];
-    struct sockaddr_storage peer_addr;
+    struct sockaddr_storage peer_addr; 
     socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
     //update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes);
 
