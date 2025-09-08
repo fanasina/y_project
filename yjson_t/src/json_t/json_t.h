@@ -87,7 +87,7 @@ struct js_value {
     struct js_object object;
     struct js_array array;
   } type;
-  struct js_value * parent;
+  struct js_value * parent; /* inverse value of value of object or array */
 };
 
 
@@ -110,23 +110,26 @@ struct js_value * create_js_value_false(char * input, struct js_value * parent);
 struct js_value * create_js_value_object(char *input, struct js_value * parent);
 struct js_value * create_js_value_array(char * input, struct js_value * parent);
 
-struct js_iterator * create_js_iterator(struct js_value * js);
+//struct js_iterator * create_js_iterator(struct js_value * js);
 
 void add_js_value_index(size_t index, struct js_value *js_to_add, struct js_value **js_org);
 void delete_key_js_value(char * key, struct js_value **js_org);
 
-void print_value(struct js_value *js);
+void print_js_value(struct js_value *js);
+//char* sprint_js_value(struct js_value *js);
 
 char * original_string_js_value(struct js_value *js);
 
 struct js_value *get_js_value_of_key(char * key, struct js_value *js );
 struct js_iterator * get_iterator_(struct js_value *js);
+void set_iterator_(struct js_value *js, struct js_iterator *iter);
 
 void append_js_value(struct js_value *dst, char *input);
 void delete_index_js_value(size_t index, struct js_value **js_org);
 
 struct js_value * value_of_(struct js_value * js);
 
+size_t js_org_str_length(struct js_value *js);
 
 #endif /* __Y_JSON_T_H__C__ */
 

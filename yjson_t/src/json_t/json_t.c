@@ -46,10 +46,7 @@ struct js_value * prev_(struct js_value *js){
  }
  return NULL;
 }
-
-
-void free_js_value(struct js_value *js){
-
+void free_js_value__(struct js_value *js){
   if(js->code_type == jstype_string){
     free(js->type.string);
   }else if(js->code_type == jstype_object){
@@ -62,7 +59,7 @@ void free_js_value(struct js_value *js){
       ttmp = tmpV;
       tmpV = ttmp->type.object.next_object ; //next_(ttmp); 
       ttmp->type.object.next_object = NULL;
-      //print_value(ttmp);
+      //print_js_value(ttmp);
       free_js_value(ttmp);
     }
     if(js->type.object.index == 0 && js->type.object.iter){
@@ -78,7 +75,7 @@ void free_js_value(struct js_value *js){
       ttmp = tmpV;
       tmpV = ttmp->type.array.next_element ; //next_(ttmp); 
       ttmp->type.array.next_element = NULL;
-      //print_value(ttmp);
+      //print_js_value(ttmp);
       free_js_value(ttmp);
     }
     if(js->type.array.index == 0 && js->type.array.iter){
@@ -92,9 +89,92 @@ void free_js_value(struct js_value *js){
 
 }
 
+void _free_js_value_no_free_iter(struct js_value *js){
+  if(js!=NULL){
+
+    if(js->code_type == jstype_number){
+      
+      free(js); 
+    }else if(js->code_type == jstype_string){
+      free(js->type.string);
+      free(js);
+    }else if(js->code_type == jstype_bool){
+      free(js); 
+    }else if(js->code_type == jstype_null){
+      free(js);
+    }else if(js->code_type == jstype_object){
+      struct js_value *tmpjs = NULL;
+
+      while(js){
+        tmpjs=js;
+
+        _free_js_value_no_free_iter(tmpjs->type.object.value);
+          
+        js = tmpjs->type.object.next_object;
+        free(tmpjs);
+      }
+    }else if(js->code_type == jstype_array){
+      struct js_value *tmpjs = NULL;
+      while(js){
+        tmpjs = js;
+        _free_js_value_no_free_iter(tmpjs->type.array.value);
+        
+        js =  tmpjs->type.array.next_element; // next_(tmpjs);
+        free(tmpjs);
+      }
+    }
+  }
+}
+
+
+
+void free_js_value(struct js_value *js){
+  if(js!=NULL){
+
+    if(js->code_type == jstype_number){
+      
+      free(js); 
+    }else if(js->code_type == jstype_string){
+      free(js->type.string);
+      free(js);
+    }else if(js->code_type == jstype_bool){
+      free(js); 
+    }else if(js->code_type == jstype_null){
+      free(js);
+    }else if(js->code_type == jstype_object){
+      struct js_value *tmpjs = NULL;
+
+      while(js){
+        tmpjs=js;
+        if((tmpjs->type.object.iter != NULL) && (tmpjs->type.object.prev_object == NULL)){ 
+          free(tmpjs->type.object.iter);
+        }
+
+        free_js_value(tmpjs->type.object.value);
+          
+        js = tmpjs->type.object.next_object;
+        free(tmpjs);
+      }
+    }else if(js->code_type == jstype_array){
+      struct js_value *tmpjs = NULL;
+      while(js){
+        tmpjs = js;
+        if((tmpjs->type.array.iter!=NULL) && (tmpjs->type.array.prev_element == NULL)){ 
+          free(tmpjs->type.array.iter);
+        }
+        free_js_value(tmpjs->type.array.value);
+        
+        js =  tmpjs->type.array.next_element; // next_(tmpjs);
+        free(tmpjs);
+      }
+    }
+  }
+}
+
 struct js_value * create_js_value_string(char * input, struct js_value * parent){
   struct js_value * js = malloc(sizeof(struct js_value));
   js->parent = parent;
+
   if(*input == '"')
     js->str_value = input+1;
   else
@@ -270,7 +350,8 @@ return js;
      
     js->type.array.value = create_js_value(str_value, js);
 
-    cur = str_value + js->type.array.value->length + (js->type.array.value->code_type != jstype_number) ; //1 ;
+    //cur = str_value + js->type.array.value->length + (js->type.array.value->code_type != jstype_number) ; //1 ;
+    cur = str_value + js->type.array.value->length + (js->type.array.value->code_type == jstype_string) ; //1 ;
 //    printf("<a>>strVal:%s\n",cur);
     
     if(js->type.array.value->code_type == jstype_string)
@@ -289,7 +370,7 @@ struct js_value * create_js_value(char *_input, struct js_value *parent){
    char *input = _input;
    for(; is_js_space(*input); ++input);
 
-//   printf(">>strVal:%s\n",input);
+   //printf("\n>>strVal:%s\n",input);
     if(*input == '"'){
       return  create_js_value_string(input+1, parent);
     }else if(strncmp(input,"true",4) == 0){
@@ -325,14 +406,12 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
   }
   js->length = cur - input;
  
-  // printf("iin:%s\noo cur:%s\nlenObj:%ld\n",input,cur, js->length);
 
   js->type.object.next_object = NULL;
   js->type.object.prev_object = NULL;
   js->type.object.index = 0;
   
   js->type.object.iter = malloc(sizeof(struct js_iterator));
-
   js->type.object.iter->size = js->type.object.index + 1;
   js->type.object.iter->begin = js;
   js->type.object.iter->end = js;
@@ -348,9 +427,7 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
   
   cur = input;
   for(; is_js_space(*cur); ++cur);
-//  printf("oocp::%s\n",cur); 
   if(*cur == '}'){
-//    printf(">>>iin:%s\noo cur:%s\nlenObj:%ld\n",input,cur, js->length);
     
     js->type.object.value = create_js_value_null(NULL, js);// NULL;
     js->type.object.value->length = cur - input;
@@ -362,11 +439,9 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
   }
 
 
-//  printf("cooc::%s, diff:%ld\n",cur, input + js_parent->length - cur); 
 
   while(cur < input + js_parent->length)
   { 
-//    printf("cc::%c\n",*cur); 
     if(*cur == ','){
       ++cur;
       tmp_js = malloc(sizeof(struct js_value));
@@ -424,7 +499,6 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
    
     if(*cur == '"') ++cur;
     js->type.object.key = cur;
- //   printf("cur:%s\n",cur);
     for(; *cur != '"'; ++cur);
     //js->key = cur;
     //for(; *cur != '"'; ++cur);
@@ -440,9 +514,10 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
     char *str_value = cur; // + js->type.object.key->length;  
   
     js->type.object.value = create_js_value(str_value, js);
+    //printf("\n[<<<: cur:%s\n(js->type.object.value->code_type != jstype_number)=%d\n",cur,(js->type.object.value->code_type != jstype_number));
     
-    cur = str_value + js->type.object.value->length + (js->type.object.value->code_type != jstype_number);// 1 ;
-//    printf("[>>>: cur:%s\n",cur);
+    cur = str_value + js->type.object.value->length +  (js->type.object.value->code_type == jstype_string); // ((js->type.object.value->code_type < jstype_bool)||(js->type.object.value->code_type > jstype_number));// 1 ;
+    //printf("\n[>>>: cur:%s\n",cur);
      
     if(js->type.object.value->code_type == jstype_string)
       for(; is_js_space(*cur) || *cur=='"' || *cur=='}' || *cur == ']'; ++cur);
@@ -610,87 +685,66 @@ struct js_value * get_js_value_of_index_(size_t index, struct js_value *js){
   return NULL;
 }
 
-
 void set_next_(struct js_value * dstjs, struct js_value * jsnxt){
   if(dstjs->code_type == jstype_object){
-    struct js_value *tmpjs = dstjs->type.object.next_object;//, *ttmpjs;
-      //ttmpjs = dstjs;
-      //while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
-      //struct js_iterator *iter = ttmpjs->type.object.iter;
-    struct js_iterator *iter = dstjs->type.object.iter;
-    dstjs->type.object.next_object = jsnxt;
-    jsnxt->type.object.prev_object = dstjs;
+    struct js_value *tmpjs = dstjs->type.object.next_object;
+    struct js_iterator *iter = dstjs->type.object.iter; 
     size_t last_index = dstjs->type.object.index;
-    struct js_value *ttmp = jsnxt;
-    //struct js_iterator *olditer = jsnxt->type.object.iter;
-    //bool deferFree = (jsnxt->type.object.index == 0);
-    struct js_value *end = jsnxt->type.object.iter->end;
-    while(next_(ttmp)){
-      if(get_index_(ttmp)==0) free(ttmp->type.object.iter);
-      ttmp->type.object.iter = iter;
-      //end = ttmp;
-      ttmp->type.object.index = (++last_index);
-      ttmp = next_(ttmp);
-    }
-    ttmp->type.object.next_object = tmpjs;
-    if(tmpjs){
-//      print_value(tmpjs);
-//      printf("%d line\n",__LINE__);
-      tmpjs->type.object.prev_object = ttmp;
-      while(tmpjs){
-        //end = tmpjs;
-        tmpjs->type.object.index = (++last_index);
-        tmpjs = next_(tmpjs);
+    
+    if(jsnxt->code_type == jstype_object){
+      dstjs->type.object.next_object = jsnxt;
+      struct js_iterator *it_er = jsnxt->type.object.iter; 
+      jsnxt->type.object.prev_object = dstjs;
+      while(jsnxt){
+        jsnxt->type.object.iter = iter;
+        jsnxt->type.object.index = ++last_index;
+        jsnxt = jsnxt->type.object.next_object;
       }
-    }
-    //struct js_iterator *iter = get_iterator_(dstjs);
-    if(iter){
+      if(tmpjs == NULL && it_er){
+        iter->end = it_er->end;
+      }else{
+        while(tmpjs){
+          tmpjs->type.object.index = ++last_index;
+          tmpjs = tmpjs->type.object.next_object;
+        }
+      }
       iter->size = last_index + 1;
-      if(get_index_(iter->end) < get_index_(end)){
-        iter->end = end;
+      if(it_er){
+        free(it_er); 
       }
-    }
-    //if(deferFree && olditer) free(olditer);
-  }else if(dstjs->code_type == jstype_array){
-    struct js_value *tmpjs = dstjs->type.array.next_element;//, *ttmpjs;
-      //ttmpjs = dstjs;
-      //while(prev_(ttmpjs))  ttmpjs = prev_(ttmpjs);
-      //struct js_iterator *iter = ttmpjs->type.array.iter;
-    struct js_iterator *iter = dstjs->type.array.iter;
-    //if(jsnxt->type.array.iter) free(jsnxt->type.array.iter);
-    dstjs->type.array.next_element = jsnxt;
-    jsnxt->type.array.prev_element = dstjs;
+    }  
+  }
+  else if(dstjs->code_type == jstype_array){
+    struct js_value *tmpjs = dstjs->type.array.next_element;
+    struct js_iterator *iter = dstjs->type.array.iter; 
     size_t last_index = dstjs->type.array.index;
-    struct js_value *ttmp = jsnxt;
-    struct js_value *end = jsnxt->type.array.iter->end;
-    //struct js_iterator *olditer = jsnxt->type.array.iter;
-    //bool deferFree = (jsnxt->type.array.index == 0);
-    while(next_(ttmp)){
-      if(get_index_(ttmp)==0) free(ttmp->type.object.iter);
-      ttmp->type.array.iter = iter;
-      //end = ttmp;
-      ttmp->type.array.index = (++last_index);
-      ttmp = next_(ttmp);
-    }
-    ttmp->type.array.next_element = tmpjs;
-    if(tmpjs){
-      tmpjs->type.array.prev_element = ttmp;
-      while(tmpjs){
-        //end = tmpjs;
-        tmpjs->type.array.index = (++last_index);
-        tmpjs = next_(tmpjs);
+    
+    if(jsnxt->code_type == jstype_array){
+      dstjs->type.array.next_element = jsnxt;
+      struct js_iterator *it_er = jsnxt->type.array.iter; 
+      jsnxt->type.array.prev_element= dstjs;
+      while(jsnxt){
+        jsnxt->type.array.iter = iter;
+        jsnxt->type.array.index = ++last_index;
+        jsnxt = jsnxt->type.array.next_element;
       }
-    }
-    //struct js_iterator *iter = get_iterator_(dstjs);
-    if(iter){
+      if(tmpjs == NULL && it_er){
+        iter->end = it_er->end;
+      }else{
+        while(tmpjs){
+          tmpjs->type.array.index = ++last_index;
+          tmpjs = tmpjs->type.array.next_element;
+        }
+      }
       iter->size = last_index + 1;
-      if(get_index_(iter->end) < get_index_(end)){
-        iter->end = end;
+      if(it_er){ 
+        free(it_er); 
       }
-    }
-    //if(deferFree && olditer) free(olditer);
+    }  
   }
 }
+
+
 
 void set_prev_(struct js_value ** _dst, struct js_value * jsprv){
   struct js_value *dst = *_dst;
@@ -801,10 +855,11 @@ void add_js_value_index(size_t index, struct js_value *js_to_add, struct js_valu
 }
 
 void delete_index_js_value(size_t index, struct js_value **js_org){
-  if((*js_org)->code_type >= jstype_object){
+  if((*js_org) && ( (*js_org)->code_type >= jstype_object) ){
     struct js_value  *ttmp=NULL;
     ttmp = get_js_value_of_index_(index, *js_org);
-      if((*js_org)->code_type == jstype_object){
+
+      if(ttmp && ((*js_org)->code_type == jstype_object)){
         struct js_iterator *iter = (*js_org)->type.object.iter;
         struct js_value *prevJS = ttmp->type.object.prev_object;
         struct js_value *nextJS = ttmp->type.object.next_object;
@@ -821,20 +876,27 @@ void delete_index_js_value(size_t index, struct js_value **js_org){
         }
         if(nextJS){
           nextJS->type.object.prev_object = prevJS;
-          ttmp->type.object.next_object = NULL;
         }else{
           iter->end == prevJS;
         }
     
       if(ttmp == *js_org){
         *js_org = nextJS;
+        iter->begin = nextJS;
       }
         while(nextJS){
          --(nextJS->type.object.index);
          nextJS = nextJS->type.object.next_object;
         }
         --(iter->size);
-       
+        
+        ttmp->type.object.next_object = NULL;
+        ttmp->type.object.prev_object = NULL;
+        
+        if(*js_org){
+          ttmp->type.object.iter = NULL;
+        }
+          
         free_js_value(ttmp);
         
       }else{
@@ -854,13 +916,13 @@ void delete_index_js_value(size_t index, struct js_value **js_org){
         }
         if(nextJS){
           nextJS->type.array.prev_element = prevJS;
-          ttmp->type.array.next_element = NULL;
         }else{
           iter->end == prevJS;
         }
     
       if(ttmp == *js_org){
         *js_org = nextJS;
+        iter->begin = nextJS;
       }
         while(nextJS){
          --(nextJS->type.array.index);
@@ -868,6 +930,12 @@ void delete_index_js_value(size_t index, struct js_value **js_org){
         }
         --(iter->size);
        
+        ttmp->type.array.next_element = NULL;
+        ttmp->type.array.prev_element = NULL;
+
+        if(*js_org)
+          ttmp->type.array.iter = NULL;
+           
         free_js_value(ttmp);
        
       }
@@ -879,41 +947,26 @@ struct js_iterator * get_iterator_(struct js_value *js){
   if(js->code_type == jstype_array) return js->type.array.iter;
   return NULL;
 }
+void set_iterator_(struct js_value *js, struct js_iterator *iter){
 
+  if(js->code_type == jstype_object) js->type.object.iter = iter;
+  if(js->code_type == jstype_array)  js->type.array.iter = iter;
+}
 
 void append_js_value(struct js_value *dst, char *input){/* if object type: input =  { "key" : value }, if key already exists value replace the old value! */
-  if(dst->code_type < jstype_object || get_iterator_(dst) == NULL) return;
-  struct js_value *newval = create_js_value(input, dst);
-  if(dst->code_type == jstype_object && newval->code_type != jstype_object){
-    printf(" input needs to be at the format :  { \"key\" : value } \n");
-    free_js_value(newval);
-    return;
-  }else{
-    if(dst->code_type == jstype_object){
-      char key[newval->type.object.key_length + 1];
-      strncpy(key, newval->type.object.key, newval->type.object.key_length);
-      key[newval->type.object.key_length]='\0';
-      struct js_value * valjs = get_js_value_of_key(key, dst);
-      if(valjs){
-        struct js_value *ttmp = value_of_(valjs);
-        valjs->type.object.value = value_of_(newval);
-        free_js_value(ttmp);
-        if(newval->type.object.iter) free(newval->type.object.iter);
-        free(newval); // but keep value_of_(newval)! 
-        return;
-      }
-
+  if(dst){
+    if(dst->code_type < jstype_object || get_iterator_(dst) == NULL) return;
+    struct js_value *newval = create_js_value(input, dst->parent);
+    if(newval->code_type != dst->code_type) {
+      free_js_value(newval);
+      return;
     }
     struct js_iterator *iter = get_iterator_(dst);
     set_next_(iter->end, newval);
-    struct js_value *tmpjs = newval;
-    while(next_(tmpjs)) tmpjs = next_(tmpjs);
-    iter->end = tmpjs;
-    iter->current = tmpjs;
-    iter->size = get_index_(tmpjs) + 1;
-    
   }
+  
 }
+
 
 char * original_string_js_value(struct js_value *js){
   char *ret = malloc(js->length+1);
@@ -927,7 +980,7 @@ char * original_string_js_value(struct js_value *js){
 
 }
 
-void print_value(struct js_value *js){
+void __print_js_value(struct js_value *js){
   if(js->code_type == jstype_number){
     printf("%Lf",js->type.number);
   }else if(js->code_type == jstype_string){
@@ -949,7 +1002,7 @@ void print_value(struct js_value *js){
         strncpy(key, tmpjs->type.object.key, tmpjs->type.object.key_length);
         key[tmpjs->type.object.key_length]='\0';
         printf("\n%*c\"%s\" : ", 4*(tmpjs->type.object.depth),' ', key );
-      print_value(tmpjs->type.object.value);
+      print_js_value(tmpjs->type.object.value);
 
       if(tmpjs->type.object.next_object == NULL)
          printf("\n%*c} ",4*(tmpjs->type.object.depth),' '); //printf(" }");
@@ -965,7 +1018,7 @@ void print_value(struct js_value *js){
       }
         if(tmpjs->type.array.value->code_type < jstype_object ) 
           printf("\n%*c ",4*(tmpjs->type.array.depth),' ');
-        print_value(tmpjs->type.array.value);
+        print_js_value(tmpjs->type.array.value);
       if(tmpjs->type.array.next_element == NULL)  //printf(" ]");
         printf("\n%*c] ",4*(tmpjs->type.array.depth),' ');
       else printf(", ");
@@ -974,6 +1027,59 @@ void print_value(struct js_value *js){
   }
 
 }
+
+
+void print_js_value(struct js_value *js){
+  if(js->code_type == jstype_number){
+    printf("%Lf",js->type.number);
+  }else if(js->code_type == jstype_string){
+    printf("\"%s\"",js->type.string);
+  }else if(js->code_type == jstype_bool){
+    printf("%s",js->type.boolean ? "true" : "false");
+  }else if(js->code_type == jstype_null){
+    printf("%s","null");
+  }else if(js->code_type == jstype_object){
+    struct js_value *tmpjs = js;
+
+    while(tmpjs){
+      
+      if(tmpjs->type.object.prev_object == NULL){ 
+        printf("\n%*c{ ",4*(tmpjs->type.object.depth),' ');
+      }
+
+        char key[tmpjs->type.object.key_length + 1];
+        strncpy(key, tmpjs->type.object.key, tmpjs->type.object.key_length);
+        key[tmpjs->type.object.key_length]='\0';
+        printf("\n%*c\"%s\" : ", 4*(tmpjs->type.object.depth),' ', key );
+      print_js_value(tmpjs->type.object.value);
+
+      if(tmpjs->type.object.next_object == NULL)
+         printf("\n%*c} ",4*(tmpjs->type.object.depth),' '); //printf(" }");
+      else printf(", ");
+      //printf("\n");
+      tmpjs = tmpjs->type.object.next_object;
+    }
+  }else if(js->code_type == jstype_array){
+    struct js_value *tmpjs = js;
+    while(tmpjs){
+      if(tmpjs->type.array.prev_element == NULL){  
+        printf("\n%*c[ ",4*(tmpjs->type.array.depth),' ');
+      }
+        if(tmpjs->type.array.value->code_type < jstype_object ) 
+          printf("\n%*c ",4*(tmpjs->type.array.depth),' ');
+        print_js_value(tmpjs->type.array.value);
+      if(tmpjs->type.array.next_element == NULL)  //printf(" ]");
+        printf("\n%*c] ",4*(tmpjs->type.array.depth),' ');
+      else printf(", ");
+      tmpjs =  tmpjs->type.array.next_element; // next_(tmpjs);
+    }
+  }
+
+}
+
+
+
+void print_js_value(struct js_value *js){
 
 struct js_value * value_of_(struct js_value * js){
   if(js->code_type == jstype_object){
@@ -1003,6 +1109,11 @@ void delete_key_js_value(char * key, struct js_value **js_org){
   if(js){
     delete_index_js_value(js->type.object.index, js_org);
   }
+}
+
+size_t js_org_str_length(struct js_value *js){
+  // if string add 2 \" values
+  return js->length+1+2*(js->code_type == 0);
 }
 
 /*
