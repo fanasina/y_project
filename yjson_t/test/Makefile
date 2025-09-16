@@ -7,10 +7,11 @@ CC=gcc
 ROOT_DIR=$(PWD)
 YTESTDIR=$(PWD)/../../ytest_t
 LISTDIR=$(PWD)/../../list_t
+YSOCKETDIR=$(PWD)/../../y_socket_t
 INCLUDE_LIST=$(LISTDIR)/src
 
 INCLUDE_DIR=$(PWD)/../src
-CFLAGS=-I$(INCLUDE_DIR) -I$(INCLUDE_LIST)  -I$(YTESTDIR)/include_ytest/include 
+CFLAGS=-I$(INCLUDE_DIR) -I$(INCLUDE_LIST)  -I$(YTESTDIR)/include_ytest/include  -I$(YSOCKETDIR)/include
 LDFLAGS=-L$(YTESTDIR) -lytest
 
 #SRC_DIR=$(ROOT_DIR)/src
@@ -27,11 +28,11 @@ LISTSRC_O=$(LISTDIR)/src/list_t/list_t.o
 JSONDIR=$(PWD)/..
 JSONSRC=$(JSONDIR)/src/json_t/json_t.c
 JSONSRC_O=$(JSONDIR)/src/json_t/json_t.o
-
+YSTRINGLIST_O=$(YSOCKETDIR)/src/y_socket_t/y_list_string.o
 
 TOPTARGETS := all clean 
 
-DEPS=$(LISTDIR) $(YTESTDIR) $(JSONDIR)
+DEPS=$(LISTDIR) $(YTESTDIR) $(JSONDIR) $(YSOCKETDIR)
 
 $(TOPTARGETS): $(DEPS) 
 
@@ -45,7 +46,7 @@ $(DEPS):
 #TOOLSRC=$(TOOLDIR)/src/tools_t/tools_t.c
 #TOOLSRC_O=$(TOOLSRC:.c=.o)
 
-OBJ=$(SRC:.c=.o) $(JSONSRC_O)
+OBJ=$(SRC:.c=.o) $(JSONSRC_O) $(YSTRINGLIST_O)
 #$(LISTSRC_O) 
 
 

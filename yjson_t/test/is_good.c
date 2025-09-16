@@ -480,7 +480,25 @@ TEST(general_val_string_with_extra_value){
 
 }
 
+TEST(sprint_js_value__){
+  char *val = "{ \"-1 header\" : [ \"message\" , \"Hello! it's a string\" ,  [{},{},[ [ ] ] ] , { \"age\" : 48  , \"speaker\" : \" the president \" } , 45 , true ] , \"second\" : 324.1 , \"person\" : { \"name\" : \"Fana\" , \"age\" : 37 , \"genre\" : \"male\" , \"married\" : false , \"note\" : [2.1,4.45,4,10, { \"math\" : 17.1, \"malagasy\" : 12, \"eps\" : [ 5, 6 , 4 ] }] } , \"nul\" : { }}  here extra string ";
+ 
+  struct js_value *js = create_js_value(val, NULL);
+printf("\n##############################################\n");
+  print_js_value(js);
+printf("\n##############################################\n");
+  char *buf = NULL;
+  long int ret =  sprint_one_line_js_value(&buf, js);
+  printf("\nret = %ld,\nbuf:\n%s\n",ret, buf);
+printf("\n##############################################\n");
+  free(buf);
+  buf=NULL; 
+  ret =  sprint_js_value(&buf, js,'\n',8);
+  printf("\nret = %ld,\nbuf:\n%s\n",ret, buf);
+  free_js_value(js);
+  if(buf) free(buf);
 
+}
 
 
 int main(int argc, char **argv){

@@ -1,3 +1,5 @@
+/*file: include/y_socket_t/y_socket_t.h*/
+
 #ifndef Y_SOCKET_T_H__C
 #define Y_SOCKET_T_H__C
 
@@ -20,14 +22,16 @@
 #include <errno.h>
 #include <signal.h>
 
-#include <string.h>
-
+//#include "y_socket_t/y_socket_t.h"
 #include "y_socket_t/y_node_t.h"
 #include "y_socket_t/y_file_handler.h"
 
 #include "y_worker_t/y_worker_t.h"
 #include "y_worker_t/y_task_t.h"
 
+#include "y_socket_t/y_list_string.h"
+
+#include "json_t/json_t.h"
 
 #define BUF_SIZE 500
 #define TIMEOUT_MS 100
@@ -41,6 +45,8 @@ enum ipVersions{
 
 extern const int af_array[nbIpVersion];//={AF_INET, AF_INET6};
 
+/* y_ptr_STRING */
+#if 0
 struct y_string{
 	char * buf;
 	size_t size;
@@ -54,6 +60,8 @@ GEN_HEAD_PTR_LIST(y_ptr_STRING)
 
 size_t total_size_list_y_ptr_STRING(struct main_list_y_ptr_STRING *mstr);
 size_t copy_list_y_ptr_STRING_to_one_string(char **p_dst_str, struct main_list_y_ptr_STRING *mstr);
+
+#endif /* y_ptr_STRING */
 
 struct y_socket_t{
   struct pollfd *fds;

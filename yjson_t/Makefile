@@ -2,8 +2,6 @@
 CC=gcc
 TOOLDIR=$(PWD)/../ytools_t
 
-INCLUDE_DIR=$(TOOLDIR)/include
-CFLAGS=-I$(INCLUDE_DIR) -I./src 
 
 #SRC_DIR=$(ROOT_DIR)/src
 #SRC=$(wildcard */*/*.c) 
@@ -12,6 +10,10 @@ CFLAGS=-I$(INCLUDE_DIR) -I./src
 LISTDIR=$(PWD)/../list_t
 LISTSRC=$(LISTDIR)/src/list_t/list_t.c
 LISTSRC_O=$(LISTSRC:.c=.o)
+
+YSOCKETDIR=$(PWD)/../y_socket_t/
+YSTRINGLISTSRC=$(YSOCKETDIR)/src/y_socket_t/y_list_string.c
+YSTRINGLISTSRC_O=$(YSOCKETSRC:.c=.o)
 
 #SETTSRC=src/set_theoric_t/set_theoric_t.c
 #SETTSRC_O=$(SETTSRC:.c=.o)
@@ -25,17 +27,20 @@ TOOLSRC=$(TOOLDIR)/src/tools_t/tools_t.c
 TOOLSRC_O=$(TOOLSRC:.c=.o)
 
 SRC=$(wildcard **/**/*.c) 
-OBJ=$(SRC:.c=.o) $(TOOLSRC_O) 
+OBJ=$(SRC:.c=.o) $(TOOLSRC_O) $(LISTSRC_O) $(YSOCKETDIR) $(YSTRINGLISTSRC_O)
+
+INCLUDE_DIR=$(TOOLDIR)/include
+CFLAGS=-I$(INCLUDE_DIR) -I./src -I$(YSOCKETDIR)/include 
 
 TOPTARGETS := all clean
-DEP=$(TOOLDIR) $(LISTDIR)
+DEP=$(TOOLDIR) $(LISTDIR) $(YSOCKETDIR)
 
 $(TOPTARGETS): $(DEP)
 
 all: $(JSONSRC_O)
 
 
-$(JSONSRC_O): $(JSONSRC)  $(TOOLSRC_O)  # $(LISTSRC_O)
+$(JSONSRC_O): $(JSONSRC)  $(TOOLSRC_O) $(YSTRINGLISTSRC_O)  # $(LISTSRC_O)
 	$(CC) -o $@ -c $< $(CFLAGS)
 
 

@@ -1,3 +1,5 @@
+/*file: src/y_socket_t/y_node_t.c*/
+
 #include "y_socket_t/y_node_t.h"
 #include "y_socket_t/y_socket_t.h"
 

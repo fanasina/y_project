@@ -1,7 +1,13 @@
+/*file: src/y_socket_t/y_socket_t.c */
+
 #include "y_socket_t/y_socket_t.h"
+//#include "y_socket_t/y_list_string.h"
+//#include "json_t/json_t.h"
 
 const int af_array[nbIpVersion]={AF_INET, AF_INET6};
 
+/* y_ptr_STRING */
+#if 0 
 struct y_string * create_y_ptr_STRING(const char *buf, size_t size){
 	struct y_string *string=malloc(sizeof(struct y_string));
 	string->buf=malloc(size+1);
@@ -53,6 +59,8 @@ size_t copy_list_y_ptr_STRING_to_one_string(char **p_dst_str, struct main_list_y
 	return count_size;
 
 }
+
+#endif /* y_ptr_STRING */
 
 struct y_socket_t * y_socket_create(char *port, size_t size_fds, int nb_workers){
   struct y_socket_t *sock_temp=malloc(sizeof(struct y_socket_t));
@@ -382,6 +390,116 @@ void* y_socket_handler_(void *arg){
 
   return NULL;
 }
+void handle_input_kbd(char *buf, ssize_t buf_len ,void *arg){
+    struct y_socket_t * argSock = (struct y_socket_t*)arg;
+    struct pollfd *fds = argSock->fds;
+    y_NODE_T node;
+    int af, status;
+    /*
+    ssize_t nread, buf_len;
+    char buf[BUF_SIZE];
+    //struct main_list_y_ptr_STRING *m_str=create_var_list_y_ptr_STRING();
+  //printf("fd = %d\n event=%d\n\n",fds[1].fd,pollEventRec);
+      //fds[1].events = 0;
+      
+      puts("Saisie du message : ");
+      memset(buf, 0, sizeof buf);
+      //scanf(" %"xstr(BUF_SIZE)"[^\n]%*c", buf);
+      buf_len = read(0,buf,BUF_SIZE);
+      */
+ //     printf("message saisi : %s\n len = %ld\n",buf, buf_len);
+			if(buf_len>6){
+#if 1
+					char cmd[BUF_SIZE], dst_addr[BUF_SIZE];//, msg_buf[BUF_SIZE];
+					int index_buf=0, index_str=0;
+					for(; buf[index_buf]!=' '; ++index_buf){
+						cmd[index_str++]=buf[index_buf];
+					}
+					cmd[index_str]='\0';
+//				printf("debug : index_str= %d; cmd=[%s]\n",index_str, cmd);
+					
+					index_str=0;
+					while(buf[index_buf]==' '){++index_buf;}
+					for(; buf[index_buf]!=' '; ++index_buf){
+						dst_addr[index_str++]=buf[index_buf];
+					}
+					dst_addr[index_str]='\0';
+					while(buf[index_buf]==' '){++index_buf;}
+					/*index_str=0;
+					for(; buf[index_buf]!='\n'; ++index_buf)
+						msg_buf[index_str++]=buf[index_buf];
+					msg_buf[index_str++]='\0';*/
+
+	//			printf("debug : index_str=%d, dst_addr=[%s]\n", index_str, dst_addr);
+#endif
+
+		
+			if(strncmp(cmd, "sendto", 6)==0){
+//				printf("debug : sendto match, dst_addr=[%s]\n", dst_addr);
+				if(set_addr_y_NODE_T(&node, dst_addr)){
+//					printf("debug : set_addr_y_NODE_T done\n");
+					set_str_port_y_NODE_T(&node, argSock->port);
+					update_nodes(node, argSock->nodes);
+					af=(node.addr.ss_family == AF_INET6);
+
+					
+					printf("debug : af = AF_INET=%d, af = AF_INET6=%d, vs  af=[%d]\n",AF_INET, AF_INET6, af);
+
+					if(sendto(fds[af].fd, buf+index_buf  , buf_len-index_buf, 
+	                    //	msg_buf, index_str,
+																	0,
+          	(struct sockaddr*)(&(node.addr)), node.addr_len) == -1){
+      			printf("message erreur sendto : %s\n\n",buf);
+          	perror("sendto:");
+          	close(fds[af].fd);
+          	return ;//NULL;
+        	}
+					char dddnn[56];
+				  put_y_NODE_T_in_string(&node, dddnn);
+      		printf("debug: sendto : %s: msg :%s\n\n",dddnn,  buf+index_buf);
+
+
+				}
+			}
+		}
+}
+
+void handle_buf_socket_rec(char *temp_all_buf, y_NODE_T node, struct main_list_ptr_y_WORKER_T * workers, struct argExecTasQ *argx, struct main_list_TYPE_PTR * list_arg, void * arg){
+  struct y_socket_t * argSock = (struct y_socket_t*)arg;
+  struct pollfd *fds = argSock->fds;
+
+   if(strncmp(temp_all_buf,"update standby",14)==0){
+      //pthread_mutex_lock(sock->mut_go_on);
+      //sock->go_on = 0;
+      //pthread_mutex_unlock(sock->mut_go_on);
+      standby_all_workers(workers->begin_list->value->arg);
+//      printf("debug: kill_all\n");
+    }
+    else if(strncmp(temp_all_buf,"update wakeup",13)==0){
+      //pthread_mutex_lock(sock->mut_go_on);
+      //sock->go_on = 0;
+      //pthread_mutex_unlock(sock->mut_go_on);
+      wakeup_all_workers(workers->begin_list->value->arg);
+//      printf("debug: kill_all\n");
+    }
+    else{
+        struct arg_handler_ *ptr_argHandl = malloc(sizeof(struct arg_handler_));
+          ptr_argHandl->buf = temp_all_buf;
+          ptr_argHandl->fds=fds;
+          ptr_argHandl->sock=argSock;
+          ptr_argHandl->node=node;
+          ptr_argHandl->argw=workers->begin_list->value->arg;
+        
+        push_back_list_TYPE_PTR(list_arg, ptr_argHandl);
+        struct y_task_t task_handl = {
+          .func=y_socket_handler_,
+          .arg=ptr_argHandl,
+          .status=TASK_PENDING,
+        };
+        push_tasQ(argx->tasQ, task_handl);
+    }
+}
+
 void *y_socket_poll_fds(void *arg){
   struct y_socket_t * argSock = (struct y_socket_t*)arg;
 // // //
@@ -487,36 +605,8 @@ void *y_socket_poll_fds(void *arg){
         copy_list_y_ptr_STRING_to_one_string(&temp_all_buf , m_str);
         push_back_list_TYPE_PTR(list_arg, temp_all_buf);
   
-    if(strncmp(temp_all_buf,"update standby",14)==0){
-      //pthread_mutex_lock(sock->mut_go_on);
-      //sock->go_on = 0;
-      //pthread_mutex_unlock(sock->mut_go_on);
-      standby_all_workers(workers->begin_list->value->arg);
-//      printf("debug: kill_all\n");
-    }
-    else if(strncmp(temp_all_buf,"update wakeup",13)==0){
-      //pthread_mutex_lock(sock->mut_go_on);
-      //sock->go_on = 0;
-      //pthread_mutex_unlock(sock->mut_go_on);
-      wakeup_all_workers(workers->begin_list->value->arg);
-//      printf("debug: kill_all\n");
-    }
-    else{
-        struct arg_handler_ *ptr_argHandl = malloc(sizeof(struct arg_handler_));
-          ptr_argHandl->buf = temp_all_buf;
-          ptr_argHandl->fds=fds;
-          ptr_argHandl->sock=argSock;
-          ptr_argHandl->node=node;
-          ptr_argHandl->argw=workers->begin_list->value->arg;
-        
-        push_back_list_TYPE_PTR(list_arg, ptr_argHandl);
-        struct y_task_t task_handl = {
-          .func=y_socket_handler_,
-          .arg=ptr_argHandl,
-          .status=TASK_PENDING,
-        };
-        push_tasQ(argx->tasQ, task_handl);
-      }
+   
+        handle_buf_socket_rec(temp_all_buf, node, workers, argx, list_arg, arg);
 			///
 				//y_socket_handler_(temp_all_buf, fds, argSock);
 
@@ -526,13 +616,18 @@ void *y_socket_poll_fds(void *arg){
 		// stdin poll
 		if(fds[2].revents){// && POLLIN
       //pollEventRec = fds[1].events;
-      //printf("fd = %d\n event=%d\n\n",fds[1].fd,pollEventRec);
+    
+			//handle_input_kbd(arg);	
+//printf("fd = %d\n event=%d\n\n",fds[1].fd,pollEventRec);
       //fds[1].events = 0;
+      
       puts("Saisie du message : ");
       memset(buf, 0, sizeof buf);
       //scanf(" %"xstr(BUF_SIZE)"[^\n]%*c", buf);
       buf_len = read(0,buf,BUF_SIZE);
       printf("message saisi : %s\n len = %ld\n",buf, buf_len);
+//      handle_input_kbd(buf, buf_len ,arg);
+#if 1
 			if(buf_len>6){
 #if 1
 					char cmd[BUF_SIZE], dst_addr[BUF_SIZE];//, msg_buf[BUF_SIZE];
@@ -587,7 +682,8 @@ void *y_socket_poll_fds(void *arg){
 				}
 			}
 		}
-					
+#endif
+
     }
 
 

@@ -7,6 +7,7 @@
 #include <stdbool.h>
 
 #include "tools_t/tools_t.h"
+#include "y_socket_t/y_list_string.h"
 
 #define ITERATOR__(type) \
 struct iterator_##type {\
@@ -116,7 +117,8 @@ void add_js_value_index(size_t index, struct js_value *js_to_add, struct js_valu
 void delete_key_js_value(char * key, struct js_value **js_org);
 
 void print_js_value(struct js_value *js);
-//char* sprint_js_value(struct js_value *js);
+long int sprint_js_value(char **dstString, struct js_value *js, char sep, int tab_depth);
+long int sprint_one_line_js_value(char **dstString, struct js_value *js);
 
 char * original_string_js_value(struct js_value *js);
 

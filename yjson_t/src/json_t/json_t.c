@@ -149,7 +149,8 @@ void free_js_value(struct js_value *js){
         if((tmpjs->type.object.iter != NULL) && (tmpjs->type.object.prev_object == NULL)){ 
           free(tmpjs->type.object.iter);
         }
-
+        if(tmpjs->type.object.key) 
+          free(tmpjs->type.object.key); 
         free_js_value(tmpjs->type.object.value);
           
         js = tmpjs->type.object.next_object;
@@ -174,10 +175,10 @@ void free_js_value(struct js_value *js){
 struct js_value * create_js_value_string(char * input, struct js_value * parent){
   struct js_value * js = malloc(sizeof(struct js_value));
   js->parent = parent;
-
+/*
   if(*input == '"')
     js->str_value = input+1;
-  else
+  else*/
     js->str_value = input;
   js->code_type =  jstype_string;
   char *cur = js->str_value;
@@ -498,12 +499,19 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
    // js->type.object.key = create_js_value_string(cur, js);
    
     if(*cur == '"') ++cur;
-    js->type.object.key = cur;
+    char *key = cur;
+    // /1/js->type.object.key = cur;
     for(; *cur != '"'; ++cur);
     //js->key = cur;
     //for(; *cur != '"'; ++cur);
     //js->key_length = cur - js->key;
-    js->type.object.key_length = cur - js->type.object.key;
+    // /1/js->type.object.key_length = cur - js->type.object.key;
+    js->type.object.key_length = cur - key ;  
+    js->type.object.key = malloc(js->type.object.key_length+1);
+    memcpy(js->type.object.key,key,js->type.object.key_length);
+    *(js->type.object.key + js->type.object.key_length) ='\0';
+
+    //js->type.object.key = cur;
     for(; *cur != ':'; ++cur);
     ++cur;
     for(; is_js_space(*cur); ++cur);
@@ -980,7 +988,119 @@ char * original_string_js_value(struct js_value *js){
 
 }
 
-void __print_js_value(struct js_value *js){
+        //lret=strlen(buf);\
+
+#define UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)\
+        (y_string_b_uf) = create_y_ptr_STRING((buf), (local_size));\
+        (global_size) += (local_size);\
+        push_back_list_y_ptr_STRING((m_str), (y_string_b_uf));\
+  
+  //      printf("debug:global_size=%ld, local_size=%ld, buf=%s / / %d / /\n",(global_size),(local_size),(buf), js->code_type);\
+
+/* tab_depth = number of tabulationfor values,  */
+long int sprint_js_value_to_y_string_list(struct main_list_y_ptr_STRING *m_str, struct js_value *js, char sep, int tab_depth){
+  long int global_size = 0, local_size;
+  //char *buf = malloc(js->length);
+  //printf("debug: js->length = %ld\n",js->length);
+  char buf[500]; memset(buf,0,500);
+  y_ptr_STRING y_string_b_uf; 
+
+  if(js->code_type == jstype_number){
+    //memset(buf,0,499);
+    local_size = sprintf(buf,"%Lf",js->type.number);
+    UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+  }else if(js->code_type == jstype_string){
+    //memset(buf,0,499);
+    local_size = sprintf(buf,"\"%s\"",js->type.string);
+    UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+  }else if(js->code_type == jstype_bool){
+    //memset(buf,0,499);
+    local_size = sprintf(buf,"%s",js->type.boolean ? "true" : "false");
+    UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+  }else if(js->code_type == jstype_null){
+    //memset(buf,0,499);
+    local_size = sprintf(buf,"%s","null");
+    UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+  }else if(js->code_type == jstype_object){
+    struct js_value *tmpjs = js;
+
+    while(tmpjs){
+      
+      if(tmpjs->type.object.prev_object == NULL){ 
+        local_size = sprintf(buf,"%c%*c{ ",sep,tab_depth*(tmpjs->type.object.depth),' ');
+        UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+      }
+
+        local_size = sprintf(buf,"%c%*c\"%s\" : ",sep, tab_depth*(tmpjs->type.object.depth),' ', tmpjs->type.object.key);
+        UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+        
+        global_size += sprint_js_value_to_y_string_list(m_str, tmpjs->type.object.value, sep, tab_depth );
+
+      if(tmpjs->type.object.next_object == NULL){
+        local_size = sprintf(buf,"%c%*c} ",sep,tab_depth*(tmpjs->type.object.depth),' '); //printf(" }");
+        UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+      }else{ 
+        //memset(buf,0,499);
+        local_size = sprintf(buf,", ");
+        UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+      }
+      //printf("\n");
+      tmpjs = tmpjs->type.object.next_object;
+    }
+  }else if(js->code_type == jstype_array){
+    struct js_value *tmpjs = js;
+    while(tmpjs){
+      if(tmpjs->type.array.prev_element == NULL){  
+        //memset(buf,0,499);
+        local_size = sprintf(buf, "%c%*c[ ",sep,tab_depth*(tmpjs->type.array.depth),' ');
+        UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+      }
+        if(tmpjs->type.array.value->code_type < jstype_object ) {
+          //memset(buf,0,499);
+          local_size = sprintf(buf,"%c%*c ",sep,tab_depth*(tmpjs->type.array.depth),' ');
+          UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+        }
+        global_size += sprint_js_value_to_y_string_list(m_str,tmpjs->type.array.value,sep,tab_depth);
+      if(tmpjs->type.array.next_element == NULL){  //printf(" ]");
+        //memset(buf,0,499);
+        local_size = sprintf(buf,"%c%*c] ",sep,tab_depth*(tmpjs->type.array.depth),' ');
+        UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+      }else{
+        //memset(buf,0,499);
+        local_size = sprintf(buf,", ");
+        UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)
+      }
+      tmpjs =  tmpjs->type.array.next_element; // next_(tmpjs);
+    }
+  }
+
+  //free(buf);
+  return global_size;
+}
+
+/* dstString can be NULL ! (it's better)*/
+long int sprint_js_value(char **dstString, struct js_value *js, char sep, int tab_depth){
+  struct main_list_y_ptr_STRING *m_str=create_var_list_y_ptr_STRING();
+ // remove_all_ptr_type_list_y_ptr_STRING(m_str); 
+  long int ret = sprint_js_value_to_y_string_list(m_str,js,sep, tab_depth);
+  copy_list_y_ptr_STRING_to_one_string(dstString , m_str);
+  //printf("debug:%s\n",*dstString); 
+  purge_ptr_type_list_y_ptr_STRING(m_str);
+  return ret;
+}
+/* dstString can be NULL ! (it's better)*/
+long int sprint_one_line_js_value(char **dstString, struct js_value *js){
+  struct main_list_y_ptr_STRING *m_str=create_var_list_y_ptr_STRING();
+ // remove_all_ptr_type_list_y_ptr_STRING(m_str); 
+  long int ret = sprint_js_value_to_y_string_list(m_str,js,' ', 1);
+  copy_list_y_ptr_STRING_to_one_string(dstString , m_str);
+  //printf("debug:%s\n",*dstString); 
+  
+  purge_ptr_type_list_y_ptr_STRING(m_str);
+  return ret;
+}
+
+void print_js_value(struct js_value *js){
   if(js->code_type == jstype_number){
     printf("%Lf",js->type.number);
   }else if(js->code_type == jstype_string){
@@ -997,11 +1117,13 @@ void __print_js_value(struct js_value *js){
       if(tmpjs->type.object.prev_object == NULL){ 
         printf("\n%*c{ ",4*(tmpjs->type.object.depth),' ');
       }
-
+        /*
         char key[tmpjs->type.object.key_length + 1];
         strncpy(key, tmpjs->type.object.key, tmpjs->type.object.key_length);
         key[tmpjs->type.object.key_length]='\0';
-        printf("\n%*c\"%s\" : ", 4*(tmpjs->type.object.depth),' ', key );
+        printf("\n%*c%s : ", 4*(tmpjs->type.object.depth),' ', key );
+        */
+        printf("\n%*c\"%s\" : ", 4*(tmpjs->type.object.depth),' ', tmpjs->type.object.key);
       print_js_value(tmpjs->type.object.value);
 
       if(tmpjs->type.object.next_object == NULL)
@@ -1029,57 +1151,8 @@ void __print_js_value(struct js_value *js){
 }
 
 
-void print_js_value(struct js_value *js){
-  if(js->code_type == jstype_number){
-    printf("%Lf",js->type.number);
-  }else if(js->code_type == jstype_string){
-    printf("\"%s\"",js->type.string);
-  }else if(js->code_type == jstype_bool){
-    printf("%s",js->type.boolean ? "true" : "false");
-  }else if(js->code_type == jstype_null){
-    printf("%s","null");
-  }else if(js->code_type == jstype_object){
-    struct js_value *tmpjs = js;
-
-    while(tmpjs){
-      
-      if(tmpjs->type.object.prev_object == NULL){ 
-        printf("\n%*c{ ",4*(tmpjs->type.object.depth),' ');
-      }
-
-        char key[tmpjs->type.object.key_length + 1];
-        strncpy(key, tmpjs->type.object.key, tmpjs->type.object.key_length);
-        key[tmpjs->type.object.key_length]='\0';
-        printf("\n%*c\"%s\" : ", 4*(tmpjs->type.object.depth),' ', key );
-      print_js_value(tmpjs->type.object.value);
-
-      if(tmpjs->type.object.next_object == NULL)
-         printf("\n%*c} ",4*(tmpjs->type.object.depth),' '); //printf(" }");
-      else printf(", ");
-      //printf("\n");
-      tmpjs = tmpjs->type.object.next_object;
-    }
-  }else if(js->code_type == jstype_array){
-    struct js_value *tmpjs = js;
-    while(tmpjs){
-      if(tmpjs->type.array.prev_element == NULL){  
-        printf("\n%*c[ ",4*(tmpjs->type.array.depth),' ');
-      }
-        if(tmpjs->type.array.value->code_type < jstype_object ) 
-          printf("\n%*c ",4*(tmpjs->type.array.depth),' ');
-        print_js_value(tmpjs->type.array.value);
-      if(tmpjs->type.array.next_element == NULL)  //printf(" ]");
-        printf("\n%*c] ",4*(tmpjs->type.array.depth),' ');
-      else printf(", ");
-      tmpjs =  tmpjs->type.array.next_element; // next_(tmpjs);
-    }
-  }
-
-}
 
 
-
-void print_js_value(struct js_value *js){
 
 struct js_value * value_of_(struct js_value * js){
   if(js->code_type == jstype_object){
@@ -1099,7 +1172,7 @@ struct js_value *get_js_value_of_key(char * key, struct js_value *js ){
         js->type.object.iter->current = tmp;
         return tmp; //tmp->type.object.value == value_of_(tmp);
       }
-      tmp = next_(tmp);
+      tmp = tmp->type.object.next_object;//next_(tmp);
     }
   }
   return NULL; 

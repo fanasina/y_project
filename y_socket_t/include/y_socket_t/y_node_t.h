@@ -1,3 +1,5 @@
+/*file: include/y_socket_t/y_node_t.h */
+
 #ifndef __Y_NODE_T_H__C
 #define __Y_NODE_T_H__C
 

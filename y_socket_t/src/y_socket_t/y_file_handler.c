@@ -1,3 +1,5 @@
+/*file: src/y_socket_t/y_file_handler.c*/
+
 #include "y_socket_t/y_file_handler.h"
 
 //#include "y_socket_t/y_node_t.h"
@@ -122,7 +124,7 @@ void* y_socket_send_file_for_all_nodes(void* arg){
        }
  				
 		   y_send_post_file_to_all_nodes(arg);
-       usleep(100);
+       usleep(1);
        //for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next )
 
        //memset(buf_send, 0, BUF_SIZE+1);
@@ -208,7 +210,17 @@ void* y_socket_send_file_for_all_nodes(void* arg){
   return NULL;
 }
 
+/*
+struct arg_record_to_file{
+  int *is_file_to_record,
+  char * filename,
+  char *buf
+};
 
+void record_buffer_to_file(void *arg){
+  
+}
+*/
 void receve_from_node(struct pollfd *fds, char *msg, size_t count){
     printf("\ndebug: <<<< receve_from_node %s %ld\n\n",msg,count); 
     char filename[500];
