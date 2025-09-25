@@ -182,6 +182,7 @@ struct js_value * create_js_value_string(char * input, struct js_value * parent)
     js->str_value = input;
   js->code_type =  jstype_string;
   char *cur = js->str_value;
+  //if(*input == '"') ++cur;
   for(; *cur!='"'; ++cur);
   js->length = cur - js->str_value;
   js->type.string = malloc(js->length + 1);
@@ -369,7 +370,7 @@ return js;
 
 struct js_value * create_js_value(char *_input, struct js_value *parent){
    char *input = _input;
-   for(; is_js_space(*input); ++input);
+   for(; is_js_space(*input); ++input){}
 
    //printf("\n>>strVal:%s\n",input);
     if(*input == '"'){
@@ -569,7 +570,7 @@ void setup_js_iterator(struct js_iterator **_iter, struct js_value * js){
 
     iter->begin = js;
     struct js_value *tmpjs = js;
-    struct js_value *tmpit = iter->begin;
+    //struct js_value *tmpit = iter->begin;
     //size_t index = 0;
     while(tmpjs){
       //iter->set_index_(tmpjs, index);  
@@ -885,7 +886,7 @@ void delete_index_js_value(size_t index, struct js_value **js_org){
         if(nextJS){
           nextJS->type.object.prev_object = prevJS;
         }else{
-          iter->end == prevJS;
+          iter->end = prevJS;
         }
     
       if(ttmp == *js_org){
@@ -925,7 +926,7 @@ void delete_index_js_value(size_t index, struct js_value **js_org){
         if(nextJS){
           nextJS->type.array.prev_element = prevJS;
         }else{
-          iter->end == prevJS;
+          iter->end = prevJS;
         }
     
       if(ttmp == *js_org){
@@ -988,14 +989,14 @@ char * original_string_js_value(struct js_value *js){
 
 }
 
-        //lret=strlen(buf);\
+        //lret=strlen(buf);
 
 #define UPDATE_RET_N_PUSH_Y_STRING(local_size, global_size, m_str, y_string_b_uf, buf)\
         (y_string_b_uf) = create_y_ptr_STRING((buf), (local_size));\
         (global_size) += (local_size);\
         push_back_list_y_ptr_STRING((m_str), (y_string_b_uf));\
   
-  //      printf("debug:global_size=%ld, local_size=%ld, buf=%s / / %d / /\n",(global_size),(local_size),(buf), js->code_type);\
+  //      printf("debug:global_size=%ld, local_size=%ld, buf=%s / / %d / /\n",(global_size),(local_size),(buf), js->code_type);
 
 /* tab_depth = number of tabulationfor values,  */
 long int sprint_js_value_to_y_string_list(struct main_list_y_ptr_STRING *m_str, struct js_value *js, char sep, int tab_depth){
