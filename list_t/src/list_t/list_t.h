@@ -1,6 +1,8 @@
 #ifndef __LIST_T_C__H
 #define __LIST_T_C__H
 
+#include <pthread.h>
+
 #include "tools_t/tools_t.h"
 
 #define TYPE_PTR void*
@@ -8,6 +10,7 @@
 #define GENERATE_LIST_ALL(type)\
   struct list_##type {\
     type value;\
+    size_t index;\
     struct list_##type *preview;\
     struct list_##type *next;\
   };\
@@ -17,6 +20,7 @@
     size_t current_index;\
     struct list_##type *end_list;\
     size_t size;\
+    pthread_mutex_t *mut_list;\
   };\
   struct main_list_##type *create_var_list_##type();\
   void push_back_list_##type(struct main_list_##type *var_list, type value);\
@@ -69,11 +73,14 @@ GENERATE_LIST_ALL(TYPE_PTR)
     ret_var_list->current_list = NULL;\
     ret_var_list->current_index = 0;\
     ret_var_list->size = 0;\
+    ret_var_list->mut_list = malloc(sizeof(pthread_mutex_t));\
+    pthread_mutex_init(ret_var_list->mut_list, NULL);\
     return ret_var_list;\
   }\
   void push_back_list_##type(struct main_list_##type *var_list, type value){\
     struct list_##type * list_to_add = malloc(sizeof(struct list_##type));\
     list_to_add->value = value;\
+    list_to_add->index = var_list->size;\
     list_to_add->preview = var_list->end_list;\
     list_to_add->next = NULL;\
     if(var_list->end_list){\
@@ -101,6 +108,11 @@ GENERATE_LIST_ALL(TYPE_PTR)
     }\
     var_list->begin_list = list_to_add;\
     ++(var_list->size);\
+    size_t index=0;\
+    while(list_to_add){\
+      list_to_add->index = index++;\
+      list_to_add = list_to_add->next;\
+    }\
   }\
   size_t move_current_to_index_list_##type(struct main_list_##type *var_list, size_t index){\
     if(index == var_list->current_index) return index;\
@@ -171,6 +183,10 @@ GENERATE_LIST_ALL(TYPE_PTR)
       }\
     }\
     ++(var_list->size);\
+    while(list_to_add){\
+      list_to_add->index = index++;\
+      list_to_add = list_to_add->next;\
+    }\
   }\
   void remove_index_from_list_##type(struct main_list_##type *var_list, size_t index ){\
     if( index == move_current_to_index_list_##type(var_list, index)) {\
@@ -183,7 +199,10 @@ GENERATE_LIST_ALL(TYPE_PTR)
       free(var_list->current_list);\
       var_list->current_list = list_tmp_next;\
       --(var_list->size);\
-      \
+      while(list_tmp_next){\
+        list_tmp_next->index = index++;\
+        list_tmp_next=list_tmp_next->next;\
+      }\
     }\
   }\
   void remove_all_list_in_##type(struct main_list_##type *var_list){\
@@ -201,6 +220,8 @@ GENERATE_LIST_ALL(TYPE_PTR)
   }\
   void free_all_var_list_##type(struct main_list_##type *var_list){\
     remove_all_list_in_##type(var_list);\
+    pthread_mutex_destroy(var_list->mut_list);\
+    free(var_list->mut_list);\
     free(var_list);\
   }\
   void increment_list_##type(struct main_list_##type * var_list){\
