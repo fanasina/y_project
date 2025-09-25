@@ -80,6 +80,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
   void push_back_list_##type(struct main_list_##type *var_list, type value){\
     struct list_##type * list_to_add = malloc(sizeof(struct list_##type));\
     list_to_add->value = value;\
+    pthread_mutex_lock(var_list->mut_list);\
     list_to_add->index = var_list->size;\
     list_to_add->preview = var_list->end_list;\
     list_to_add->next = NULL;\
@@ -92,11 +93,13 @@ GENERATE_LIST_ALL(TYPE_PTR)
     }\
     var_list->end_list = list_to_add;\
     ++(var_list->size);\
+    pthread_mutex_unlock(var_list->mut_list);\
   }\
   void push_front_list_##type(struct main_list_##type *var_list, type value){\
     struct list_##type * list_to_add = malloc(sizeof(struct list_##type));\
     list_to_add->value = value;\
     list_to_add->preview = NULL;\
+    pthread_mutex_lock(var_list->mut_list);\
     list_to_add->next = var_list->begin_list;\
     if(var_list->begin_list){\
       (var_list->begin_list)->preview = list_to_add;\
@@ -113,13 +116,22 @@ GENERATE_LIST_ALL(TYPE_PTR)
       list_to_add->index = index++;\
       list_to_add = list_to_add->next;\
     }\
+    pthread_mutex_unlock(var_list->mut_list);\
   }\
   size_t move_current_to_index_list_##type(struct main_list_##type *var_list, size_t index){\
-    if(index == var_list->current_index) return index;\
-    if(var_list->begin_list == NULL) return 0;\
+    pthread_mutex_lock(var_list->mut_list);\
+    if(index == var_list->current_index){\
+      pthread_mutex_unlock(var_list->mut_list);\
+      return index;\
+    }\
+    if(var_list->begin_list == NULL){\
+      pthread_mutex_unlock(var_list->mut_list);\
+      return 0;\
+    }\
     if(index >= var_list->size){\
       var_list->current_list = var_list->end_list;\
       var_list->current_index = var_list->size - 1;\
+      pthread_mutex_unlock(var_list->mut_list);\
       return var_list->size - 1;\
     }\
     if((var_list->current_index >= var_list->size) || !(var_list->current_list)){\
@@ -143,18 +155,29 @@ GENERATE_LIST_ALL(TYPE_PTR)
       for(size_t i=0; i < array_diff_index[1]; ++i) var_list->current_list = (var_list->current_list)->next; \
       \
     var_list->current_index = index;\
+    pthread_mutex_unlock(var_list->mut_list);\
     return index;\
   }\
   size_t move_current_to_begin_list_##type(struct main_list_##type *var_list){\
-    if(var_list->begin_list == NULL) return 0;\
+    pthread_mutex_lock(var_list->mut_list);\
+    if(var_list->begin_list == NULL){\
+      pthread_mutex_unlock(var_list->mut_list);\
+      return 0;\
+    }\
     var_list->current_list = var_list->begin_list;\
     var_list->current_index = 0;\
+    pthread_mutex_unlock(var_list->mut_list);\
     return 0;\
   }\
   size_t move_current_to_end_list_##type(struct main_list_##type *var_list){\
-    if(var_list->end_list == NULL) return 0;\
+    pthread_mutex_lock(var_list->mut_list);\
+    if(var_list->end_list == NULL){\
+      pthread_mutex_unlock(var_list->mut_list);\
+      return 0;\
+    }\
     var_list->current_list = var_list->end_list;\
     var_list->current_index = var_list->size - 1;\
+    pthread_mutex_unlock(var_list->mut_list);\
     return var_list->current_index;\
   }\
   void insert_into_list_##type(struct main_list_##type *var_list, size_t index, type value ){\
@@ -163,6 +186,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
     if(var_list->begin_list == NULL){\
       list_to_add->preview = NULL;\
       list_to_add->next = NULL;\
+      pthread_mutex_lock(var_list->mut_list);\
       var_list->begin_list = list_to_add;\
       var_list->end_list = list_to_add;\
       var_list->current_list = list_to_add;\
@@ -170,6 +194,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
       \
     }else {\
       size_t ii =  move_current_to_index_list_##type(var_list, index);\
+      pthread_mutex_lock(var_list->mut_list);\
       if(index > ii)\
         printf("%ld out of range, we  put the value at %ld index of the list \n",index, ii);\
       if(var_list->current_list){\
@@ -187,9 +212,11 @@ GENERATE_LIST_ALL(TYPE_PTR)
       list_to_add->index = index++;\
       list_to_add = list_to_add->next;\
     }\
+    pthread_mutex_unlock(var_list->mut_list);\
   }\
   void remove_index_from_list_##type(struct main_list_##type *var_list, size_t index ){\
     if( index == move_current_to_index_list_##type(var_list, index)) {\
+      pthread_mutex_lock(var_list->mut_list);\
       struct list_##type * list_tmp_prev = (var_list->current_list)->preview;\
       struct list_##type * list_tmp_next = (var_list->current_list)->next;\
       if(list_tmp_prev){\
@@ -203,9 +230,11 @@ GENERATE_LIST_ALL(TYPE_PTR)
         list_tmp_next->index = index++;\
         list_tmp_next=list_tmp_next->next;\
       }\
+      pthread_mutex_unlock(var_list->mut_list);\
     }\
   }\
   void remove_all_list_in_##type(struct main_list_##type *var_list){\
+    pthread_mutex_lock(var_list->mut_list);\
     struct list_##type *tmp = var_list->begin_list, *prec_tmp;\
     while(tmp){\
       prec_tmp = tmp;\
@@ -217,6 +246,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
     var_list->end_list = NULL;\
     var_list->size = 0;\
     var_list->current_index = 0;\
+    pthread_mutex_unlock(var_list->mut_list);\
   }\
   void free_all_var_list_##type(struct main_list_##type *var_list){\
     remove_all_list_in_##type(var_list);\
@@ -225,12 +255,16 @@ GENERATE_LIST_ALL(TYPE_PTR)
     free(var_list);\
   }\
   void increment_list_##type(struct main_list_##type * var_list){\
+    pthread_mutex_lock(var_list->mut_list);\
     var_list->current_list = (var_list->current_list)->next;\
     ++(var_list->current_index);\
+    pthread_mutex_unlock(var_list->mut_list);\
   }\
   void decrement_list_##type(struct main_list_##type * var_list){\
+    pthread_mutex_lock(var_list->mut_list);\
     var_list->current_list = (var_list->current_list)->preview;\
     --(var_list->current_index);\
+    pthread_mutex_unlock(var_list->mut_list);\
   }\
   struct list_##type * local_increment_list_##type(struct list_##type *list){\
     if(list) return list->next;\
@@ -241,16 +275,21 @@ GENERATE_LIST_ALL(TYPE_PTR)
     return NULL;\
   }\
   struct list_##type * search_first_occ_with_mov_from_curr_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type), struct list_##type * (*incr_or_decr_mov)(struct list_##type *)){\
+    pthread_mutex_lock(var_list->mut_list);\
     for(struct list_##type *list_cur = var_list->current_list; list_cur; list_cur = incr_or_decr_mov(list_cur)){\
-      if(0 == funcCmp(value, list_cur->value))\
+      if(0 == funcCmp(value, list_cur->value)){\
+        pthread_mutex_unlock(var_list->mut_list);\
         return list_cur;\
+      }\
     }\
+    pthread_mutex_unlock(var_list->mut_list);\
     return NULL;\
   }\
   struct list_##type * search_first_occ_from_begin_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type)){\
     return search_first_occ_with_mov_from_curr_in_list_##type(var_list, value, funcCmp, local_increment_list_##type);\
   }\
   struct list_##type * pull_end_from_list_##type(struct main_list_##type *var_list){\
+    pthread_mutex_lock(var_list->mut_list);\
     struct list_##type *ret = var_list->end_list;\
     if(ret != NULL){\
       struct list_##type * prevL = ret->preview;\
@@ -265,9 +304,11 @@ GENERATE_LIST_ALL(TYPE_PTR)
       --(var_list->size);\
       ret->preview = NULL;\
     }\
+    pthread_mutex_unlock(var_list->mut_list);\
     return ret;\
   }\
   struct list_##type * pull_begin_from_list_##type(struct main_list_##type *var_list){\
+    pthread_mutex_lock(var_list->mut_list);\
     struct list_##type *ret = var_list->begin_list;\
     if(ret != NULL){\
       struct list_##type * nextL = ret->next;\
@@ -282,9 +323,14 @@ GENERATE_LIST_ALL(TYPE_PTR)
       --(var_list->size);\
       ret->next = NULL;\
     }\
+    struct list_##type *tmp = var_list->begin_list;\
+    while(tmp){ --(tmp->index); tmp=tmp->next;}\
+    pthread_mutex_unlock(var_list->mut_list);\
     return ret;\
   }\
   void append_list_##type(struct main_list_##type *var_list, struct list_##type *list){\
+    pthread_mutex_lock(var_list->mut_list);\
+    list->index = var_list->size;\
     if(var_list->end_list == NULL){\
       list->preview = NULL;\
       var_list->end_list = list;\
@@ -297,6 +343,7 @@ GENERATE_LIST_ALL(TYPE_PTR)
       var_list->end_list = list;\
     }\
     ++(var_list->size);\
+    pthread_mutex_unlock(var_list->mut_list);\
   }\
   
 
