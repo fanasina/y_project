@@ -12,14 +12,16 @@ TEST(list_create){
   push_back_list_TYPE_INT(var_list_int, -9);
   push_back_list_TYPE_INT(var_list_int, 19);
 
-  move_current_to_index_list_TYPE_INT(var_list_int, 0);
+  LOG("move to 0 = %ld", move_current_to_index_list_TYPE_INT(var_list_int, 0,NULL));
   while(var_list_int->current_list){
     LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
     increment_list_TYPE_INT(var_list_int);
   }
 
   LOG("%s"," =============== \n");
-  for(move_current_to_index_list_TYPE_INT(var_list_int, (var_list_int->size) - 1); var_list_int->current_list; decrement_list_TYPE_INT(var_list_int))
+  size_t size_li = (var_list_int->size); 
+  LOG("move to %ld = %ld", move_current_to_index_list_TYPE_INT(var_list_int, size_li - 1,NULL), size_li);
+  for(/*move_current_to_index_list_TYPE_INT(var_list_int, (var_list_int->size) - 1, NULL)*/; var_list_int->current_list; decrement_list_TYPE_INT(var_list_int))
     LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
 
   free_all_var_list_TYPE_INT(var_list_int);
@@ -38,7 +40,7 @@ TEST(insert){
   for(int i=var_list_int->size; i< 25; ++i)
     insert_into_list_TYPE_INT(var_list_int, i, 3*i+1);
   
-  for(move_current_to_index_list_TYPE_INT(var_list_int, 0); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
+  for(move_current_to_index_list_TYPE_INT(var_list_int, 0, NULL); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
     LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
 
   free_all_var_list_TYPE_INT(var_list_int);
@@ -49,7 +51,7 @@ TEST(insert){
 TEST(remove){
   struct main_list_TYPE_INT * var_list_int = create_var_list_TYPE_INT();
 
-remove_all_list_in_TYPE_INT(var_list_int);
+ remove_all_list_in_TYPE_INT(var_list_int);
 
   for(int i=0; i<5; ++i)
     push_back_list_TYPE_INT(var_list_int, i);
@@ -60,46 +62,89 @@ remove_all_list_in_TYPE_INT(var_list_int);
   for(int i=var_list_int->size; i< 25; ++i)
     insert_into_list_TYPE_INT(var_list_int, i, 3*i+1);
   
-  for(move_current_to_index_list_TYPE_INT(var_list_int, 0); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
-    LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
-
+ // for(move_current_to_index_list_TYPE_INT(var_list_int, 0,NULL); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
+   for(struct list_TYPE_INT *current_list = var_list_int->end_list; current_list; current_list = current_list->preview)
+   LOG("cur %ld : %d : size :%ld \n", current_list->index, (current_list)->value, var_list_int->size);
 
   for(int i=1; i<var_list_int->size; i+= 3)
     remove_index_from_list_TYPE_INT(var_list_int, i);
-  
   LOG("%s"," =============== \n");
-
-  for(move_current_to_index_list_TYPE_INT(var_list_int, 0); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
+   
+   for(struct list_TYPE_INT *current_list = var_list_int->begin_list; current_list; current_list = current_list->next)
+   LOG("cur %ld : %d : size :%ld \n", current_list->index, (current_list)->value, var_list_int->size);
+/*
+   for(struct list_TYPE_INT *current_list = var_list_int->begin_list; current_list; current_list = current_list->next)
+   LOG("cur %ld : %d : size :%ld \n", current_list->index, (current_list)->value, var_list_int->size);
+ */ /*for(move_current_to_index_list_TYPE_INT(var_list_int, 0,NULL); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
     LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
-  
+ */
+
   free_all_var_list_TYPE_INT(var_list_int);
   
 }
+
+TEST(pull_index){
+  struct main_list_TYPE_INT * var_list_int = create_var_list_TYPE_INT();
+
+ remove_all_list_in_TYPE_INT(var_list_int);
+
+  for(int i=0; i<5; ++i)
+    push_back_list_TYPE_INT(var_list_int, i);
+
+  for(int i=0; i<10; ++i)
+    insert_into_list_TYPE_INT(var_list_int, i, -2*i+1);
+
+  for(int i=var_list_int->size; i< 25; ++i)
+    insert_into_list_TYPE_INT(var_list_int, i, 3*i+1);
+
+ // for(move_current_to_index_list_TYPE_INT(var_list_int, 0,NULL); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
+   for(struct list_TYPE_INT *current_list = var_list_int->end_list; current_list; current_list = current_list->preview)
+   LOG("cur %ld : %d : size :%ld \n", current_list->index, (current_list)->value, var_list_int->size);
+
+  for(int i=1; i<var_list_int->size; i+= 3){
+    struct list_TYPE_INT *current_list =pull_index_from_list_TYPE_INT(var_list_int, i);
+    if(current_list) free(current_list);
+  }
+  LOG("%s"," =============== \n");
+
+   for(struct list_TYPE_INT *current_list = var_list_int->begin_list; current_list; current_list = current_list->next)
+   LOG("cur %ld : %d : size :%ld \n", current_list->index, (current_list)->value, var_list_int->size);
+/*
+   for(struct list_TYPE_INT *current_list = var_list_int->begin_list; current_list; current_list = current_list->next)
+   LOG("cur %ld : %d : size :%ld \n", current_list->index, (current_list)->value, var_list_int->size);
+ */ /*for(move_current_to_index_list_TYPE_INT(var_list_int, 0,NULL); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
+    LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
+ */
+
+  free_all_var_list_TYPE_INT(var_list_int);
+
+}
+
 
 TEST(remove_All){
   struct main_list_TYPE_INT * var_list_int = create_var_list_TYPE_INT();
 
   for(int i=0; i<5; ++i)
     push_back_list_TYPE_INT(var_list_int, i);
-
   for(int i=0; i<10; ++i)
     insert_into_list_TYPE_INT(var_list_int, i, -2*i+1);
 
+#if 1
   for(int i=var_list_int->size; i< 25; ++i)
     insert_into_list_TYPE_INT(var_list_int, i, 3*i+1);
   
-  for(move_current_to_index_list_TYPE_INT(var_list_int, 0); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
+  for(move_current_to_index_list_TYPE_INT(var_list_int, 0,NULL); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
     LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
 
   remove_all_list_in_TYPE_INT(var_list_int);
   for(int i=0; i<5; ++i)
     push_back_list_TYPE_INT(var_list_int, 10*i);
 
-
+#endif
   
   LOG("%s"," =============== \n");
 
-  for(move_current_to_index_list_TYPE_INT(var_list_int, 0); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
+  for(move_current_to_index_list_TYPE_INT(var_list_int, 0,NULL); var_list_int->current_list; increment_list_TYPE_INT(var_list_int))
     LOG("cur %ld : %d : size :%ld \n", var_list_int->current_index, (var_list_int->current_list)->value, var_list_int->size);
   
   free_all_var_list_TYPE_INT(var_list_int);
@@ -141,7 +186,7 @@ TEST(list_TYPE_PTR){
    push_back_list_TYPE_PTR(var_list_ptr,t1);
    push_back_list_TYPE_PTR(var_list_ptr,t2);
 
-   for(move_current_to_index_list_TYPE_PTR(var_list_ptr, 0); var_list_ptr->current_list; increment_list_TYPE_PTR(var_list_ptr))
+   for(move_current_to_index_list_TYPE_PTR(var_list_ptr, 0,NULL); var_list_ptr->current_list; increment_list_TYPE_PTR(var_list_ptr))
     LOG("cur %ld : %d : size :%ld \n", var_list_ptr->current_index, ((test_c*)((var_list_ptr->current_list)->value))->value, var_list_ptr->size);
     
 
@@ -167,7 +212,7 @@ TEST(list_struct_test_c){
    push_back_list_test_c(var_list_ptr,t1);
    push_back_list_test_c(var_list_ptr,t2);
 
-   for(move_current_to_index_list_test_c(var_list_ptr, 0); var_list_ptr->current_list; increment_list_test_c(var_list_ptr))
+   for(move_current_to_index_list_test_c(var_list_ptr, 0,NULL); var_list_ptr->current_list; increment_list_test_c(var_list_ptr))
     LOG("cur %ld : %d : size :%ld \n", var_list_ptr->current_index, ((var_list_ptr->current_list)->value).value, var_list_ptr->size);
     
 
@@ -189,7 +234,7 @@ TEST(index_list_struct_test_c){
    push_back_list_test_c(var_list_ptr,t1);
    push_back_list_test_c(var_list_ptr,t2);
 
-   for(move_current_to_index_list_test_c(var_list_ptr, 0); var_list_ptr->current_list; increment_list_test_c(var_list_ptr))
+   for(move_current_to_index_list_test_c(var_list_ptr, 0,NULL); var_list_ptr->current_list; increment_list_test_c(var_list_ptr))
     LOG("index=[%ld] cur %ld : %d : size :%ld \n", var_list_ptr->current_list->index, var_list_ptr->current_index, ((var_list_ptr->current_list)->value).value, var_list_ptr->size);
     
 
