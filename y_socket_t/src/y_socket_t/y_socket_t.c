@@ -1,6 +1,7 @@
 /*file: src/y_socket_t/y_socket_t.c */
 
 #include "y_socket_t/y_socket_t.h"
+
 //#include "y_socket_t/y_list_string.h"
 //#include "json_t/json_t.h"
 
@@ -72,8 +73,8 @@ struct y_socket_t * y_socket_create(char *port, size_t size_fds, int nb_workers)
 
   sock_temp->port=port;
   sock_temp->nodes = create_var_list_y_NODE_T();
-	sock_temp->mut_nodes = malloc(sizeof(pthread_mutex_t));
-  pthread_mutex_init(sock_temp->mut_nodes, NULL);
+//	sock_temp->mut_nodes = malloc(sizeof(pthread_mutex_t));
+//  pthread_mutex_init(sock_temp->mut_nodes, NULL);
 	sock_temp->go_on = 1;
 	sock_temp->mut_go_on = malloc(sizeof(pthread_mutex_t));
   pthread_mutex_init(sock_temp->mut_go_on, NULL);
@@ -87,8 +88,8 @@ struct y_socket_t * y_socket_create_(char * port){
 void y_socket_free(struct y_socket_t *socket){
   free(socket->fds);
   free_all_var_list_y_NODE_T(socket->nodes);
-  pthread_mutex_destroy(socket->mut_nodes); 
-  free(socket->mut_nodes); 
+//  pthread_mutex_destroy(socket->mut_nodes); 
+//  free(socket->mut_nodes); 
   pthread_mutex_destroy(socket->mut_go_on); 
   free(socket->mut_go_on); 
   free(socket);
@@ -303,6 +304,22 @@ void  y_socket_get_fds(struct pollfd * fds, char * port, char * addrDistant){
         if(bind(fds[af].fd, rp->ai_addr, rp->ai_addrlen)==-1){
           close(fds[af].fd);
           fds[af].fd=-1;
+        }else{
+          char tempAddr[BUF_SIZE]={0};
+          if(af_array[af]==AF_INET){
+             if(NULL == inet_ntop(AF_INET, 
+              &(GET_IN_type_ADDR(rp->ai_addr,)),
+              tempAddr, BUF_SIZE)){
+              fprintf(stderr, "error inet_ntop v4\n");
+            }
+          }else if(af_array[af]==AF_INET6){
+             if(NULL == inet_ntop(AF_INET6, 
+              &(GET_IN_type_ADDR(rp->ai_addr,6)),
+              tempAddr, BUF_SIZE )){
+              fprintf(stderr, "error inet_ntop v6 :errno=%d\n",errno);
+            }
+          }
+          printf("\n\ndebug: ADDR_LOCAL v%d:%s\n\n", 2*af+4,tempAddr);
         }
 #if 0
 int flags = fcntl(fds[af].fd, F_GETFL);
@@ -322,17 +339,19 @@ int flags = fcntl(fds[af].fd, F_GETFL);
 
 }
 struct arg_handler_{
-  char *buf;
+  struct main_list_y_ptr_STRING *m_str;
+  //char *buf;
   struct pollfd *fds;
   y_NODE_T node;
   struct y_socket_t *sock;
   struct argWorker *argw ;
+  struct main_list_y_ptr_HEADER_T *m_head_l_t;
 };
 
 //void y_socket_handler_(char * buf, struct pollfd *fds, struct y_socket_t *sock) 
 void* y_socket_handler_(void *arg){ 
   struct arg_handler_ *argH = (struct arg_handler_ *)arg;
-  char *buf=argH->buf;
+  struct main_list_y_ptr_STRING *m_str =argH->m_str;
   struct pollfd *fds=argH->fds;
   struct y_socket_t *sock=argH->sock;
   struct argWorker *argw=argH->argw;
@@ -340,56 +359,139 @@ void* y_socket_handler_(void *arg){
   struct main_list_y_NODE_T *nodes = sock->nodes;
   update_nodes(argH->node, nodes);
 
-	printf("\n\n:::::::::::::::::::::::::::handler: : \n\n%s\n\n::::::::::::::::::::::::::\n",buf);
-  if(strncmp(buf, "get", 3)==0){
-    if(strncmp(buf+4,"file",4)==0){
-      char *filename = buf + 9;
-      struct arg_send_file *argS=malloc(sizeof(struct arg_send_file));
-      argS->fds=fds;
-      argS->nodes=nodes;
-      argS->filename=filename;
-      push_back_list_TYPE_PTR(argw->list_arg, argS);
-      struct y_task_t task_send={
-        .func=y_socket_send_file_for_all_nodes,
-        .arg=argS,
-        .status=TASK_PENDING,
-      };
-      push_tasQ(argw->argx->tasQ, task_send);
-      //y_socket_send_file_for_all_nodes(fds, nodes,  filename) ;
-    }
-  }
-  else if(strncmp(buf, "update", 6)==0){
-    if(strncmp(buf+7,"kill",4)==0){
-      pthread_mutex_lock(sock->mut_go_on);
-      sock->go_on = 0;
-      pthread_mutex_unlock(sock->mut_go_on);
-//      kill_all_workers(argw);
-//      printf("debug: kill_all\n");
+  char *buf_org = m_str->begin_list->value->buf;
+	//printf("\n\n:::::::::::::::::::::::::::handler: : \n\n%s\n\n::::::::::::::::::::::::::\n",buf_org);
+  struct js_value *js_header = create_js_value(buf_org, NULL);
+  if(js_header && js_header->code_type == jstype_object){
+    struct js_value *js_cmd = get_js_value_of_key("cmd", js_header );
+    if(js_cmd && js_cmd->type.object.value->code_type == jstype_string){
+      /**  */
+      struct js_value *js_seq = get_js_value_of_key("seq", js_header );
+      if(js_seq){
+        size_t seq_local = (long)(js_seq->type.object.value->type.number);
+        printf("debug:  \n HANDLER header  seq_local=%ld \n",seq_local);
+      }else{
+        printf("debug:  \n HANDLER header  no seq\n");
+  
+      }
+      /* */
+      char * buf = js_cmd->type.object.value->type.string; 
+
+      if(strncmp(buf, "get", 3)==0){
+        if(strncmp(buf+4,"file",4)==0){
+          size_t len_filename = strlen(buf + 9);
+          char *filename = malloc(len_filename+1);
+          memcpy(filename, buf + 9, len_filename );
+          filename[len_filename]='\0';
+          //printf("debug: filename: %s \n\n",filename);
+          struct arg_send_file *argS=malloc(sizeof(struct arg_send_file));
+          argS->fds=fds;
+          argS->nodes=nodes;
+          argS->filename=filename;
+          push_back_list_TYPE_PTR(argw->list_arg, argS);
+          push_back_list_TYPE_PTR(argw->list_arg, filename);
+          struct y_task_t task_send={
+            .func=y_socket_send_file_for_all_nodes,
+            .arg=argS,
+            .status=TASK_PENDING,
+          };
+          push_tasQ(argw->argx->tasQ, task_send);
+          //y_socket_send_file_for_all_nodes(fds, nodes,  filename) ;
+        }
+      }
+      else if(strncmp(buf, "update", 6)==0){
+        if(strncmp(buf+7,"kill",4)==0){
+          pthread_mutex_lock(sock->mut_go_on);
+          sock->go_on = 0;
+          pthread_mutex_unlock(sock->mut_go_on);
+    //      kill_all_workers(argw);
+    //      printf("debug: kill_all\n");
+        }
+
+      }
+      else if(strncmp(buf, "post", 4)==0){
+        if(strncmp(buf+5,"file",4)==0){
+          char *filename = buf+10;
+          //index_f=strcpy(filename, buf + 10);
+          int index_f = strlen(filename);
+          printf("debug: receve_from_node : file: %s\n",filename);
+          for(--index_f; index_f>=0;--index_f){
+            if(filename[index_f]=='/') {
+              ++index_f;
+              break;
+            }
+          }
+
+#if 0
+          //struct list_y_ptr_STRING * last_record_=NULL;
+          for(struct list_y_ptr_STRING * local_current = m_str->begin_list; local_current; local_current = local_current->next){
+            char *buf_loc = local_current->value->buf;
+            struct js_value * js_header_v = create_js_value(buf_loc,NULL);
+            //struct js_value *js_cmd_v = get_js_value_of_key("cmd", js_header_v );
+            //printf("debug: index=[%ld] \n BBBBBEGINNNNNN file ***\n%s\n EEEENDDDDD\n",local_current->index,buf_loc);
+            printf("debug: index=[%ld] \n",local_current->index);
+            if(js_header_v){
+
+            
+              struct js_value *js_seq_v = get_js_value_of_key("seq", js_header_v );
+              if(js_seq_v){  
+                if(js_seq_v->type.object.value->code_type == jstype_number){
+                  printf("debug: receve : \n################################# seq : %ld ###################################\n",(long)(js_seq_v->type.object.value->type.number));
+                }
+                else{
+                  printf("debug:  \n SSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ type:%d \n",js_seq_v->type.object.value->code_type);
+
+                }
+              }else{
+
+                  printf("debug:  \n NNNNNNNNNNNNNNNNOOOOOOOOOOOOOSSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ :type header : %d \n",js_header_v->code_type);
+              }
+              struct js_value *js_eof_v = get_js_value_of_key("EOF", js_header_v );
+              if(js_eof_v){
+                printf("debug:  \n****************************end of file ***\n%s\n**********************************\n",buf_loc);
+              }
+              else{
+                //printf("debug:  \n*******************************\n%s\n**********************************\n",buf_loc+js_org_str_length(js_header_v));
+              } 
+              free_js_value(js_header_v);
+            }else{
+              printf("\ndebug NULLL JS___HHHEADER_V \n"); 
+            }
+          }
+
+
+#else 
+        struct main_list_y_ptr_HEADER_T *m_head_l_t = argH->m_head_l_t;
+        char srcAddr[BUF_SIZE];
+        set_tempAddr_from_node(srcAddr, argH->node);
+        receve_from_node(m_head_l_t, m_str,srcAddr, filename + index_f);
+        m_str = NULL;
+#endif 
+         /*
+          pthread_mutex_lock(sock->mut_go_on);
+          sock->go_on = 0;
+          pthread_mutex_unlock(sock->mut_go_on);
+          */
+    //      kill_all_workers(argw);
+    //      printf("debug: kill_all\n");
+        }
+
+      }
+    
     }
 
   }
-  else if(strncmp(buf, "post", 4)==0){
-    if(strncmp(buf+5,"file",4)==0){
-      char filename[BUF_SIZE];
-      strcpy(filename, buf + 10);
-
-      printf("debug: receve_from_node : file: %s\n",filename);
-      receve_from_node(fds, filename, strlen(filename));
-      /*
-      pthread_mutex_lock(sock->mut_go_on);
-      sock->go_on = 0;
-      pthread_mutex_unlock(sock->mut_go_on);
-      */
-//      kill_all_workers(argw);
-//      printf("debug: kill_all\n");
-    }
-
+  free_js_value(js_header);
+  if(m_str){
+    purge_ptr_type_list_y_ptr_STRING(m_str);
+    printf("debug: purge_ptr_type_list_y_ptr_STRING in y_socket_handler_\n");
   }
   
 
-
   return NULL;
 }
+
+#if 0
 void handle_input_kbd(char *buf, ssize_t buf_len ,void *arg){
     struct y_socket_t * argSock = (struct y_socket_t*)arg;
     struct pollfd *fds = argSock->fds;
@@ -463,26 +565,67 @@ void handle_input_kbd(char *buf, ssize_t buf_len ,void *arg){
 			}
 		}
 }
+#endif
 
-void handle_buf_socket_rec(char *temp_all_buf, y_NODE_T node, struct main_list_ptr_y_WORKER_T * workers, struct argExecTasQ *argx, struct main_list_TYPE_PTR * list_arg, void * arg){
+void handle_buf_socket_rec(struct main_list_y_ptr_HEADER_T *m_head_l_t,struct main_list_y_ptr_STRING *m_str, y_NODE_T node, struct main_list_ptr_y_WORKER_T * workers, struct argExecTasQ *argx, struct main_list_TYPE_PTR * list_arg, void * arg){
   struct y_socket_t * argSock = (struct y_socket_t*)arg;
   struct pollfd *fds = argSock->fds;
+  
+  struct js_value *js_header = create_js_value(m_str->begin_list->value->buf, NULL);
+  if(js_header && js_header->code_type == jstype_object){
+    struct js_value *js_cmd = get_js_value_of_key("cmd", js_header );
+    if(js_cmd && js_cmd->type.object.value->code_type == jstype_string){
+      if(strncmp(js_cmd->type.object.value->type.string,"update standby",14)==0){
+        //pthread_mutex_lock(sock->mut_go_on);
+        //sock->go_on = 0;
+        //pthread_mutex_unlock(sock->mut_go_on);
+        standby_all_workers(workers->begin_list->value->arg);
+  //      printf("debug: kill_all\n");
+      }
+      else if(strncmp(js_cmd->type.object.value->type.string,"update wakeup",13)==0){
+        //pthread_mutex_lock(sock->mut_go_on);
+        //sock->go_on = 0;
+        //pthread_mutex_unlock(sock->mut_go_on);
+        wakeup_all_workers(workers->begin_list->value->arg);
+  //      printf("debug: kill_all\n");
+      }
+      else{
+        struct arg_handler_ *ptr_argHandl = malloc(sizeof(struct arg_handler_));
+          ptr_argHandl->m_str = m_str;
+          ptr_argHandl->fds=fds;
+          ptr_argHandl->sock=argSock;
+          ptr_argHandl->node=node;
+          ptr_argHandl->argw=workers->begin_list->value->arg;
+          ptr_argHandl->m_head_l_t=m_head_l_t;
+        
+        push_back_list_TYPE_PTR(list_arg, ptr_argHandl);
+        struct y_task_t task_handl = {
+          .func=y_socket_handler_,
+          .arg=ptr_argHandl,
+          .status=TASK_PENDING,
+        };
+        push_tasQ(argx->tasQ, task_handl);
+      }
 
+    }
+  }
+
+#if 0
    if(strncmp(temp_all_buf,"update standby",14)==0){
       //pthread_mutex_lock(sock->mut_go_on);
       //sock->go_on = 0;
       //pthread_mutex_unlock(sock->mut_go_on);
       standby_all_workers(workers->begin_list->value->arg);
 //      printf("debug: kill_all\n");
-    }
-    else if(strncmp(temp_all_buf,"update wakeup",13)==0){
+   }
+   else if(strncmp(temp_all_buf,"update wakeup",13)==0){
       //pthread_mutex_lock(sock->mut_go_on);
       //sock->go_on = 0;
       //pthread_mutex_unlock(sock->mut_go_on);
       wakeup_all_workers(workers->begin_list->value->arg);
 //      printf("debug: kill_all\n");
-    }
-    else{
+   }
+   else{
         struct arg_handler_ *ptr_argHandl = malloc(sizeof(struct arg_handler_));
           ptr_argHandl->buf = temp_all_buf;
           ptr_argHandl->fds=fds;
@@ -497,7 +640,9 @@ void handle_buf_socket_rec(char *temp_all_buf, y_NODE_T node, struct main_list_p
           .status=TASK_PENDING,
         };
         push_tasQ(argx->tasQ, task_handl);
-    }
+   }
+#endif
+   free_js_value(js_header);  
 }
 
 void *y_socket_poll_fds(void *arg){
@@ -533,9 +678,9 @@ void *y_socket_poll_fds(void *arg){
   y_NODE_T node;
   int af, status;
   ssize_t nread, buf_len;
-  char buf[BUF_SIZE];
-	struct main_list_y_ptr_STRING *m_str=create_var_list_y_ptr_STRING();
-
+  char buf[BUF_SIZE+1];
+	struct main_list_y_ptr_STRING *m_str=NULL;//=create_var_list_y_ptr_STRING();
+  struct main_list_y_ptr_HEADER_T *m_head_l_t = create_var_list_y_ptr_HEADER_T();
 //	char *temp_all_buf=NULL;
 
 //  char msgRet[BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100];
@@ -556,24 +701,33 @@ void *y_socket_poll_fds(void *arg){
     }
     for(af = v4; af<=v6;++af){
       if(fds[af].revents && POLLIN){
-				remove_all_ptr_type_list_y_ptr_STRING(m_str);
-        memset(buf, 0, BUF_SIZE);
+				//remove_all_ptr_type_list_y_ptr_STRING(m_str);
+        if(m_str == NULL)
+          m_str=create_var_list_y_ptr_STRING();
+        memset(buf, 0, BUF_SIZE+1);
+        
+#if 1	
 				while((nread = recvfrom(fds[af].fd, buf, BUF_SIZE, 0,
         (struct sockaddr *)&(node.addr), &(node.addr_len))) == BUF_SIZE){
-        	if(buf[nread-1]=='\n') buf[nread-1]='\0';
+        	
+          if(buf[nread-1]=='\n') 
+            buf[nread-1]='\0';
 					buf[nread]='\0';
+          
 						y_ptr_STRING y_buf = create_y_ptr_STRING(buf, nread);
 						push_back_list_y_ptr_STRING(m_str, y_buf);
-						///printf("debug: push_back_list_y_ptr_STRING of <%s>\n",buf);
+						//printf("debug: push_back_list_y_ptr_STRING of <%s>\n",buf);
 
 					
+        //memset(buf, 0, BUF_SIZE+1);
 					//printf("debug: nread: %ld vs  BUF_SIZE :%d \n",nread, BUF_SIZE);
 				}
 						//printf("debug: out nread: %ld vs BUF_SIZE :%d \n",nread, BUF_SIZE);
 				if(nread == -1)
          	fprintf(stderr,"error recvfrom\n");
-				else if(nread >= 0 && nread < BUF_SIZE){
-        	if(nread && buf[nread-1]=='\n') buf[nread-1]='\0';
+        else if(nread >= 0 && nread < BUF_SIZE){
+        	if(nread && buf[nread-1]=='\n'
+            ) buf[nread-1]='\0';
 					buf[nread]='\0';
           //printf("msg: %s\n",buf);
 					y_ptr_STRING y_buf = create_y_ptr_STRING(buf, nread);
@@ -581,6 +735,7 @@ void *y_socket_poll_fds(void *arg){
 					//printf("debug: out push_back_list_y_ptr_STRING of <%s>\n",buf);
 				
         }
+#endif
 
 #if 0  
         struct arg_update_nodes *argUP_N=malloc(sizeof(struct arg_update_nodes));
@@ -601,16 +756,21 @@ void *y_socket_poll_fds(void *arg){
           temp_all_buf=NULL;
         }*/
 				/*size_t total_buf = */ 
-        char * temp_all_buf = NULL;
+        /*char * temp_all_buf = NULL;
         copy_list_y_ptr_STRING_to_one_string(&temp_all_buf , m_str);
         push_back_list_TYPE_PTR(list_arg, temp_all_buf);
-  
+        */
    
-        handle_buf_socket_rec(temp_all_buf, node, workers, argx, list_arg, arg);
 			///
 				//y_socket_handler_(temp_all_buf, fds, argSock);
 
 			///
+      }
+      if(m_str){
+				printf("debug:  call handle_buf_socket_rec\n");
+        handle_buf_socket_rec(m_head_l_t,m_str, node, workers, argx, list_arg, arg);
+      
+        m_str=NULL;
       }
     }
 		// stdin poll
@@ -639,12 +799,13 @@ void *y_socket_poll_fds(void *arg){
 				printf("debug : index_str= %d; cmd=[%s]\n",index_str, cmd);
 					
 					index_str=0;
-					while(buf[index_buf]==' '){++index_buf;}
-					for(; buf[index_buf]!=' '; ++index_buf){
+					while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
+					for(; (index_buf < buf_len) && (buf[index_buf]!=' '); ++index_buf){
 						dst_addr[index_str++]=buf[index_buf];
 					}
 					dst_addr[index_str]='\0';
-					while(buf[index_buf]==' '){++index_buf;}
+					//while(buf[index_buf]==' '){++index_buf;}
+					while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
 					/*index_str=0;
 					for(; buf[index_buf]!='\n'; ++index_buf)
 						msg_buf[index_str++]=buf[index_buf];
@@ -699,8 +860,11 @@ void *y_socket_poll_fds(void *arg){
   }
 
 
-
-  purge_ptr_type_list_y_ptr_STRING(m_str);
+  if(m_str){
+    purge_ptr_type_list_y_ptr_STRING(m_str);
+    
+    printf("debug: m_str!=NULL -> purge_ptr_type_list_y_ptr_STRING done\n");
+  }
 /*
   if(temp_all_buf){
     free(temp_all_buf);
@@ -711,7 +875,8 @@ void *y_socket_poll_fds(void *arg){
   
   kill_all_workers(workers->begin_list->value->arg);
   printf("debug: kill all done\n");
-
+  purge_ptr_type_list_y_ptr_HEADER_T(m_head_l_t);
+  printf("debug: purge_ptr_type_list_y_ptr_HEADER_T done\n");
 ///// ///// /////
 
 

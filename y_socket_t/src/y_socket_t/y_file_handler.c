@@ -4,7 +4,357 @@
 
 //#include "y_socket_t/y_node_t.h"
 
+GEN_LIST_ALL(y_ptr_MSG_CONTENT_T)
 
+GEN_FUNC_PTR_LIST_FREE(y_ptr_MSG_CONTENT_T){
+  free(arg->content);
+  free(arg->nameid);
+  free(arg);
+}
+
+
+GEN_LIST_ALL(y_ptr_HEADER_T)
+
+GEN_FUNC_PTR_LIST_FREE(y_ptr_HEADER_T){
+//  free(arg->content);
+  free(arg->nameid);
+  purge_ptr_type_list_y_ptr_MSG_CONTENT_T(arg->m_content_l);
+  free(arg);
+}
+
+y_ptr_MSG_CONTENT_T create_y_ptr_MSG_CONTENT_T(char *nameid, size_t size_nameid, char* content, size_t size_content,
+  enum cmd_type cmd_t,
+  size_t seq,
+  char eof
+){
+  y_ptr_MSG_CONTENT_T new_p_content = malloc(sizeof(struct msg_content_t));
+
+  new_p_content->size_content = size_content;
+  new_p_content->content = malloc(size_content+1);
+  memcpy(new_p_content->content, content, size_content);
+  new_p_content->content[size_content]='\0';
+  new_p_content->size_nameid = size_nameid;
+  new_p_content->nameid = malloc(size_nameid+1);
+  memcpy(new_p_content->nameid, nameid, size_nameid);
+  new_p_content->nameid[size_nameid]='\0';
+
+  
+  new_p_content->cmd_t = cmd_t;
+  new_p_content->seq = seq;
+  new_p_content->eof = eof;
+
+  return new_p_content;
+
+}
+
+y_ptr_HEADER_T create_y_ptr_HEADER_T(char *nameid, size_t size_nameid, enum cmd_type cmd_t   ){
+  y_ptr_HEADER_T new_header_t = malloc(sizeof(struct header_t));
+  new_header_t->cmd_t = cmd_t;
+  new_header_t->size_nameid = size_nameid;
+  new_header_t->nameid = malloc(size_nameid+1);
+  memcpy(new_header_t->nameid, nameid, size_nameid);
+  new_header_t->nameid[size_nameid]='\0';
+
+  new_header_t->m_content_l = create_var_list_y_ptr_MSG_CONTENT_T();
+
+  return new_header_t;
+   
+
+}
+
+int funcCmp_y_ptr_HEADER_T(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
+  if(h1==NULL || h2==NULL) return -1;
+  if(h1->size_nameid == h2->size_nameid){
+    if(h1->cmd_t == h2->cmd_t){
+      return strcmp(h1->nameid, h2->nameid);
+    }else return (h1->cmd_t - h2->cmd_t);
+  }else if(h1->size_nameid < h2->size_nameid){ 
+    return -1;
+  }else return 1;
+}
+
+#define TEST_DUPLICATE_SEQ()\
+      if(temp_curr->value->seq == cnt->seq){\
+          printf("debug: index_nearest_seq=%ld: seq equal: doublon problem ? seq:%ld appuyer sur une touche\n", index_nearest_seq, cnt->seq);\
+          free_y_ptr_MSG_CONTENT_T(cnt); \
+          getchar();\
+          return -2;\
+      }
+        
+long y_append_content_to_header_l(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_ptr_MSG_CONTENT_T cnt){
+  
+  y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
+  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T(m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
+  printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
+  if(l_ocate_header){
+    free_y_ptr_HEADER_T(current_header);
+    pthread_mutex_t *mut_m_content_l = l_ocate_header->value->m_content_l->mut_list;
+    pthread_mutex_lock(mut_m_content_l);
+    struct list_y_ptr_MSG_CONTENT_T * current_cnt = l_ocate_header->value->m_content_l->current_list;
+    struct list_y_ptr_MSG_CONTENT_T * end_cnt = l_ocate_header->value->m_content_l->end_list;
+    struct list_y_ptr_MSG_CONTENT_T * begin_cnt = l_ocate_header->value->m_content_l->begin_list;
+    
+    if(begin_cnt == NULL){ 
+      pthread_mutex_unlock(mut_m_content_l);
+      printf("debug: current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+      printf("debug: after current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      return 0;
+    }
+    long last_seq = end_cnt->value->seq;
+    if(cnt->seq > last_seq){
+      pthread_mutex_unlock(mut_m_content_l);
+      push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+      return 0;
+    }
+    
+    struct list_y_ptr_MSG_CONTENT_T *temp_curr = NULL;
+    
+    long from_current_seq = current_cnt->value->seq - cnt->seq; \
+    size_t abs_cur_diff_seq = abs(from_current_seq); \
+    size_t array_diff_seq[3]  = {cnt->seq -  begin_cnt->value->seq, abs_cur_diff_seq , end_cnt->value->seq - cnt->seq}; \
+    size_t index_nearest_seq = ARG_MIN_ARRAY_TYPE_SIZE_T(array_diff_seq, 3);\
+    if(index_nearest_seq == 0){\
+      for(temp_curr = begin_cnt ;temp_curr && (temp_curr->value->seq < cnt->seq); temp_curr = temp_curr->next){} 
+      if(temp_curr){
+        l_ocate_header->value->m_content_l->current_list = temp_curr;
+        pthread_mutex_unlock(mut_m_content_l);
+        TEST_DUPLICATE_SEQ()
+        return insert_into_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, temp_curr->index, cnt);
+      }else{
+        pthread_mutex_unlock(mut_m_content_l);
+        push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+        return 0;
+      }
+    }\
+    else if(index_nearest_seq == 2){
+      
+      for(temp_curr = end_cnt; temp_curr && temp_curr->value->seq > cnt->seq; temp_curr = temp_curr->preview) {}
+      if(temp_curr){
+        l_ocate_header->value->m_content_l->current_list = temp_curr;
+        pthread_mutex_unlock(mut_m_content_l);
+        TEST_DUPLICATE_SEQ()
+        return insert_into_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, temp_curr->index + 1, cnt);
+      }else{
+        pthread_mutex_unlock(mut_m_content_l);
+        push_front_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+        return 0;
+      }
+    }else if(from_current_seq >= 0) {
+      for(temp_curr = current_cnt; temp_curr && temp_curr->value->seq > cnt->seq; temp_curr = temp_curr->preview) {}
+      if(temp_curr){
+        l_ocate_header->value->m_content_l->current_list = temp_curr;
+        pthread_mutex_unlock(mut_m_content_l);
+        TEST_DUPLICATE_SEQ()
+        return insert_into_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, temp_curr->index + 1, cnt);
+      }else{
+        pthread_mutex_unlock(mut_m_content_l);
+        push_front_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+        return 0;
+      }
+
+    }else{  
+      for(temp_curr = current_cnt ;temp_curr && (temp_curr->value->seq < cnt->seq); temp_curr = temp_curr->next){} 
+      if(temp_curr){
+        l_ocate_header->value->m_content_l->current_list = temp_curr;
+        pthread_mutex_unlock(mut_m_content_l);
+        TEST_DUPLICATE_SEQ()
+        return insert_into_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, temp_curr->index, cnt);
+      }else{
+        pthread_mutex_unlock(mut_m_content_l);
+        push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+        return 0;
+      }
+    }
+
+
+#if 0
+       // cnt->seq < last_seq
+    while(current_cnt){
+      printf("debug: last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
+      if(cnt->seq == current_cnt->value->seq){
+        printf("debug: equal last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
+        //return -2;
+      }
+      if(cnt->seq < last_seq && cnt->seq > current_cnt->value->seq){
+        pthread_mutex_unlock(mut_m_content_l);
+      /*if(cnt->seq > last_seq && cnt->seq < current_cnt->value->seq)*/
+        return insert_into_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, current_cnt->index + 1, cnt);
+      }else if(current_cnt->preview==NULL){
+        pthread_mutex_unlock(mut_m_content_l);
+        push_front_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+        return 0;
+      }
+      last_seq = current_cnt->value->seq;
+      current_cnt = current_cnt->preview;
+      
+    }
+    printf("debug: some thing wrong here! last_seq: %ld, cnt->seq=%ld\n", last_seq, cnt->seq);
+    return -1;
+#endif
+  }
+  else{
+    push_back_list_y_ptr_MSG_CONTENT_T(current_header->m_content_l, cnt);
+    push_back_list_y_ptr_HEADER_T(m_head_l_t, current_header);
+    printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_head_l_t->size);
+    return 0;
+  }
+}
+
+
+
+long y_append_content_to_header_l_from_end(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_ptr_MSG_CONTENT_T cnt){
+  
+  y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
+  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T(m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
+  printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
+  if(l_ocate_header){
+    free_y_ptr_HEADER_T(current_header);
+    struct list_y_ptr_MSG_CONTENT_T * current_cnt = l_ocate_header->value->m_content_l->end_list;
+    if(current_cnt == NULL){ 
+      printf("debug: current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+      printf("debug: after current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      return 0;
+    }
+    long last_seq = current_cnt->value->seq + 1;
+    if(cnt->seq >= last_seq){
+      push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+      return 0;
+    }
+    // cnt->seq < last_seq
+    while(current_cnt){
+      printf("debug: last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
+      if(cnt->seq == current_cnt->value->seq){
+        printf("debug: equal last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
+        //return -2;
+      }
+      if(cnt->seq < last_seq && cnt->seq > current_cnt->value->seq){
+      /*if(cnt->seq > last_seq && cnt->seq < current_cnt->value->seq)*/
+        return insert_into_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, current_cnt->index + 1, cnt);
+      }else if(current_cnt->preview==NULL){
+        push_front_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+        return 0;
+      }
+      last_seq = current_cnt->value->seq;
+      current_cnt = current_cnt->preview;
+      
+    }
+    printf("debug: some thing wrong here! last_seq: %ld, cnt->seq=%ld\n", last_seq, cnt->seq);
+    return -1;
+
+  }
+  else{
+    push_back_list_y_ptr_MSG_CONTENT_T(current_header->m_content_l, cnt);
+    push_back_list_y_ptr_HEADER_T(m_head_l_t, current_header);
+    printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_head_l_t->size);
+    return 0;
+  }
+}
+
+
+long y_append_content_to_header_l_from_begin(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_ptr_MSG_CONTENT_T cnt){
+  
+  y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
+  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T(m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
+  printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
+  if(l_ocate_header){
+    free_y_ptr_HEADER_T(current_header);
+    struct list_y_ptr_MSG_CONTENT_T * current_cnt = l_ocate_header->value->m_content_l->begin_list;
+    if(current_cnt == NULL){ 
+      printf("debug: current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+      printf("debug: after current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      return 0;
+    }
+    long last_seq = -1;
+    while(current_cnt){
+      printf("debug: last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
+      if(cnt->seq == current_cnt->value->seq){
+        printf("debug: equal last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
+        //return -2;
+      }
+      if(cnt->seq > last_seq && cnt->seq < current_cnt->value->seq){
+        return insert_into_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, current_cnt->index, cnt);
+      }else if(current_cnt->next==NULL){
+        push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
+        return 0;
+      }
+      last_seq = current_cnt->value->seq;
+      current_cnt = current_cnt->next;
+      
+    }
+    printf("debug: some thing wrong here! last_seq: %ld, cnt->seq=%ld\n", last_seq, cnt->seq);
+    return -1;
+
+  }
+  else{
+    push_back_list_y_ptr_MSG_CONTENT_T(current_header->m_content_l, cnt);
+    push_back_list_y_ptr_HEADER_T(m_head_l_t, current_header);
+    printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_head_l_t->size);
+    return 0;
+  }
+}
+
+struct list_y_ptr_HEADER_T * check_if_all_contents_done_from_headers(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_ptr_MSG_CONTENT_T cnt){
+
+  y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
+  printf("debug: check_if_all_contents_done_from_headers, begin search\n");
+  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T (m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
+  printf("debug: check_if_all_contents_done_from_headers, search done\n");
+  free_y_ptr_HEADER_T(current_header);
+  if(l_ocate_header){
+    printf("debug: check_if_all_contents_done_from_headers, l_ocate_header->index=%ld\n",l_ocate_header->index);
+    if(l_ocate_header->value->m_content_l){
+    struct list_y_ptr_MSG_CONTENT_T *end_list = l_ocate_header->value->m_content_l->end_list;
+    printf("debug: check_if_all_contents_done_from_headers, l_ocate_header->m_content_l->size=%ld,\n",l_ocate_header->value->m_content_l->size);
+    if(end_list){
+      printf("debug: check_if_all_contents_done_from_headers, end->eof=%d, end->seq=%ld, end->index = %ld\n",end_list->value->eof, end_list->value->seq, end_list->index);
+      // check if all contents are done!
+      if(end_list->value->eof && end_list->value->seq == end_list->index){  
+        return l_ocate_header;
+      }
+    }else{
+      printf("debug: check_if_all_contents_done_from_headers, end_list==NULL\n");
+      
+    }
+    }else{
+      
+      printf("debug: check_if_all_contents_done_from_headers, l_ocate_header->value->m_content_l==NULL\n");
+    }
+
+  }
+  return NULL;
+}
+
+int remove_content_from_headers(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_ptr_MSG_CONTENT_T cnt){
+  
+  y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
+  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T (m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
+  free_y_ptr_HEADER_T(current_header);
+  if(l_ocate_header){
+    struct list_y_ptr_MSG_CONTENT_T *end_list = l_ocate_header->value->m_content_l->end_list;
+    // check if all contents are done!
+    if(end_list->value->eof && end_list->value->seq == end_list->index){ //l_ocate_header->value->m_content_l->size - 1
+      struct list_y_ptr_HEADER_T *current_list = pull_index_from_list_y_ptr_HEADER_T(m_head_l_t, l_ocate_header->index);
+      
+      if(current_list == l_ocate_header){
+        
+        free_y_ptr_HEADER_T(l_ocate_header->value);
+        free(l_ocate_header);
+      }
+      return 0;
+    }
+    else{
+      printf("some thing wrong here: EOF:%d seq_end:%ld, size m_content_l :%ld\n",end_list->value->eof, end_list->value->seq, l_ocate_header->value->m_content_l->size);
+      return 1;
+    }
+  }
+  else{
+    printf("\n%s is not in header list\n",cnt->nameid);
+    return -1;
+  }
+}
 
 void fileNameDateScore(char* filename, char * pre, char* post,size_t score){
  // char *filename=malloc(256);
@@ -15,6 +365,16 @@ void fileNameDateScore(char* filename, char * pre, char* post,size_t score){
   //return filename;
 }
 
+char * time_id(){
+ // char *filename=malloc(256);
+  char *timeid=malloc(128);
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  sprintf(timeid,"%d%02d%02d%02d%02d%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+  return timeid;
+  //return filename;
+}
 
 #if 0
 struct arg_send_file{
@@ -24,68 +384,26 @@ struct arg_send_file{
 };
 #endif
 /* */
-void y_send_post_file_to_all_nodes(void *arg){
-  struct arg_send_file *argS=(struct arg_send_file*)arg;
 
-	struct pollfd *fds=argS->fds;
-	struct main_list_y_NODE_T *nodes=argS->nodes;
-	char * filename=argS->filename;
-#if TEMP_ADDR
-  char tempAddr[BUF_SIZE+1];
-#endif
-  int c_af;
-//  char host[NI_MAXHOST], service[NI_MAXSERV];
-  char buf_send[BUF_SIZE+1]={0};
-  int fd_file;
-  int retsprintf = snprintf(buf_send, 50,"post file %s", filename );
-  printf("debug: buf_send=%s, size=%d\n",buf_send, retsprintf);
-
-      for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
-            //memset(tempAddr, 0, BUF_SIZE+1);
-            c_af=(local_list_current->value).addr.ss_family;
-#if TEMP_ADDR
-						if(c_af==AF_INET){
-               if(NULL == inet_ntop(c_af, 
-                &(GET_IN_type_ADDR(&(local_list_current->value),)),
+size_t set_tempAddr_from_node(char *tempAddr, y_NODE_T node) {
+      int c_af=(node).addr.ss_family;
+            if(c_af==AF_INET){
+               if(NULL == inet_ntop(c_af,
+                &(GET_IN_type_ADDR(&(node),)),
                 tempAddr, BUF_SIZE/*(argSock->local_list_current->value).addr_len*/)){
                 fprintf(stderr, "error inet_ntop v4\n");
               }
             }else if(c_af==AF_INET6){
-               if(NULL == inet_ntop(c_af, 
-                &(GET_IN_type_ADDR(&(local_list_current->value),6)),
+               if(NULL == inet_ntop(c_af,
+                &(GET_IN_type_ADDR(&(node),6)),
                 tempAddr, BUF_SIZE /*(argSock->local_list_current->value).addr_len*/)){
                 fprintf(stderr, "error inet_ntop v6 :errno=%d\n",errno);
               }
             }
-#endif
-#if 0
-						off_t offset = 0;  
-						ssize_t ret_sendfile ;
-						while((ret_sendfile = sendfile(fds[(c_af==AF_INET6)].fd ,fd_file, &offset, BUF_SIZE))>0){
-								
-						}
-#endif
-         /// printf("debug: destination %s :\n",tempAddr);
+            size_t ret_len = strlen(tempAddr);
+            return ret_len;
+}
 
-            if(sendto(fds[(c_af==AF_INET6)].fd, 
-              buf_send, retsprintf,
-              /*msgRet, len_msgRet,*/ 
-              0, 
-              (struct sockaddr*)&((local_list_current->value).addr), 
-              (local_list_current->value).addr_len) != 
-              retsprintf
-              /*len_msgRet*/
-              ){
-#if TEMP_ADDR
-							fprintf(stderr, "Error sending response to %s\n",tempAddr);
-#endif
-						}else{
-#if TEMP_ADDR
-							printf("debug: sending %s to < %s >",buf_send,tempAddr);
-#endif
-						}
-          }
-        }
 
 /* */
 #define TEMP_ADDR 1
@@ -98,7 +416,7 @@ void* y_socket_send_file_for_all_nodes(void* arg){
 	struct main_list_y_NODE_T *nodes=argS->nodes;
 	char * filename=argS->filename;
 #if TEMP_ADDR
-  char tempAddr[BUF_SIZE+1];
+  char tempAddr[64];
 #endif
   int c_af;
 //  char host[NI_MAXHOST], service[NI_MAXSERV];
@@ -117,98 +435,67 @@ void* y_socket_send_file_for_all_nodes(void* arg){
           push_back_list_y_NODE_T(nodes, node);
         
 #endif        
-       fd_file = open( filename , O_RDONLY);
+				
+      size_t seq = 0;//, len_buf_header=0, 
+       size_t len_local_header_=0;
+       char * timeid = time_id();
+      for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
+  
+  fd_file = open( filename , O_RDONLY);
        if(fd_file == -1){
          fprintf(stderr,"error opening file |%s| for reading\n",filename);
          return NULL;
        }
- 				
-		   y_send_post_file_to_all_nodes(arg);
-       usleep(1);
-       //for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next )
+       set_tempAddr_from_node(tempAddr, local_list_current->value);
+       c_af=(local_list_current->value).addr.ss_family;
 
-       //memset(buf_send, 0, BUF_SIZE+1);
-       while((retread = read(fd_file, buf_send, BUF_SIZE) ) > 0 ){
-          buf_send[retread]='\0';
-          //memset(msgRet, 0, BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100);
-  //        sprintf(msgRet, "from %s:%s =%s",host, service, buf);
-          
-  //        len_msgRet = strlen(msgRet);
-         ///printf("debug: sending response  %s :\n",buf_send);
-          
-					//FOR_LIST_FORM_BEGIN(y_NODE_T, nodes)
-          for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
-            //memset(tempAddr, 0, BUF_SIZE+1);
-            c_af=(local_list_current->value).addr.ss_family;
-#if TEMP_ADDR
-						if(c_af==AF_INET){
-               if(NULL == inet_ntop(c_af, 
-                &(GET_IN_type_ADDR(&(local_list_current->value),)),
-                tempAddr, BUF_SIZE/*(argSock->local_list_current->value).addr_len*/)){
-                fprintf(stderr, "error inet_ntop v4\n");
-              }
-            }else if(c_af==AF_INET6){
-               if(NULL == inet_ntop(c_af, 
-                &(GET_IN_type_ADDR(&(local_list_current->value),6)),
-                tempAddr, BUF_SIZE /*(argSock->local_list_current->value).addr_len*/)){
-                fprintf(stderr, "error inet_ntop v6 :errno=%d\n",errno);
-              }
-            }
-#endif
-#if 0
-						off_t offset = 0;  
-						ssize_t ret_sendfile ;
-						while((ret_sendfile = sendfile(fds[(c_af==AF_INET6)].fd ,fd_file, &offset, BUF_SIZE))>0){
-								
-						}
-#endif
-         /// printf("debug: destination %s :\n",tempAddr);
+       seq=0;
 
-#if 	1				
+       len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%s\" }",filename, seq,tempAddr, timeid);
+       while((retread = read(fd_file, buf_send+len_local_header_, BUF_SIZE - len_local_header_) ) > 0 ){
+          buf_send[len_local_header_ + retread]='\0';
             if(sendto(fds[(c_af==AF_INET6)].fd, 
-              buf_send, retread,
-              /*msgRet, len_msgRet,*/ 
+              buf_send, retread+len_local_header_,
               0, 
               (struct sockaddr*)&((local_list_current->value).addr), 
               (local_list_current->value).addr_len) != 
-              retread
-              /*len_msgRet*/
+              retread + len_local_header_
               ){
-#if TEMP_ADDR
 							fprintf(stderr, "Error sending response to %s\n",tempAddr);
-#endif
 						}else{
-#if TEMP_ADDR
-							printf("debug: sending response to < %s >",tempAddr);
-#endif
+							printf("debug: sending response to < %s > seq=[%ld] ",tempAddr,seq);
 						}
+          
+            ++seq;    
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%s\" }",filename, seq,tempAddr, timeid);
           }
-#endif
-
-#if 0
-          //memset(buf_send, 0, BUF_SIZE+1);
-          retread = sprintf(buf_send, "post file %s", filename);
-          if(sendto(fds[(c_af==AF_INET6)].fd, 
-              buf_send, retread,
-              /*msgRet, len_msgRet,*/ 
-              0, 
-              (struct sockaddr*)&((local_list_current->value).addr), 
-              (local_list_current->value).addr_len) != 
-              retread
-              /*len_msgRet*/
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"dst\" : \"%s\" , \"tm\" : \"%s\" }",filename, seq, tempAddr,timeid);
+            if(sendto(fds[(c_af==AF_INET6)].fd,
+              buf_send, len_local_header_,
+              0,
+              (struct sockaddr*)&((local_list_current->value).addr),
+              (local_list_current->value).addr_len) !=
+              len_local_header_
               ){
-							fprintf(stderr, "Error sending response to %s\n",tempAddr);
-					}else{
-							printf("debug: sending response to < %s >",tempAddr);
-					}
-#endif
-
-        }
+              fprintf(stderr, "Error ending  response to %s, len_buf_header=%ld\n", tempAddr, len_local_header_);
+            }else{
+              printf("debug: ending response to < %s > [%ld] EOF",tempAddr,seq);
+            }
 
         close(fd_file);
-        printf("debug: fd=%d closed: filename=%s\n",fd_file,filename);
+        printf("debug: fd=%d closed: filename=%s, for index = %ld\n",fd_file,filename, local_list_current->index);
+              
+          }
+
+
+
+        free(timeid);
   return NULL;
 }
+
+
+
+//main_list_y_ptr_HEADER_T  
 
 /*
 struct arg_record_to_file{
@@ -221,8 +508,115 @@ void record_buffer_to_file(void *arg){
   
 }
 */
-void receve_from_node(struct pollfd *fds, char *msg, size_t count){
-    printf("\ndebug: <<<< receve_from_node %s %ld\n\n",msg,count); 
+#if 1
+void receve_from_node(struct main_list_y_ptr_HEADER_T *m_head_l_t, struct main_list_y_ptr_STRING *m_str, char * srcAddr, char *filename ){
+    //printf("\ndebug: <<<< receve_from_node %s %ld\n\n",msg,count); 
+
+
+          //size_t size_m_str = 0;
+          struct list_y_ptr_STRING * local_current_no_rec = m_str->begin_list; 
+          struct list_y_ptr_STRING * local_current;
+            for(local_current = local_current_no_rec; local_current; local_current = local_current->next){
+              char *buf_loc = local_current->value->buf;
+              char nameid[BUF_SIZE]="";
+              size_t size_nameid=0;
+              struct js_value * js_header_v = create_js_value(buf_loc,NULL);
+              //struct js_value *js_cmd_v = get_js_value_of_key("cmd", js_header_v );
+              //printf("debug: index=[%ld] \n BEGIN file ***\n%s\n END\n",local_current->index,buf_loc);
+              if(js_header_v){
+
+
+                struct js_value *js_seq_v = get_js_value_of_key("seq", js_header_v );
+                char eof=0;
+                if(js_seq_v){
+                  if(js_seq_v->type.object.value->code_type == jstype_number){
+                    size_t seq_local = (long)(js_seq_v->type.object.value->type.number);
+                      printf("debug:  \n*********seq_local=%ld ***\n\n",seq_local);
+                    
+                    struct js_value *js_eof_v = get_js_value_of_key("EOF", js_header_v );
+                    if(js_eof_v){
+                   //   size_m_str = seq_local;
+                      eof=1;
+                      printf("debug:  \n****************************end of file ***\n\n");
+                      //printf("debug:  \n****************************end of file ***\n%s\n**********************************\n",buf_loc);
+                    }
+                    
+                    struct js_value *js_dst_v = get_js_value_of_key("dst", js_header_v );
+                    if(js_dst_v){
+                      struct js_value *js_tm_v = get_js_value_of_key("tm", js_header_v );
+                      if(js_tm_v){
+                         size_t length_js_header = js_org_str_length(js_header_v);
+                         char *content = buf_loc+ length_js_header;
+                         size_t size_content = strlen(content);// js_header_v->length - length_js_header;
+                         enum cmd_type cmd_t = cmd_post_file;
+                         size_nameid = sprintf(nameid, "%s_%s_%s_%s",filename,srcAddr, value_of_(js_dst_v)->type.string,value_of_(js_tm_v)->type.string);
+                         printf("debug: nameid = %s\n", nameid);
+                         y_ptr_MSG_CONTENT_T y_msg_cnt=create_y_ptr_MSG_CONTENT_T(nameid, size_nameid, content, size_content, cmd_t, seq_local,eof);
+                         long ret_app = y_append_content_to_header_l(m_head_l_t,y_msg_cnt);
+                         if(ret_app != -2){
+                           struct list_y_ptr_HEADER_T * local_header = check_if_all_contents_done_from_headers(m_head_l_t, y_msg_cnt);
+                           if(local_header){
+                             struct main_list_y_ptr_MSG_CONTENT_T *m_content_l = local_header->value->m_content_l;
+                             struct list_y_ptr_MSG_CONTENT_T * tmpCnt_l = m_content_l->begin_list;
+                             while(tmpCnt_l){
+                               printf("debug: nameid:%s seq = %ld eof %d\n\n%s\n",tmpCnt_l->value->nameid, tmpCnt_l->value->seq, tmpCnt_l->value->eof, tmpCnt_l->value->content);
+                               tmpCnt_l=tmpCnt_l->next;
+                             }
+                             struct list_y_ptr_HEADER_T * l_head_to_remove = pull_index_from_list_y_ptr_HEADER_T(m_head_l_t, local_header->index);
+                             free_y_ptr_HEADER_T(l_head_to_remove->value);
+                             free(l_head_to_remove); 
+
+                           }  
+                         }
+
+                      }else{
+                        printf("debug: tm missing!");
+                      }
+                    }
+                    else{
+                      printf("debug: dst missing!");
+                    }
+                  }
+                  else{
+                    printf("debug:  \n SSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ type:%d \n",js_seq_v->type.object.value->code_type);
+
+                  }
+                
+
+                }else{
+
+                    printf("debug:  \n NNNNNNNNNNNNNNNNOOOOOOOOOOOOOSSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ :type header : %d \n",js_header_v->code_type);
+                }
+                              free_js_value(js_header_v);
+              }else{
+                printf("\ndebug NULLL JS___HHHEADER_V \n");
+              }
+            }
+            //if(local_current){
+            //  printf("debug: getchar\n");
+            //  getchar();
+
+            //}
+            //local_current_no_rec = local_current_no_rec->next;
+         
+
+          /*if(cur_index == size_m_str){
+            printf("debug:  all seq are received: %ld\n",cur_index);
+          }
+          else{
+            printf("debug:  some issue cur_index %ld vs size_m_str :%ld\n",cur_index,size_m_str);
+
+          }*/
+
+    if(m_str){
+      purge_ptr_type_list_y_ptr_STRING(m_str);
+      m_str = NULL;
+    }
+
+}
+
+#endif
+/*
     char filename[500];
     int fd_file;
     long int nread;
@@ -262,6 +656,5 @@ void receve_from_node(struct pollfd *fds, char *msg, size_t count){
         }
         printf("debug: <receve_from_node> close nread==%ld\n",nread);
         close(fd_file);
+*/
 
-
-}

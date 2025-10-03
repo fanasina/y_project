@@ -7,7 +7,7 @@ struct y_string * create_y_ptr_STRING(const char *buf, size_t size){
   if(buf){
     //strncpy(string->buf, buf, size);
     //snprintf(string->buf, size, "%s", buf);
-    memcpy(string->buf, buf, size);
+    memcpy(string->buf, buf, size+1);
     //if(strlen(buf)>=size)
     if(buf[size]!='\0')
       string->buf[size]='\0';

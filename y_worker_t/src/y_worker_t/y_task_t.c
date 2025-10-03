@@ -40,8 +40,8 @@ struct list_y_TASK_T* pull_tasQ(struct y_tasQ *tasQ){
   while(tasQ->list_tasQ->end_list == NULL){
     pthread_cond_wait(tasQ->cond_tasQ, tasQ->mut_tasQ);
   }
-  printf("debug: call pull_begin_from_list_y_TASK_T  debut\n");
   valueRet  = pull_begin_from_list_y_TASK_T(tasQ->list_tasQ);
+  printf("debug: call pull_begin_from_list_y_TASK_T  debut\n");
 //  valueRet  = pull_end_from_list_y_TASK_T(tasQ->list_tasQ);
   //printf("debug: call pull_begin_from_list_y_TASK_T  fin, is tasQ NULL? : %d\nis tasQ->list_tasQ NULL?:%d\n", tasQ==NULL, tasQ->list_tasQ == NULL);
   pthread_mutex_unlock(tasQ->mut_tasQ);

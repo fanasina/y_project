@@ -9,6 +9,8 @@
 #include <fcntl.h>
 #include <string.h>
 
+#include <signal.h>
+
 //#include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -46,6 +48,7 @@ enum ipVersions{
 extern const int af_array[nbIpVersion];//={AF_INET, AF_INET6};
 
 /* y_ptr_STRING */
+
 #if 0
 struct y_string{
 	char * buf;
@@ -68,7 +71,7 @@ struct y_socket_t{
 	size_t size_fds; 
   char * port;
   struct main_list_y_NODE_T *nodes;
-  pthread_mutex_t *mut_nodes;
+//  pthread_mutex_t *mut_nodes;
 	int go_on;
   pthread_mutex_t *mut_go_on;
   int nb_workers;

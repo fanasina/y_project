@@ -11,7 +11,8 @@ YJSONDIR=$(PWD)/../../yjson_t
 
 ROOT_DIR=$(PWD)/..
 INCLUDE_DIR=$(ROOT_DIR)/include
-CFLAGS=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include -I$(YLISTDIR)/src -I$(YWORKDIR)/include -I$(YJSONDIR)/src
+INCLUDE=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include -I$(YLISTDIR)/src -I$(YWORKDIR)/include -I$(YJSONDIR)/src
+CFLAGS=-Wall -Werror -fpic $(INCLUDE)
 LDFLAGS=-L$(YTESTDIR) -lytest -lpthread -lm -lOpenCL
 
 #SRC_DIR=$(ROOT_DIR)/src
