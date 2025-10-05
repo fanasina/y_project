@@ -60,4 +60,29 @@ size_t copy_list_y_ptr_STRING_to_one_string(char **p_dst_str, struct main_list_y
   return count_size;
 
 }
+/* split string following sep! if limit_size_str_org < 0 it mean no limit */
+struct main_list_y_ptr_STRING * split_str_to_main_list_y_ptr_STRING(char *str_org, char sep, size_t limit_size_str_org){
+  struct main_list_y_ptr_STRING * m_str = create_var_list_y_ptr_STRING();
+  char *buf = str_org;
+  char *cur_str = str_org;
+  size_t size_buf=0;
+  size_t size_org_cur = 0;
+  while(cur_str && (cur_str-str_org < limit_size_str_org)){
+    if(*cur_str != sep) ++cur_str;
+    else{
+      size_buf = cur_str - buf;
+      y_ptr_STRING y_buf = create_y_ptr_STRING(buf, size_buf);
+      push_back_list_y_ptr_STRING(m_str, y_buf);
+      while(cur_str && *cur_str== sep) ++cur_str;
+      buf = cur_str;
+    }
+    ++size_org_cur;
+  }
+  size_buf = cur_str - buf;
+  if(size_buf){
+    y_ptr_STRING y_buf = create_y_ptr_STRING(buf, size_buf);
+    push_back_list_y_ptr_STRING(m_str, y_buf);
+  }
+  return m_str;
+}
 
