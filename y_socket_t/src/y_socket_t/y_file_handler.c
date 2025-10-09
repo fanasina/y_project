@@ -99,7 +99,18 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
 		}
 	}
 
-	if(m_index_not_match->size) ret = -1;
+	if(m_index_not_match->size) {
+    for(struct list_y_ptr_STRING *l_h1_ = m_h1_nameid->end_list, *l_h2_ = m_h2_nameid->end_list; l_h1_ && l_h2_; l_h1_ = l_h1_->preview, l_h2_=l_h2_->preview){
+      
+      for(struct list_TYPE_SIZE_T * l_in = m_index_not_match->begin_list; l_in; l_in=l_in->next){
+        if(l_h1_->index == l_in->value){
+          printf("debug: DIFF ** **  %ld: %s vs %s ** **\n",l_in->value, l_h1_->value->buf, l_h2_->value->buf);
+        }
+      }
+    }
+    
+    ret = -1;
+  }
 	else ret = 0;
 	
 	
@@ -522,7 +533,7 @@ void* y_socket_send_file_for_node(void* arg){
 			 sprintf(nameid, "%s_%s_%s_%s",name_f, tempAddr, tempAddr, timeid);
 
 for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, nameid) == 0); ++tour_i){
-  
+   
   fd_file = open( filename , O_RDONLY);
        if(fd_file == -1){
          fprintf(stderr,"error opening file |%s| for reading\n",filename);
@@ -570,6 +581,8 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
 	size_t delay = 4000000; 			
 	printf("debug: wait %ld before checking, in tour:%d\n",delay, tour_i);
 	usleep(delay);				
+       free(timeid);
+       timeid = time_id();
 }
 
 
