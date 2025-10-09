@@ -698,7 +698,8 @@ void *y_socket_poll_fds(void *arg){
 //  int len_msgRet;
 // I had to initialize all attribute of addr to avoid error uninitialized value with valgrind, for example "sin6_flowinfo" in sockaddr_in6
  	memset(&(node.addr), 0, sizeof(struct sockaddr_storage)); 
-  node.addr_len = sizeof(struct sockaddr_storage);
+  size_t len_sockaddr_storage = sizeof(struct sockaddr_storage);
+  node.addr_len = len_sockaddr_storage; // sizeof(struct sockaddr_storage);
   
   for(;check_y_socket_go_on(argSock);){
     printf("poll: wait events\n");
@@ -837,11 +838,11 @@ void *y_socket_poll_fds(void *arg){
 					
 					printf("debug : af = AF_INET=%d, af = AF_INET6=%d, vs  af=[%d]\n",AF_INET, AF_INET6, af);
 
-					if(sendto(fds[af].fd, buf+index_buf  , buf_len-index_buf, 
-	                    //	msg_buf, index_str,
-																	0,
-          	(struct sockaddr*)(&(node.addr)), node.addr_len) == -1){
-      			printf("message erreur sendto : %s\n\n",buf);
+          //node.addr_len = sizeof(struct sockaddr_storage);
+					if(sendto(fds[af].fd, buf+index_buf  , buf_len-index_buf, 0,
+          	(struct sockaddr*)(&(node.addr)), len_sockaddr_storage //node.addr_len
+            ) == -1){
+      			printf("message erreur sendto : %s, error :%d\n\n",buf,errno);
           	perror("sendto:");
           	close(fds[af].fd);
           	return NULL;
