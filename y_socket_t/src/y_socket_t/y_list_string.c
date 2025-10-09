@@ -67,7 +67,7 @@ struct main_list_y_ptr_STRING * split_str_to_main_list_y_ptr_STRING(char *str_or
   char *cur_str = str_org;
   size_t size_buf=0;
   size_t size_org_cur = 0;
-  while(cur_str && (cur_str-str_org < limit_size_str_org)){
+  while(*cur_str && (cur_str-str_org < limit_size_str_org)){
     if(*cur_str != sep) ++cur_str;
     else{
       size_buf = cur_str - buf;

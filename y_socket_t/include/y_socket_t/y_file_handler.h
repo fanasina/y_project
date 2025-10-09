@@ -11,23 +11,27 @@
 
 #include "json_t/json_t.h"
 
-
+#include "list_t/list_t.h"
 
 void fileNameDateScore(char* filename, char * pre, char* post,size_t score);
 
 struct arg_send_file{
 	struct pollfd *fds;
 	struct main_list_y_NODE_T *nodes;
+	y_NODE_T node;
 	char * filename;
+	struct main_list_y_ptr_HEADER_T *m_ok_head_l_t;
 };
 
 void* y_socket_send_file_for_all_nodes(void* arg);
+void* y_socket_send_file_for_node(void* arg);
 
 enum cmd_type {
   cmd_update_kill,
   cmd_update_standby,
   cmd_update_wakeup,    
   cmd_post_file,
+  cmd_post_ok,
   cmd_post_var,
   cmd_get_file,
   cmd_get_var,
@@ -53,6 +57,7 @@ typedef struct header_t {
   enum cmd_type cmd_t;
 //  size_t seq;
   char eof;
+//  char ok;
 //  void *content; 
   size_t size_nameid;
   char * nameid;/* containerid: filename_src_dst_tm */
@@ -67,6 +72,7 @@ GEN_HEAD_PTR_LIST(y_ptr_HEADER_T)
 
 size_t set_tempAddr_from_node(char *tempAddr, y_NODE_T node);
 //void receve_from_node(struct pollfd *fds, char *msg, size_t count);
-void receve_from_node(struct main_list_y_ptr_HEADER_T *m_head_l_t, struct main_list_y_ptr_STRING *m_str, char * srcAddr, char *filename);
+void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_head_l_t, struct main_list_y_ptr_STRING *m_str, y_NODE_T node /* char * srcAddr*/, char *filename);
+long y_append_to_ok_header_l_(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, char *nameid );
 
 #endif /*Y_FILE_HANDLER_T_H__C*/
