@@ -578,11 +578,12 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
         close(fd_file);
         printf("debug: fd=%d closed: filename=%s, for %s\n",fd_file,filename, tempAddr);
 
-	size_t delay = 4000000; 			
+	size_t delay = 8000000; 			
 	printf("debug: wait %ld before checking, in tour:%d\n",delay, tour_i);
 	usleep(delay);				
        free(timeid);
        timeid = time_id();
+			 sprintf(nameid, "%s_%s_%s_%s",name_f, tempAddr, tempAddr, timeid);
 }
 
 
