@@ -25,6 +25,7 @@ struct arg_send_file{
 
 void* y_socket_send_file_for_all_nodes(void* arg);
 void* y_socket_send_file_for_node(void* arg);
+void* y_send_buf_for_all_(void* arg);
 
 enum cmd_type {
   cmd_update_kill,

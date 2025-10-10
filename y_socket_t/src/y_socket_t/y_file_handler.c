@@ -592,10 +592,63 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
 				purge_ptr_type_list_y_ptr_STRING(m_str_name_f);
   return NULL;
 }
+/// 
+
+/// ///
+//void y_socket_send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *nodes, char * filename)
+void* y_send_buf_for_all_(void* arg){
+  struct arg_send_file *argS=(struct arg_send_file*)arg;
+
+	struct pollfd *fds=argS->fds;
+	struct main_list_y_NODE_T *nodes=argS->nodes;
+	char * buf_send=argS->filename;
+#if TEMP_ADDR
+  char tempAddr[64];
+#endif
+  int c_af;
+//  char host[NI_MAXHOST], service[NI_MAXSERV];
+#if 0	
+				int status = getnameinfo((struct sockaddr*)&(node.addr), node.addr_len, host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICHOST);
+        if(status)
+       //   printf("debug: status ==0 : success: Received successfully from %s:%s\n", host,service);
+       // else
+          fprintf(stderr, "getnameinfo: %s\n", gai_strerror(status));
+
+
+        if(NULL ==  search_node_in_list_y_NODE_T(nodes, node))
+          push_back_list_y_NODE_T(nodes, node);
+        
+#endif        
+				
+       size_t len_buf_send=strlen(buf_send);
+      for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
+  
+        set_tempAddr_from_node(tempAddr, local_list_current->value);
+        c_af=(local_list_current->value).addr.ss_family;
+
+      
+        if(sendto(fds[(c_af==AF_INET6)].fd,
+              buf_send, len_buf_send,
+              0,
+              (struct sockaddr*)&((local_list_current->value).addr),
+              (local_list_current->value).addr_len) !=
+              len_buf_send
+              ){
+              fprintf(stderr, "Error sending %s to %s\n", tempAddr, buf_send);
+            }else{
+              printf("debug: sending [%s] -> < %s >",buf_send,tempAddr);
+            }
+
+        printf("debug: for index = %ld\n",local_list_current->index);
+              
+      }
 
 
 
-///
+  return NULL;
+}
+
+/// ///
 
 /* */
 

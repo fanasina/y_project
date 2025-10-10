@@ -829,7 +829,28 @@ void *y_socket_poll_fds(void *arg){
 		
 			if(strncmp(cmd, "sendto", 6)==0){
 				printf("debug : sendto match, dst_addr=[%s]\n", dst_addr);
-				if(set_addr_y_NODE_T(&node, dst_addr)){
+        if(strcmp(dst_addr, "all" ) == 0){
+          struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
+          argS->fds=fds;
+          argS->nodes=argSock->nodes;
+          argS->node=node;
+          argS->filename=malloc(buf_len-index_buf+1); /* put here message to send for all */
+          memcpy(argS->filename, buf+index_buf, buf_len-index_buf);
+          argS->filename[buf_len-index_buf] = '\0';
+          argS->m_ok_head_l_t=m_ok_head_l_t; 
+        
+          push_back_list_TYPE_PTR(list_arg, argS);
+          push_back_list_TYPE_PTR(list_arg, argS->filename);
+          struct y_task_t task_handl = {
+            .func=y_send_buf_for_all_,
+            .arg=argS,
+            .status=TASK_PENDING,
+          };
+          push_tasQ(argx->tasQ, task_handl);
+      
+
+        }
+        else if(set_addr_y_NODE_T(&node, dst_addr)){
 					printf("debug : set_addr_y_NODE_T done\n");
 					set_str_port_y_NODE_T(&node, argSock->port);
 					update_nodes(node, argSock->nodes);
