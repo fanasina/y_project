@@ -123,6 +123,21 @@ const char * put_y_NODE_T_in_string(y_NODE_T *node, char * dst){
 	return dst;
 }
 
+void * remove_node_from_nodes(void* arg){
+  struct arg_send_file *argS=(struct arg_send_file*)arg;
+  struct main_list_y_NODE_T *nodes=argS->nodes;
+  y_NODE_T node=argS->node;
+  
+
+  struct list_y_NODE_T * l_node = search_node_in_list_y_NODE_T(nodes, node);
+
+  if(l_node) remove_index_from_list_y_NODE_T(nodes, l_node->index );
+
+  return NULL;
+  
+
+}
+
 void update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes){
 #if 0
 void* update_nodes(void* arg)

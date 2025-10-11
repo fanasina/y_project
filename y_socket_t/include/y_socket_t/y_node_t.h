@@ -33,5 +33,6 @@ void set_str_port_y_NODE_T(y_NODE_T *node, char *str_port);
 
 const char * put_y_NODE_T_in_string(y_NODE_T *node, char * dst);
 void update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes);
+void * remove_node_from_nodes(void* arg);
 
 #endif /* __Y_NODE_T_H__C */
