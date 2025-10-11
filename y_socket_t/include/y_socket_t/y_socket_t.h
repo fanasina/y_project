@@ -66,6 +66,18 @@ size_t copy_list_y_ptr_STRING_to_one_string(char **p_dst_str, struct main_list_y
 
 #endif /* y_ptr_STRING */
 
+struct y_variable{
+  char * name;
+  void * value;
+};
+
+typedef struct y_variable * y_ptr_VARIABLE;
+
+struct y_variable * create_y_ptr_VARIABLE(const char *name, size_t size_value);
+GENERATE_LIST_ALL(y_ptr_VARIABLE)
+GEN_HEAD_PTR_LIST(y_ptr_VARIABLE)
+
+
 struct y_socket_t{
   struct pollfd *fds;
 	size_t size_fds; 

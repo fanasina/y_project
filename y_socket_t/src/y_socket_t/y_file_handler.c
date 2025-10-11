@@ -752,7 +752,7 @@ void record_buffer_to_file(void *arg){
   
 }
 */
-#if 1
+
 void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_head_l_t, struct main_list_y_ptr_STRING *m_str, y_NODE_T node /*char * srcAddr*/, char *filename ){
     //printf("\ndebug: <<<< receve_from_node %s %ld\n\n",msg,count); 
 	char srcAddr[64];
@@ -772,88 +772,109 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
               //printf("debug: index=[%ld] \n BEGIN file ***\n%s\n END\n",local_current->index,buf_loc);
               if(js_header_v){
 
-
-                struct js_value *js_seq_v = get_js_value_of_key("seq", js_header_v );
-                char eof=0;
-                if(js_seq_v){
-                  if(js_seq_v->type.object.value->code_type == jstype_number){
-                    size_t seq_local = (long)(js_seq_v->type.object.value->type.number);
-                      printf("debug:  \n*********seq_local=%ld ***\n\n",seq_local);
-                    
-                    struct js_value *js_eof_v = get_js_value_of_key("EOF", js_header_v );
-                    if(js_eof_v){
-                   //   size_m_str = seq_local;
-                      eof=1;
-                      printf("debug:  \n****************************end of file ***\n\n");
-                      //printf("debug:  \n****************************end of file ***\n%s\n**********************************\n",buf_loc);
-                    }
-                    
-                    struct js_value *js_dst_v = get_js_value_of_key("dst", js_header_v );
-                    if(js_dst_v){
-                      struct js_value *js_tm_v = get_js_value_of_key("tm", js_header_v );
-                      if(js_tm_v){
-                         size_t length_js_header = js_org_str_length(js_header_v);
-                         char *content = buf_loc+ length_js_header;
-                         size_t size_content = strlen(content);// js_header_v->length - length_js_header;
-                         enum cmd_type cmd_t = cmd_post_file;
-												 //char *timeid = value_of_(js_tm_v)->type.string;
+                struct js_value *js_cmd = get_js_value_of_key("cmd", js_header_v );
+                if(js_cmd && js_cmd->type.object.value->code_type == jstype_string){
+                  char * buf_cmd_v = js_cmd->type.object.value->type.string;
+                
+                  struct js_value *js_seq_v = get_js_value_of_key("seq", js_header_v );
+                  char eof=0;
+                  if(js_seq_v){
+                    if(js_seq_v->type.object.value->code_type == jstype_number){
+                      size_t seq_local = (long)(js_seq_v->type.object.value->type.number);
+                        printf("debug:  \n*********seq_local=%ld ***\n\n",seq_local);
+                      
+                      struct js_value *js_eof_v = get_js_value_of_key("EOF", js_header_v );
+                      if(js_eof_v){
+                     //   size_m_str = seq_local;
+                        eof=1;
+                        printf("debug:  \n****************************end of file ***\n\n");
+                        //printf("debug:  \n****************************end of file ***\n%s\n**********************************\n",buf_loc);
+                      }
+                      
+                      struct js_value *js_dst_v = get_js_value_of_key("dst", js_header_v );
+                      if(js_dst_v){
+                        struct js_value *js_tm_v = get_js_value_of_key("tm", js_header_v );
+                        if(js_tm_v){
+                           size_t length_js_header = js_org_str_length(js_header_v);
+                           char *content = buf_loc+ length_js_header;
+                           size_t size_content = strlen(content);// js_header_v->length - length_js_header;
+                           enum cmd_type cmd_t = cmd_post_file;
+                           //char *timeid = value_of_(js_tm_v)->type.string;
 #if 0
-                         size_nameid = sprintf(nameid, "%s_%s_%s_%s",name_f /*filename*/, srcAddr, value_of_(js_dst_v)->type.string, timeid/*value_of_(js_tm_v)->type.string*/);
+                           size_nameid = sprintf(nameid, "%s_%s_%s_%s",name_f /*filename*/, srcAddr, value_of_(js_dst_v)->type.string, timeid/*value_of_(js_tm_v)->type.string*/);
 #endif
-												 size_nameid = sprintf(nameid, "%s_%s_%s_%s",name_f, srcAddr, value_of_(js_dst_v)->type.string, value_of_(js_tm_v)->type.string);
-                         printf("debug: nameid = %s\n", nameid);
+                           size_nameid = sprintf(nameid, "%s_%s_%s_%s",name_f, srcAddr, value_of_(js_dst_v)->type.string, value_of_(js_tm_v)->type.string);
+                           printf("debug: nameid = %s\n", nameid);
 
-												 //int intTimeid = atoi(timeid);
+                           //int intTimeid = atoi(timeid);
 
-                         y_ptr_MSG_CONTENT_T y_msg_cnt=create_y_ptr_MSG_CONTENT_T(nameid, size_nameid, content, size_content, cmd_t, seq_local,eof);
-                         long ret_app = y_append_content_to_header_l(m_head_l_t,y_msg_cnt);
-                         if(ret_app != -2){
-                           struct list_y_ptr_HEADER_T * local_header = check_if_all_contents_done_from_headers(m_head_l_t, y_msg_cnt);
-                           if(local_header){
-                             struct main_list_y_ptr_MSG_CONTENT_T *m_content_l = local_header->value->m_content_l;
-                             struct list_y_ptr_MSG_CONTENT_T * tmpCnt_l = m_content_l->begin_list;
-                             while(tmpCnt_l){
-                               printf("debug: nameid:%s seq = %ld eof %d\n\n%s\n",tmpCnt_l->value->nameid, tmpCnt_l->value->seq, tmpCnt_l->value->eof, tmpCnt_l->value->content);
-                               tmpCnt_l=tmpCnt_l->next;
-                             }
-                             struct list_y_ptr_HEADER_T * l_head_to_remove = pull_index_from_list_y_ptr_HEADER_T(m_head_l_t, local_header->index);
-                             free_y_ptr_HEADER_T(l_head_to_remove->value);
-                             free(l_head_to_remove); 
-															// sendto srcAddr { "cmd" : "post ok nameid" } again ! 
-														 char buf[BUF_SIZE];
-														 size_t len_buf = sprintf(buf, "{ \"cmd\" : \"post ok %s\" }", nameid);
-														 if(sendto(fds[(node.addr.ss_family==AF_INET6)].fd,	buf, len_buf,	0, 	(struct sockaddr*)&((node).addr),	(node).addr_len) !=	len_buf){
-																fprintf(stderr, "Error sending ok %s to %s\n", nameid,srcAddr);
-														 }else{
-																printf("debug: sending OK %s to < %s > ",nameid,srcAddr);
-														 }
+                           y_ptr_MSG_CONTENT_T y_msg_cnt=create_y_ptr_MSG_CONTENT_T(nameid, size_nameid, content, size_content, cmd_t, seq_local,eof);
+                           long ret_app = y_append_content_to_header_l(m_head_l_t,y_msg_cnt);
+                           if(ret_app != -2){
+                             struct list_y_ptr_HEADER_T * local_header = check_if_all_contents_done_from_headers(m_head_l_t, y_msg_cnt);
+                             if(local_header){
+                               struct main_list_y_ptr_MSG_CONTENT_T *m_content_l = local_header->value->m_content_l;
+                               struct list_y_ptr_MSG_CONTENT_T * tmpCnt_l = m_content_l->begin_list;
+                               if(strncmp(buf_cmd_v+5,"file",4)==0){
+                                 int fd_file ;
+                                 if((fd_file = open(tmpCnt_l->value->nameid, O_WRONLY | O_CREAT ,
+                                   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
+                                   fprintf(stderr,"erreur write %s\n",tmpCnt_l->value->nameid);
+                                   break;//return NULL;
+                                 }
+                                 
 
-														 
-                           }/*else if(intTimeNow-intTimeid > TTL_SOCKDRAM){
-                             struct list_y_ptr_HEADER_T * l_head_to_remove = pull_index_from_list_y_ptr_HEADER_T(m_head_l_t, local_header->index);
-                             free_y_ptr_HEADER_T(l_head_to_remove->value);
-                             free(l_head_to_remove);
-														 													 }	
-													*/ 
+                                 while(tmpCnt_l){
+                                   write(fd_file, tmpCnt_l->value->content, tmpCnt_l->value->size_content);
+                                   printf("debug: nameid:%s seq = %ld eof %d\n\n%s\n",tmpCnt_l->value->nameid, tmpCnt_l->value->seq, tmpCnt_l->value->eof, tmpCnt_l->value->content);
+                                   tmpCnt_l=tmpCnt_l->next;
+                                 }
+                                 close(fd_file);
+                               }else if(strncmp(buf_cmd_v+5,"var",3)==0){
+                                 
+                               }
+                               struct list_y_ptr_HEADER_T * l_head_to_remove = pull_index_from_list_y_ptr_HEADER_T(m_head_l_t, local_header->index);
+                               free_y_ptr_HEADER_T(l_head_to_remove->value);
+                               free(l_head_to_remove); 
+                                // sendto srcAddr { "cmd" : "post ok nameid" } again ! 
+                               char buf[BUF_SIZE];
+                               size_t len_buf = sprintf(buf, "{ \"cmd\" : \"post ok %s\" }", nameid);
+                               if(sendto(fds[(node.addr.ss_family==AF_INET6)].fd,	buf, len_buf,	0, 	(struct sockaddr*)&((node).addr),	(node).addr_len) !=	len_buf){
+                                  fprintf(stderr, "Error sending ok %s to %s\n", nameid,srcAddr);
+                               }else{
+                                  printf("debug: sending OK %s to < %s > ",nameid,srcAddr);
+                               }
+
+                               
+                             }/*else if(intTimeNow-intTimeid > TTL_SOCKDRAM){
+                               struct list_y_ptr_HEADER_T * l_head_to_remove = pull_index_from_list_y_ptr_HEADER_T(m_head_l_t, local_header->index);
+                               free_y_ptr_HEADER_T(l_head_to_remove->value);
+                               free(l_head_to_remove);
+                                                         }	
+                            */ 
+                          }
+
+                        }else{
+                          printf("debug: tm missing!");
                         }
-
-                      }else{
-                        printf("debug: tm missing!");
+                      }
+                      else{
+                        printf("debug: dst missing!");
                       }
                     }
                     else{
-                      printf("debug: dst missing!");
+                      printf("debug:  \n SSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ type:%d \n",js_seq_v->type.object.value->code_type);
+
                     }
-                  }
-                  else{
-                    printf("debug:  \n SSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ type:%d \n",js_seq_v->type.object.value->code_type);
+                  
 
-                  }
-                
+                  }else{
 
+                      printf("debug:  \n NNNNNNNNNNNNNNNNOOOOOOOOOOOOOSSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ :type header : %d \n",js_header_v->code_type);
+                  }
                 }else{
+                    printf("debug:  \n NO CMD :type header : %d \n",js_header_v->code_type);
 
-                    printf("debug:  \n NNNNNNNNNNNNNNNNOOOOOOOOOOOOOSSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ :type header : %d \n",js_header_v->code_type);
                 }
                               free_js_value(js_header_v);
               }else{
@@ -885,7 +906,6 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
 		//free(timeNow);
 }
 
-#endif
 /*
     char filename[500];
     int fd_file;

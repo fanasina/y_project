@@ -5,6 +5,28 @@
 //#include "y_socket_t/y_list_string.h"
 //#include "json_t/json_t.h"
 
+struct y_variable * create_y_ptr_VARIABLE(const char *name, size_t size_value){
+  struct y_variable *variable=malloc(sizeof(struct y_variable));
+  size_t len_name = strlen(name);
+  variable->name=malloc(len_name+1);
+  variable->value=malloc(size_value);
+  if(name){
+    memcpy(variable->name, name, len_name+1);
+    if(name[len_name]!='\0')
+      variable->name[len_name]='\0';
+  }
+  return variable;
+}
+
+GEN_LIST_ALL(y_ptr_VARIABLE)
+
+GEN_FUNC_PTR_LIST_FREE(y_ptr_VARIABLE){
+  free(arg->name);
+  free(arg->value);
+  free(arg);
+}
+
+
 const int af_array[nbIpVersion]={AF_INET, AF_INET6};
 
 struct y_socket_t * y_socket_create(char *port, size_t size_fds, int nb_workers){
@@ -288,22 +310,17 @@ void* y_socket_handler_(void *arg){
       else if(strncmp(buf, "post", 4)==0){
         if(strncmp(buf+5,"file",4)==0){
           char *filename = buf+10;
-        struct main_list_y_ptr_HEADER_T *m_head_l_t = argH->m_head_l_t;
-        //char srcAddr[BUF_SIZE];
-        //set_tempAddr_from_node(srcAddr, argH->node);
-        receve_from_node(fds, m_head_l_t, m_str,argH->node/* srcAddr*/, filename /*+ index_f*/);
-        m_str = NULL;
-         /*
-          pthread_mutex_lock(sock->mut_go_on);
-          sock->go_on = 0;
-          pthread_mutex_unlock(sock->mut_go_on);
-          */
-    //      kill_all_workers(argw);
-    //      printf("debug: kill_all\n");
+          receve_from_node(fds, argH->m_head_l_t, m_str,argH->node, filename );
+          m_str = NULL;
         }else if(strncmp(buf+5,"ok",2)==0){
 					char *nameid = buf+8;
 					y_append_to_ok_header_l_(argH->m_ok_head_l_t,nameid );
+				}else if(strncmp(buf+5,"var",3)==0){
+					char *var_nameid = buf+9;
+          receve_from_node(fds, argH->m_head_l_t, m_str,argH->node, var_nameid );
+          m_str = NULL;
 				}
+
 
       }
     
@@ -435,8 +452,7 @@ void *y_socket_poll_fds(void *arg){
 				while((nread = recvfrom(fds[af].fd, buf, BUF_SIZE, 0,
         (struct sockaddr *)&(node.addr), &(node.addr_len))) == BUF_SIZE){
         	
-          if(buf[nread-1]=='\n') 
-            buf[nread-1]='\0';
+          //if(buf[nread-1]=='\n') buf[nread-1]='\0';
 					buf[nread]='\0';
           
 						y_ptr_STRING y_buf = create_y_ptr_STRING(buf, nread);
@@ -451,8 +467,7 @@ void *y_socket_poll_fds(void *arg){
 				if(nread == -1)
          	fprintf(stderr,"error recvfrom\n");
         else if(nread >= 0 && nread < BUF_SIZE){
-        	if(nread && buf[nread-1]=='\n'
-            ) buf[nread-1]='\0';
+        	//if(nread && buf[nread-1]=='\n') buf[nread-1]='\0';
 					buf[nread]='\0';
           //printf("msg: %s\n",buf);
 					y_ptr_STRING y_buf = create_y_ptr_STRING(buf, nread);
