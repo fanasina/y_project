@@ -719,7 +719,8 @@ void *y_socket_poll_fds(void *arg){
  	memset(&(node.addr), 0, sizeof(struct sockaddr_storage)); 
   size_t len_sockaddr_storage = sizeof(struct sockaddr_storage);
   node.addr_len = len_sockaddr_storage; // sizeof(struct sockaddr_storage);
-  
+  int w_go_on=1;
+
   for(;check_y_socket_go_on(argSock);){
     printf("poll: wait events\n");
     status = poll(fds, nbIpVersion + 1, -1);
@@ -736,12 +737,10 @@ void *y_socket_poll_fds(void *arg){
         if(m_str == NULL)
           m_str=create_var_list_y_ptr_STRING();
         memset(buf, 0, BUF_SIZE+1);
-        pthread_mutex_lock(argSock->mut_go_on);
-        int w_go_on =  argSock->go_on;
-        pthread_mutex_unlock(argSock->mut_go_on); 
+        
 #if 1	
-				while(w_go_on && ((nread = recvfrom(fds[af].fd, buf, BUF_SIZE, 0,
-        (struct sockaddr *)&(node.addr), &(node.addr_len))) == BUF_SIZE)){
+				while((nread = recvfrom(fds[af].fd, buf, BUF_SIZE, 0,
+        (struct sockaddr *)&(node.addr), &(node.addr_len))) == BUF_SIZE){
         	
           if(buf[nread-1]=='\n') 
             buf[nread-1]='\0';
@@ -758,7 +757,7 @@ void *y_socket_poll_fds(void *arg){
 						//printf("debug: out nread: %ld vs BUF_SIZE :%d \n",nread, BUF_SIZE);
 				if(nread == -1)
          	fprintf(stderr,"error recvfrom\n");
-        else if(w_go_on && (nread >= 0 && nread < BUF_SIZE)){
+        else if(nread >= 0 && nread < BUF_SIZE){
         	if(nread && buf[nread-1]=='\n'
             ) buf[nread-1]='\0';
 					buf[nread]='\0';
@@ -799,7 +798,10 @@ void *y_socket_poll_fds(void *arg){
 
 			///
       }
-      if(m_str){
+      pthread_mutex_lock(argSock->mut_go_on);
+      w_go_on =  argSock->go_on;
+      pthread_mutex_unlock(argSock->mut_go_on);
+      if(w_go_on && m_str){
 				printf("debug:  call handle_buf_socket_rec\n");
         handle_buf_socket_rec(m_ok_head_l_t,m_head_l_t,m_str, node, workers, argx, list_arg, arg);
       
