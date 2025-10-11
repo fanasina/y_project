@@ -719,8 +719,7 @@ void *y_socket_poll_fds(void *arg){
  	memset(&(node.addr), 0, sizeof(struct sockaddr_storage)); 
   size_t len_sockaddr_storage = sizeof(struct sockaddr_storage);
   node.addr_len = len_sockaddr_storage; // sizeof(struct sockaddr_storage);
-  int w_go_on=1;
-
+  
   for(;check_y_socket_go_on(argSock);){
     printf("poll: wait events\n");
     status = poll(fds, nbIpVersion + 1, -1);
@@ -798,10 +797,7 @@ void *y_socket_poll_fds(void *arg){
 
 			///
       }
-      pthread_mutex_lock(argSock->mut_go_on);
-      w_go_on =  argSock->go_on;
-      pthread_mutex_unlock(argSock->mut_go_on);
-      if(w_go_on && m_str){
+      if(argSock->go_on && m_str){
 				printf("debug:  call handle_buf_socket_rec\n");
         handle_buf_socket_rec(m_ok_head_l_t,m_head_l_t,m_str, node, workers, argx, list_arg, arg);
       
