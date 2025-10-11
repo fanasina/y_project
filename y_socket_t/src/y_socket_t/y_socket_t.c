@@ -7,62 +7,6 @@
 
 const int af_array[nbIpVersion]={AF_INET, AF_INET6};
 
-/* y_ptr_STRING */
-#if 0 
-struct y_string * create_y_ptr_STRING(const char *buf, size_t size){
-	struct y_string *string=malloc(sizeof(struct y_string));
-	string->buf=malloc(size+1);
-	if(buf){
-		strncpy(string->buf, buf, size);
-		if(strlen(buf)>=size)
-			string->buf[size]='\0';
-	}
-	string->size=size;
-	return string;
-}
-
-GEN_LIST_ALL(y_ptr_STRING)
-
-GEN_FUNC_PTR_LIST_FREE(y_ptr_STRING){
-	free(arg->buf);
-  free(arg);
-}
-
-size_t total_size_list_y_ptr_STRING(struct main_list_y_ptr_STRING *mstr){
-	size_t total_size=0;
-	for(struct list_y_ptr_STRING * local_current = mstr->begin_list; local_current; local_current = local_current->next){
-		total_size += local_current->value->size;
-	}
-	printf("debug: totalsize :%ld\n",total_size);
-	return total_size;
-}
-
-size_t copy_list_y_ptr_STRING_to_one_string(char **p_dst_str, struct main_list_y_ptr_STRING *mstr){
-	if(*p_dst_str == NULL){
-		*p_dst_str=malloc(total_size_list_y_ptr_STRING(mstr));
-	}
-	char * dst_str = *p_dst_str;
-	char *cur_str = dst_str;
-	size_t local_size=0;
- 	size_t count_size=0;
-	//for(move_current_to_begin_list_y_ptr_STRING(mstr); mstr->current_list; increment_list_y_ptr_STRING(mstr))
-	for(struct list_y_ptr_STRING * local_current = mstr->begin_list; local_current; local_current = local_current->next){
-		local_size = local_current->value->size;
-//	printf("debug: local_size :%ld\n",local_size);
-    for(size_t i=0; i<local_size; ++i){
-			cur_str[i]=local_current->value->buf[i];
-		}
-		count_size += local_size;
-//	printf("debug: countsize :%ld \n",count_size);
-		cur_str = dst_str + count_size;
-  }
-
-	return count_size;
-
-}
-
-#endif /* y_ptr_STRING */
-
 struct y_socket_t * y_socket_create(char *port, size_t size_fds, int nb_workers){
   struct y_socket_t *sock_temp=malloc(sizeof(struct y_socket_t));
 	if(size_fds>=nbIpVersion+1)
@@ -141,116 +85,6 @@ void __fileNameDateScore(char* filename, char * pre, char* post,size_t score){
   //return filename;
 }
 
-
-#if 0
-
-struct arg_send_file{
-	struct pollfd *fds;
-	struct main_list_y_NODE_T *nodes;
-	char * filename;
-};
-
-#define TEMP_ADDR 1
-
-//void y_socket_send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *nodes, char * filename)
-void* y_socket_send_file_for_all_nodes(void* arg){
-  struct arg_send_file *argS=(struct arg_send_file*)arg;
-
-	struct pollfd *fds=argS->fds;
-	struct main_list_y_NODE_T *nodes=argS->nodes;
-	char * filename=argS->filename;
-#if TEMP_ADDR
-  char tempAddr[BUF_SIZE+1];
-#endif
-  int c_af;
-//  char host[NI_MAXHOST], service[NI_MAXSERV];
-  char buf_send[BUF_SIZE+1];
-  int fd_file;
-  int retread;
-#if 0	
-				int status = getnameinfo((struct sockaddr*)&(node.addr), node.addr_len, host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICHOST);
-        if(status)
-       //   printf("debug: status ==0 : success: Received successfully from %s:%s\n", host,service);
-       // else
-          fprintf(stderr, "getnameinfo: %s\n", gai_strerror(status));
-
-
-        if(NULL ==  search_node_in_list_y_NODE_T(nodes, node))
-          push_back_list_y_NODE_T(nodes, node);
-        
-#endif        
-       fd_file = open( filename , O_RDONLY);
-       if(fd_file == -1){
-         fprintf(stderr,"error opening file |%s| for reading\n",filename);
-         return NULL;
-       }
- 				
-			
-       //memset(buf_send, 0, BUF_SIZE+1);
-       while((retread = read(fd_file, buf_send, BUF_SIZE) ) > 0 ){
-          buf_send[retread]='\0';
-          //memset(msgRet, 0, BUF_SIZE + NI_MAXHOST + NI_MAXSERV + 100);
-  //        sprintf(msgRet, "from %s:%s =%s",host, service, buf);
-          
-  //        len_msgRet = strlen(msgRet);
-         ///printf("debug: sending response  %s :\n",buf_send);
-          
-					//FOR_LIST_FORM_BEGIN(y_NODE_T, nodes)
-          for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
-            //memset(tempAddr, 0, BUF_SIZE+1);
-            c_af=(local_list_current->value).addr.ss_family;
-#if TEMP_ADDR
-						if(c_af==AF_INET){
-               if(NULL == inet_ntop(c_af, 
-                &(GET_IN_type_ADDR(&(local_list_current->value),)),
-                tempAddr, BUF_SIZE/*(argSock->local_list_current->value).addr_len*/)){
-                fprintf(stderr, "error inet_ntop v4\n");
-              }
-            }else if(c_af==AF_INET6){
-               if(NULL == inet_ntop(c_af, 
-                &(GET_IN_type_ADDR(&(local_list_current->value),6)),
-                tempAddr, BUF_SIZE /*(argSock->local_list_current->value).addr_len*/)){
-                fprintf(stderr, "error inet_ntop v6 :errno=%d\n",errno);
-              }
-            }
-#endif
-#if 0
-						off_t offset = 0;  
-						ssize_t ret_sendfile ;
-						while((ret_sendfile = sendfile(fds[(c_af==AF_INET6)].fd ,fd_file, &offset, BUF_SIZE))>0){
-								
-						}
-#endif
-         /// printf("debug: destination %s :\n",tempAddr);
-
-#if 	1				
-            if(sendto(fds[(c_af==AF_INET6)].fd, 
-              buf_send, retread,
-              /*msgRet, len_msgRet,*/ 
-              0, 
-              (struct sockaddr*)&((local_list_current->value).addr), 
-              (local_list_current->value).addr_len) != 
-              retread
-              /*len_msgRet*/
-              ){
-#if TEMP_ADDR
-							fprintf(stderr, "Error sending response to %s\n",tempAddr);
-#endif
-						}else{
-#if TEMP_ADDR
-							printf("debug: sending response to < %s >",tempAddr);
-#endif
-						}
-          }
-#endif 
-          //memset(buf_send, 0, BUF_SIZE+1);
-        }
-
-        close(fd_file);
-        printf("debug: fd=%d closed: filename=%s\n",fd_file,filename);
-  return NULL;
-}
-#endif 
 
 
 void  y_socket_get_fds(struct pollfd * fds, char * port, char * addrDistant){
@@ -598,7 +432,6 @@ void *y_socket_poll_fds(void *arg){
           m_str=create_var_list_y_ptr_STRING();
         memset(buf, 0, BUF_SIZE+1);
         
-#if 1	
 				while((nread = recvfrom(fds[af].fd, buf, BUF_SIZE, 0,
         (struct sockaddr *)&(node.addr), &(node.addr_len))) == BUF_SIZE){
         	
@@ -627,34 +460,6 @@ void *y_socket_poll_fds(void *arg){
 					//printf("debug: out push_back_list_y_ptr_STRING of <%s>\n",buf);
 				
         }
-#endif
-
-#if 0  
-        struct arg_update_nodes *argUP_N=malloc(sizeof(struct arg_update_nodes));
-        argUP_N->node=node;
-        argUP_N->nodes=argSock->nodes;
-        push_back_list_TYPE_PTR(list_arg, argUP_N);
-        struct y_task_t task_update_node={
-          .func=update_nodes,
-          .arg=argUP_N,
-          .status=TASK_PENDING,
-        };
-        push_tasQ(argx->tasQ, task_update_node);
-#endif
-        //update_nodes(node, argSock->nodes);
-				/*
-        if(temp_all_buf){
-          free(temp_all_buf);
-          temp_all_buf=NULL;
-        }*/
-				/*size_t total_buf = */ 
-        /*char * temp_all_buf = NULL;
-        copy_list_y_ptr_STRING_to_one_string(&temp_all_buf , m_str);
-        push_back_list_TYPE_PTR(list_arg, temp_all_buf);
-        */
-   
-			///
-				//y_socket_handler_(temp_all_buf, fds, argSock);
 
 			///
       }
