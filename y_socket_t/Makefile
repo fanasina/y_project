@@ -22,7 +22,7 @@ YSOCKSRC_O=$(YSOCKSRC:.c=.o)
 YNODESRC=$(PWD)/src/y_socket_t/y_node_t.c
 YNODESRC_O=$(YNODESRC:.c=.o)
 
-YY_STRINGSRC=$(PWD)/src/y_socket_t/y_list_string.c
+YY_STRINGSRC=$(PWD)/src/y_socket_t/y_list_var_tool.c
 YY_STRINGSRC_O=$(YY_STRINGSRC:.c=.o)
 
 FILEHANDLERSRC=$(PWD)/src/y_socket_t/y_file_handler.c

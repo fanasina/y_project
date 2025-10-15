@@ -1,5 +1,83 @@
-/*file: "src/y_socket_t/y_list_string.c" */
-#include "y_socket_t/y_list_string.h"
+/*file: "src/y_socket_t/y_list_var_tool.c" */
+#include "y_socket_t/y_list_var_tool.h"
+
+long  long_time_id(){
+ // char *filename=malloc(256);
+  //char timeid[64];//="20251011215824";
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  //sprintf(timeid,"%d%02d%02d%02d%02d%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+  long long_tm = (tm.tm_year + 1900)*10000000000+ (tm.tm_mon + 1)*100000000+ tm.tm_mday*1000000 + tm.tm_hour*10000+ tm.tm_min*100+ tm.tm_sec ;
+  //return filename;
+  ///printf("debug: timeid=%s, vs tm=%ld\n",timeid, intm);
+  //printf("debug: timeof=%ld, vs tm=%ld, tm_zone=%s\n",tm.tm_gmtoff, long_tm, tm.tm_zone);
+  return long_tm;
+}
+char * time_id(){
+ // char *filename=malloc(256);
+  char *timeid=malloc(128);
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  sprintf(timeid,"%d%02d%02d%02d%02d%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+  //printf("debug: TTT \n%ld\n",int_time_id());
+  return timeid;
+  //return filename;
+}
+
+
+struct y_variable * create_y_ptr_VARIABLE(const char *name, size_t size_name, void * value, size_t size_value, char *src){
+  struct y_variable *variable=malloc(sizeof(struct y_variable));
+  variable->size_name = size_name;
+  variable->name=malloc(size_name+1);
+  if(name){
+    memcpy(variable->name, name, size_name+1);
+    if(name[size_name]!='\0')
+      variable->name[size_name]='\0';
+  }
+  variable->size_value = size_value;
+  variable->value=malloc(size_value);
+  memcpy(variable->value, value, size_value);
+  
+  variable->time_l = long_time_id();
+  if(src){
+    memcpy(variable->src, src, 64);
+  }else{
+    memset(variable->src, 0, 64);
+  }
+
+  return variable;
+}
+
+GEN_LIST_ALL(y_ptr_VARIABLE)
+
+GEN_FUNC_PTR_LIST_FREE(y_ptr_VARIABLE){
+  free(arg->name);
+  free(arg->value);
+  free(arg);
+}
+
+int y_ptr_VARIABLE_cmp(y_ptr_VARIABLE varA, y_ptr_VARIABLE varB){
+  return strcmp(varA->name, varB->name);
+}
+
+struct list_y_ptr_VARIABLE * search_variable_in_list_y_ptr_VARIABLE(struct main_list_y_ptr_VARIABLE *listVariables, y_ptr_VARIABLE var){
+
+  return search_first_occ_from_end_in_list_y_ptr_VARIABLE(listVariables, var, y_ptr_VARIABLE_cmp);
+  //return search_first_occ_from_begin_in_list_y_NODE_T(listNodes, node, y_NODE_T_cmp);
+}
+
+void update_list_y_ptr_VARIABLE_then_free_if_needed(struct main_list_y_ptr_VARIABLE *listVariables, y_ptr_VARIABLE var){
+  struct list_y_ptr_VARIABLE * l_y_ptr_var = search_variable_in_list_y_ptr_VARIABLE(listVariables, var);
+  if(l_y_ptr_var){
+    memcpy(l_y_ptr_var->value->value, var->value, var->size_value);
+    l_y_ptr_var->value->time_l = var->time_l;
+    free_y_ptr_VARIABLE(var);
+  }
+  else{
+    push_back_list_y_ptr_VARIABLE(listVariables, var);
+  }
+}
 
 struct y_string * create_y_ptr_STRING(const char *buf, size_t size){
   struct y_string *string=malloc(sizeof(struct y_string));

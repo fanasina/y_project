@@ -28,7 +28,7 @@ LISTSRC_O=$(LISTDIR)/src/list_t/list_t.o
 JSONDIR=$(PWD)/..
 JSONSRC=$(JSONDIR)/src/json_t/json_t.c
 JSONSRC_O=$(JSONDIR)/src/json_t/json_t.o
-YSTRINGLIST_O=$(YSOCKETDIR)/src/y_socket_t/y_list_string.o
+YSTRINGLIST_O=$(YSOCKETDIR)/src/y_socket_t/y_list_var_tool.o
 
 TOPTARGETS := all clean 
 

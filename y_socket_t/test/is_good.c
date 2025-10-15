@@ -62,8 +62,8 @@ TEST(equalNode){
 	
 	//((struct sockaddr_in*)(&(nA.addr)))->sin_port = 22;
 	//((struct sockaddr_in*)(&(nB.addr)))->sin_port = 22;
-	set_port_y_NODE_T(&nA, 22);
-	set_port_y_NODE_T(&nB, 22);
+	set_port_y_NODE_T_from_int_port(&nA, 22);
+	set_port_y_NODE_T_from_int_port(&nB, 22);
   //((struct sockaddr_in*)&(nA.addr))->sin_addr.s_addr = inet_addr("192.168.1.2");
   //((struct sockaddr_in*)&(nB.addr))->sin_addr.s_addr = inet_addr("192.168.1.2");
 
@@ -87,8 +87,8 @@ TEST(equalNode6){
   nA.addr.ss_family=AF_INET6;
   nB.addr.ss_family=AF_INET6;
   
-	set_port_y_NODE_T(&nA, 22);
-	set_port_y_NODE_T(&nB, 22);
+	set_port_y_NODE_T_from_int_port(&nA, 22);
+	set_port_y_NODE_T_from_int_port(&nB, 22);
 	//((struct sockaddr_in6*)(&(nA.addr)))->sin6_port = 22;
 	//((struct sockaddr_in6*)(&(nB.addr)))->sin6_port = 22;
 
@@ -116,8 +116,8 @@ TEST(searchNode){
   nA.addr.ss_family=AF_INET;
   nB.addr.ss_family=AF_INET;
 
-	set_port_y_NODE_T(&nA, 22);
-	set_port_y_NODE_T(&nB, 22);
+	set_port_y_NODE_T_from_int_port(&nA, 22);
+	set_port_y_NODE_T_from_int_port(&nB, 22);
   //((struct sockaddr_in*)(&(nA.addr)))->sin_port = 22;
   //((struct sockaddr_in*)(&(nB.addr)))->sin_port = 22;
   
@@ -137,7 +137,7 @@ TEST(searchNode){
   push_back_list_y_NODE_T(listNodes, nA);
 
   //GET_IN_type_ADDR(&(nB.addr),) = inet_addr("0.1.1.1");
-  int ret = set_addr_y_NODE_T(&nB, "0.1.1.1");
+  int ret = set_addr_y_NODE_T_from_str_addr(&nB, "0.1.1.1");
   LOG("return of set =%d\n", ret);
 
   EXPECT_TRUE(NULL == search_node_in_list_y_NODE_T(listNodes, nB));
@@ -147,17 +147,34 @@ TEST(searchNode){
   
   //inet_pton(AF_INET6, "::1", GET_IN_type_ADDR(&(nB.addr),6));
   //((struct sockaddr_in6*)(&(nB.addr)))->sin6_port = 22;
-  ret = set_addr_y_NODE_T(&nB, "::1");
-	set_port_y_NODE_T(&nB, 22);
+  ret = set_addr_y_NODE_T_from_str_addr(&nB, "::1");
+	set_port_y_NODE_T_from_int_port(&nB, 22);
   LOG("return of set =%d\n", ret);
   push_back_list_y_NODE_T(listNodes, nB);
   
   //inet_pton(AF_INET6, "::", GET_IN_type_ADDR(&(nA.addr),6));
-  ret = set_addr_y_NODE_T(&nB, "::");
+  ret = set_addr_y_NODE_T_from_str_addr(&nB, "::");
   LOG("return of set =%d\n", ret);
   EXPECT_FALSE(NULL == search_node_in_list_y_NODE_T(listNodes, nA));
 
   free_all_var_list_y_NODE_T(listNodes);
+
+
+}
+
+
+TEST(import_nodes){
+  struct main_list_y_NODE_T * listNodes = create_var_list_y_NODE_T();
+  char *file_nodes_name = "FILE_NODES";
+  if(import_nodes_from_file(file_nodes_name, 1600, listNodes)==-1){
+    LOG("something wrong check file %s\n",file_nodes_name);
+  }
+
+  export_nodes_to_file("CPY_file_nodes_name", listNodes);
+
+
+  free_all_var_list_y_NODE_T(listNodes);
+
 
 
 }

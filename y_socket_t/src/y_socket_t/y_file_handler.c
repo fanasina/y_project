@@ -125,7 +125,7 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
 long check_if_in_ok_header_l_(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, char *nameid ){
     
   y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(nameid, strlen(nameid), cmd_post_ok );
-  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T(m_ok_head_l_t, current_header, funcCmp_y_ptr_HEADER_T_fn_nameid_mask);
+  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_end_in_list_y_ptr_HEADER_T(m_ok_head_l_t, current_header, funcCmp_y_ptr_HEADER_T_fn_nameid_mask);
   free_y_ptr_HEADER_T(current_header);
   
 	if(l_ocate_header){
@@ -137,7 +137,7 @@ long check_if_in_ok_header_l_(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, ch
 long y_append_to_ok_header_l_(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, char *nameid ){
     
   y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(nameid, strlen(nameid), cmd_post_ok );
-  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T(m_ok_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
+  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_end_in_list_y_ptr_HEADER_T(m_ok_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
   if(l_ocate_header){
 		free_y_ptr_HEADER_T(current_header);
 		printf("debug: already in m_ok_head_l_t");
@@ -162,7 +162,7 @@ long y_append_to_ok_header_l_(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, ch
 long y_append_content_to_header_l(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_ptr_MSG_CONTENT_T cnt){
   
   y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
-  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T(m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
+  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_end_in_list_y_ptr_HEADER_T(m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
   printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
   if(l_ocate_header){
     free_y_ptr_HEADER_T(current_header);
@@ -442,17 +442,32 @@ void fileNameDateScore(char* filename, char * pre, char* post,size_t score){
 
   //return filename;
 }
-
+/*
+long  long_time_id(){
+ // char *filename=malloc(256);
+  //char timeid[64];//="20251011215824";
+  time_t t = time(NULL);
+  struct tm tm = *localtime(&t);
+  //sprintf(timeid,"%d%02d%02d%02d%02d%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+  
+  long long_tm = (tm.tm_year + 1900)*10000000000+ (tm.tm_mon + 1)*100000000+ tm.tm_mday*1000000 + tm.tm_hour*10000+ tm.tm_min*100+ tm.tm_sec ;
+  //return filename;
+  ///printf("debug: timeid=%s, vs tm=%ld\n",timeid, intm);
+  //printf("debug: timeof=%ld, vs tm=%ld, tm_zone=%s\n",tm.tm_gmtoff, long_tm, tm.tm_zone);
+  return long_tm;
+}
 char * time_id(){
  // char *filename=malloc(256);
   char *timeid=malloc(128);
   time_t t = time(NULL);
   struct tm tm = *localtime(&t);
   sprintf(timeid,"%d%02d%02d%02d%02d%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-
+  //printf("debug: TTT \n%ld\n",int_time_id());
   return timeid;
   //return filename;
 }
+
+*/
 
 
 #if 0
@@ -463,8 +478,8 @@ struct arg_send_file{
 };
 #endif
 /* */
-
-size_t set_tempAddr_from_node(char *tempAddr, y_NODE_T node) {
+#if 0
+size_t set_addr_str_from_node(char *tempAddr, y_NODE_T node) {
       int c_af=(node).addr.ss_family;
             if(c_af==AF_INET){
                if(NULL == inet_ntop(c_af,
@@ -482,7 +497,7 @@ size_t set_tempAddr_from_node(char *tempAddr, y_NODE_T node) {
             size_t ret_len = strlen(tempAddr);
             return ret_len;
 }
-
+#endif
 ///
 ///
 ///
@@ -520,23 +535,25 @@ void* y_socket_send_file_for_node(void* arg){
 				
       size_t seq = 0;//, len_buf_header=0, 
        size_t len_local_header_=0;
-       char * timeid = time_id();
+       //char * timeid = time_id();
+       long timeid = long_time_id();
 			 char nameid[BUF_SIZE/2];
 			 struct main_list_y_ptr_STRING *m_str_name_f=split_str_to_main_list_y_ptr_STRING(filename, '/', -1);
   		 char * name_f=m_str_name_f->end_list->value->buf;
 		//	char srcAddr[64];
-  	//	set_tempAddr_from_node(srcAddr, node);
+  	//	set_addr_str_from_node(srcAddr, node);
 
-       set_tempAddr_from_node(tempAddr, node);
+       set_addr_str_from_node(tempAddr, node);
        c_af=(node).addr.ss_family;
 
-			 sprintf(nameid, "%s_%s_%s_%s",name_f, tempAddr, tempAddr, timeid);
+			 sprintf(nameid, "%s_%s_%s_%ld",name_f, tempAddr, tempAddr, timeid);
 
 for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, nameid) == 0); ++tour_i){
    
   fd_file = open( filename , O_RDONLY);
        if(fd_file == -1){
          fprintf(stderr,"error opening file |%s| for reading\n",filename);
+				 purge_ptr_type_list_y_ptr_STRING(m_str_name_f);
          return NULL;
        }
 			 /*
@@ -544,7 +561,7 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
 			else */
 							seq=0;
 
-       len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%s\" }",filename, seq,tempAddr, timeid);
+       len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq,tempAddr, timeid);
        while((retread = read(fd_file, buf_send+len_local_header_, BUF_SIZE - len_local_header_) ) > 0 ){
           buf_send[len_local_header_ + retread]='\0';
             if(sendto(fds[(c_af==AF_INET6)].fd, 
@@ -560,9 +577,9 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
 						}
           
             ++seq;    
-            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%s\" }",filename, seq,tempAddr, timeid);
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq,tempAddr, timeid);
           }
-            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"dst\" : \"%s\" , \"tm\" : \"%s\" }",filename, seq, tempAddr,timeid);
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq, tempAddr,timeid);
             if(sendto(fds[(c_af==AF_INET6)].fd,
               buf_send, len_local_header_,
               0,
@@ -588,7 +605,7 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
 
 
 
-        free(timeid);
+        //free(timeid);
 				purge_ptr_type_list_y_ptr_STRING(m_str_name_f);
   return NULL;
 }
@@ -601,6 +618,10 @@ void* y_send_buf_for_all_(void* arg){
 
 	struct pollfd *fds=argS->fds;
 	struct main_list_y_NODE_T *nodes=argS->nodes;
+// if(export_nodes_to_file("file_nodes_name", nodes)==-1){
+//  fprintf(stderr, "error export_nodes_to_file\n");
+// }
+
 	char * buf_send=argS->filename;
 #if TEMP_ADDR
   char tempAddr[64];
@@ -623,7 +644,7 @@ void* y_send_buf_for_all_(void* arg){
        size_t len_buf_send=strlen(buf_send);
       for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
   
-        set_tempAddr_from_node(tempAddr, local_list_current->value);
+        set_addr_str_from_node(tempAddr, local_list_current->value);
         c_af=(local_list_current->value).addr.ss_family;
 
       
@@ -652,6 +673,7 @@ void* y_send_buf_for_all_(void* arg){
 
 /* */
 
+#if 0
 //void y_socket_send_file_for_all_nodes(struct pollfd *fds, struct main_list_y_NODE_T *nodes, char * filename)
 void* y_socket_send_file_for_all_nodes(void* arg){
   struct arg_send_file *argS=(struct arg_send_file*)arg;
@@ -682,7 +704,8 @@ void* y_socket_send_file_for_all_nodes(void* arg){
 				
       size_t seq = 0;//, len_buf_header=0, 
        size_t len_local_header_=0;
-       char * timeid = time_id();
+       //char * timeid = time_id();
+       long timeid = long_time_id();
       for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
   
   fd_file = open( filename , O_RDONLY);
@@ -690,12 +713,12 @@ void* y_socket_send_file_for_all_nodes(void* arg){
          fprintf(stderr,"error opening file |%s| for reading\n",filename);
          return NULL;
        }
-       set_tempAddr_from_node(tempAddr, local_list_current->value);
+       set_addr_str_from_node(tempAddr, local_list_current->value);
        c_af=(local_list_current->value).addr.ss_family;
 
        seq=0;
 
-       len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%s\" }",filename, seq,tempAddr, timeid);
+       len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq,tempAddr, timeid);
        while((retread = read(fd_file, buf_send+len_local_header_, BUF_SIZE - len_local_header_) ) > 0 ){
           buf_send[len_local_header_ + retread]='\0';
             if(sendto(fds[(c_af==AF_INET6)].fd, 
@@ -711,9 +734,9 @@ void* y_socket_send_file_for_all_nodes(void* arg){
 						}
           
             ++seq;    
-            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%s\" }",filename, seq,tempAddr, timeid);
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq,tempAddr, timeid);
           }
-            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"dst\" : \"%s\" , \"tm\" : \"%s\" }",filename, seq, tempAddr,timeid);
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq, tempAddr,timeid);
             if(sendto(fds[(c_af==AF_INET6)].fd,
               buf_send, len_local_header_,
               0,
@@ -733,30 +756,15 @@ void* y_socket_send_file_for_all_nodes(void* arg){
 
 
 
-        free(timeid);
+        //free(timeid);
   return NULL;
 }
+#endif
 
-
-
-//main_list_y_ptr_HEADER_T  
-
-/*
-struct arg_record_to_file{
-  int *is_file_to_record,
-  char * filename,
-  char *buf
-};
-
-void record_buffer_to_file(void *arg){
-  
-}
-*/
-
-void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_head_l_t, struct main_list_y_ptr_STRING *m_str, y_NODE_T node /*char * srcAddr*/, char *filename ){
+void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_head_l_t, struct main_list_y_ptr_VARIABLE *m_var, struct main_list_y_ptr_STRING *m_str, y_NODE_T node /*char * srcAddr*/, char *filename ){
     //printf("\ndebug: <<<< receve_from_node %s %ld\n\n",msg,count); 
 	char srcAddr[64];
-  set_tempAddr_from_node(srcAddr, node);
+  set_addr_str_from_node(srcAddr, node);
 
 	struct main_list_y_ptr_STRING *m_str_name_f=split_str_to_main_list_y_ptr_STRING(filename, '/', -1);
 	char * name_f=m_str_name_f->end_list->value->buf;
@@ -905,46 +913,3 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
 				purge_ptr_type_list_y_ptr_STRING(m_str_name_f);
 		//free(timeNow);
 }
-
-/*
-    char filename[500];
-    int fd_file;
-    long int nread;
-    char buf[BUF_SIZE];
-    struct sockaddr_storage peer_addr; 
-    socklen_t peer_addr_len = sizeof(struct sockaddr_storage);
-    //update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes);
-
-    fileNameDateScore(filename, "__",msg,count);
-        if((fd_file = open(filename, O_WRONLY | O_CREAT ,
-          S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
-          fprintf(stderr,"erreur write %s\n",filename);
-          return ; //NULL;
-        }
-        memset(buf,0, BUF_SIZE);
-        while((nread = recvfrom(fds[1].fd, buf, BUF_SIZE, 0,
-          (struct sockaddr *)&peer_addr, &peer_addr_len
-          //(struct sockaddr *)&(node.addr), &(node.addr_len)
-          )) == BUF_SIZE){
-          if(nread == -1)
-          {
-            fprintf(stderr,"error nread\n");
-          }
-          else {
-            printf("msg: %s\n",buf);
-
-            write(fd_file, buf, nread);
-
-          }
-          printf("nread==%ld\n",nread);
-        }
-        
-        if(nread >0 && nread <BUF_SIZE){
-            printf("msg: %s\n",buf);
-
-            write(fd_file, buf, nread);
-        }
-        printf("debug: <receve_from_node> close nread==%ld\n",nread);
-        close(fd_file);
-*/
-

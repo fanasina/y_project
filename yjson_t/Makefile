@@ -12,7 +12,7 @@ LISTSRC=$(LISTDIR)/src/list_t/list_t.c
 LISTSRC_O=$(LISTSRC:.c=.o)
 
 YSOCKETDIR=$(PWD)/../y_socket_t/
-YSTRINGLISTSRC=$(YSOCKETDIR)/src/y_socket_t/y_list_string.c
+YSTRINGLISTSRC=$(YSOCKETDIR)/src/y_socket_t/y_list_var_tool.c
 YSTRINGLISTSRC_O=$(YSOCKETSRC:.c=.o)
 
 #SETTSRC=src/set_theoric_t/set_theoric_t.c

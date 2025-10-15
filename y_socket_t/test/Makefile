@@ -36,7 +36,7 @@ YFILEHANDLSRC_O=$(YFILEHANDLSRC:.c=.o)
 YNODESRC=$(ROOT_DIR)/src/y_socket_t/y_node_t.c
 YNODESRC_O=$(YNODESRC:.c=.o)
 
-YY_STRINGSRC=$(ROOT_DIR)/src/y_socket_t/y_list_string.c
+YY_STRINGSRC=$(ROOT_DIR)/src/y_socket_t/y_list_var_tool.c
 YY_STRINGSRC_O=$(YY_STRINGSRC:.c=.o)
 
 YLISTSRC=$(YLISTDIR)/src/list_t/list_t.c

@@ -7,7 +7,7 @@
 #include <stdbool.h>
 
 #include "tools_t/tools_t.h"
-#include "y_socket_t/y_list_string.h"
+#include "y_socket_t/y_list_var_tool.h"
 
 #define ITERATOR__(type) \
 struct iterator_##type {\
