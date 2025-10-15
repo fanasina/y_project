@@ -21,7 +21,7 @@ void init_len_list_y_NODE_T(struct main_list_y_NODE_T *listNodes){
 }
 
 int y_NODE_T_cmp(y_NODE_T nodeA, y_NODE_T nodeB){
-#if 0
+#if 1
   char addrA[65];
   char addrB[65];
   set_addr_str_from_node(addrA, nodeA);
@@ -29,12 +29,12 @@ int y_NODE_T_cmp(y_NODE_T nodeA, y_NODE_T nodeB){
   printf("nodeAstr=%s nodeBstr=%s ",addrA,addrB);
 //  return strcmp(addrA,addrB);
 #endif
-  int ret;
+  int ret=0;
 
-  ret = nodeA.addr_len - nodeB.addr_len;
+  //ret = nodeA.addr_len - nodeB.addr_len;
   if(ret == 0){
     
-    //printf("debug: ++++++++++++ lenA=%d, lenB=%d\n", nodeA.addr_len , nodeB.addr_len);
+    printf("debug: ++++++++++++ lenA=%d, lenB=%d\n", nodeA.addr_len , nodeB.addr_len);
     ret = nodeA.addr.ss_family - nodeB.addr.ss_family;
     if(ret == 0){
       if(nodeA.addr.ss_family == AF_INET){
@@ -84,13 +84,14 @@ int set_addr_y_NODE_T_from_str_addr(y_NODE_T *node, char * addrStr){
   node->addr.ss_family = af;
   if(af==AF_INET){
     ret = inet_pton(af, addrStr, &(GET_IN_type_ADDR(&(node->addr),)));
-    node->addr_len = sizeof(struct sockaddr_in);
+    //node->addr_len = sizeof(struct sockaddr_in);
   }else if(af == AF_INET6){
 		//((struct sockaddr_in6*)(&(node->addr)))->sin6_flowinfo = 0; 
 		ret = inet_pton(af, addrStr, (GET_IN_type_ADDR(&(node->addr), 6)));
-    node->addr_len = sizeof(struct sockaddr_in6);
+    //node->addr_len = sizeof(struct sockaddr_in6);
   
 	}
+  node->addr_len = sizeof(struct sockaddr_storage);
   return ret;
   
 }
