@@ -174,7 +174,7 @@ int flags = fcntl(fds[af].fd, F_GETFL);
 }
 struct arg_handler_{
   struct main_list_y_ptr_STRING *m_str;
-  struct main_list_y_ptr_VARIABLE *m_var;
+  //struct main_list_y_ptr_VARIABLE *m_var;
   //char *buf;
   struct pollfd *fds;
   y_NODE_T node;
@@ -299,19 +299,13 @@ void* y_socket_handler_(void *arg){
         if(strncmp(buf+5,"file",4)==0){
           if(len_buf > 10){
             char *filename = buf+10;
-            receve_from_node(fds, argH->m_head_l_t, argH->m_var, m_str,argH->node, filename );
+            receve_from_node(fds, argH->m_head_l_t, /*argH->m_var,*/ m_str,argH->node, filename );
             m_str = NULL;
           }
         }else if(strncmp(buf+5,"ok",2)==0){
 					if(len_buf>8){
             char *nameid = buf+8;
 					  y_append_to_ok_header_l_(argH->m_ok_head_l_t,nameid );
-          }
-				}else if(strncmp(buf+5,"var",3)==0){
-          if(len_buf>9){
-					  char *var_nameid = buf+9;
-            receve_from_node(fds, argH->m_head_l_t, argH->m_var, m_str,argH->node, var_nameid );
-            m_str = NULL;
           }
 				}
 
@@ -332,7 +326,7 @@ void* y_socket_handler_(void *arg){
 }
 
 
-void handle_buf_socket_rec(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, struct main_list_y_ptr_HEADER_T *m_head_l_t,struct main_list_y_ptr_VARIABLE *m_var,struct main_list_y_ptr_STRING *m_str, y_NODE_T node, struct main_list_ptr_y_WORKER_T * workers, struct argExecTasQ *argx, struct main_list_TYPE_PTR * list_arg, void * arg){
+void handle_buf_socket_rec(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, struct main_list_y_ptr_HEADER_T *m_head_l_t, /*struct main_list_y_ptr_VARIABLE *m_var,*/ struct main_list_y_ptr_STRING *m_str, y_NODE_T node, struct main_list_ptr_y_WORKER_T * workers, struct argExecTasQ *argx, struct main_list_TYPE_PTR * list_arg, void * arg){
   struct y_socket_t * argSock = (struct y_socket_t*)arg;
   struct pollfd *fds = argSock->fds;
   
@@ -357,7 +351,7 @@ void handle_buf_socket_rec(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, struc
       else{
         struct arg_handler_ *ptr_argHandl = malloc(sizeof(struct arg_handler_));
           ptr_argHandl->m_str = m_str;
-          ptr_argHandl->m_var = m_var;
+          //ptr_argHandl->m_var = m_var;
           ptr_argHandl->fds=fds;
           ptr_argHandl->sock=argSock;
           ptr_argHandl->node=node;
@@ -417,7 +411,7 @@ void *y_socket_poll_fds(void *arg){
 	struct main_list_y_ptr_STRING *m_str=NULL;//=create_var_list_y_ptr_STRING();
   struct main_list_y_ptr_HEADER_T *m_head_l_t = create_var_list_y_ptr_HEADER_T();
   struct main_list_y_ptr_HEADER_T *m_ok_head_l_t = create_var_list_y_ptr_HEADER_T();
-  struct main_list_y_ptr_VARIABLE *m_var = create_var_list_y_ptr_VARIABLE();
+  //struct main_list_y_ptr_VARIABLE *m_var = create_var_list_y_ptr_VARIABLE();
 
 //	char *temp_all_buf=NULL;
 
@@ -478,7 +472,7 @@ void *y_socket_poll_fds(void *arg){
       }
       if(check_y_socket_go_on(argSock) && m_str){
 				printf("debug:  call handle_buf_socket_rec\n");
-        handle_buf_socket_rec(m_ok_head_l_t,m_head_l_t, m_var, m_str, node, workers, argx, list_arg, arg);
+        handle_buf_socket_rec(m_ok_head_l_t,m_head_l_t, /*m_var,*/ m_str, node, workers, argx, list_arg, arg);
       
         m_str=NULL;
       }
@@ -567,10 +561,11 @@ void *y_socket_poll_fds(void *arg){
           	close(fds[af].fd);
           	return NULL;
         	}
+          /*
 					char dddnn[56];
 				  put_y_NODE_T_in_string(&node, dddnn);
       		printf("debug: sendto : %s: msg :%s\n\n",dddnn,  buf+index_buf);
-
+          */
 
 				}
 			}
@@ -597,11 +592,13 @@ void *y_socket_poll_fds(void *arg){
     
     printf("debug: m_str!=NULL -> purge_ptr_type_list_y_ptr_STRING done\n");
   }
+#if 0
   if(m_var){
     purge_ptr_type_list_y_ptr_VARIABLE(m_var);
     
     printf("debug: m_var!=NULL -> purge_ptr_type_list_y_ptr_VARIABLE done\n");
   }
+#endif
 
 /*
   if(temp_all_buf){

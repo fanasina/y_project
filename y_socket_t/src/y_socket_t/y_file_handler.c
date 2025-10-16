@@ -762,7 +762,7 @@ void* y_socket_send_file_for_all_nodes(void* arg){
 }
 #endif
 
-void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_head_l_t, struct main_list_y_ptr_VARIABLE *m_var, struct main_list_y_ptr_STRING *m_str, y_NODE_T node /*char * srcAddr*/, char *filename ){
+void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_head_l_t, /*struct main_list_y_ptr_VARIABLE *m_var,*/ struct main_list_y_ptr_STRING *m_str, y_NODE_T node /*char * srcAddr*/, char *filename ){
     //printf("\ndebug: <<<< receve_from_node %s %ld\n\n",msg,count); 
 	char srcAddr[64];
   set_addr_str_from_node(srcAddr, node);
@@ -839,8 +839,6 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                                    tmpCnt_l=tmpCnt_l->next;
                                  }
                                  close(fd_file);
-                               }else if(strncmp(buf_cmd_v+5,"var",3)==0){
-                                 
                                }
                                struct list_y_ptr_HEADER_T * l_head_to_remove = pull_index_from_list_y_ptr_HEADER_T(m_head_l_t, local_header->index);
                                free_y_ptr_HEADER_T(l_head_to_remove->value);
