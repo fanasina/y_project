@@ -546,7 +546,7 @@ void* y_socket_send_file_for_node(void* arg){
        set_addr_str_from_node(tempAddr, node);
        c_af=(node).addr.ss_family;
 
-			 sprintf(nameid, "%s_%s_%s_%ld",name_f, tempAddr, tempAddr, timeid);
+			 sprintf(nameid, "%s_%s_%ld",name_f, tempAddr, timeid);
 
 for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, nameid) == 0); ++tour_i){
    
