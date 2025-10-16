@@ -525,7 +525,7 @@ void *y_socket_poll_fds(void *arg){
 #endif
 
 		
-			if(check_y_socket_go_on(argSock) && strncmp(cmd, "sendto", 6)==0){
+			if(/*check_y_socket_go_on(argSock) &&*/ strncmp(cmd, "sendto", 6)==0){
 				printf("debug : sendto match, dst_addr=[%s]\n", dst_addr);
         if(strcmp(dst_addr, "all" ) == 0){
           struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
