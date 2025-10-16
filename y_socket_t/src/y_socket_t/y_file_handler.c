@@ -87,7 +87,7 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
 	  ret = -2;
 	}else{
 		for(struct list_y_ptr_STRING *l_h1_ = m_h1_nameid->end_list, *l_h2_ = m_h2_nameid->end_list; l_h1_ && l_h2_; l_h1_ = l_h1_->preview, l_h2_=l_h2_->preview){
-			if((l_h1_->index >= m_h1_nameid->size - 2) || (l_h1_->index < m_h1_nameid->size - 3)){
+			if((l_h1_->index >= m_h1_nameid->size - 1) || (l_h1_->index < m_h1_nameid->size - 2)){
 				if(strcmp(l_h1_->value->buf, l_h2_->value->buf )==0){
 					//++count_match ;
 				}
@@ -561,7 +561,8 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
 			else */
 							seq=0;
 
-       len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq,tempAddr, timeid);
+       //len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq,tempAddr, timeid);
+       len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"tm\" : \"%ld\" }",filename, seq, timeid);
        while((retread = read(fd_file, buf_send+len_local_header_, BUF_SIZE - len_local_header_) ) > 0 ){
           buf_send[len_local_header_ + retread]='\0';
             if(sendto(fds[(c_af==AF_INET6)].fd, 
@@ -577,9 +578,9 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
 						}
           
             ++seq;    
-            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq,tempAddr, timeid);
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"tm\" : \"%ld\" }",filename, seq, timeid);
           }
-            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"dst\" : \"%s\" , \"tm\" : \"%ld\" }",filename, seq, tempAddr,timeid);
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"tm\" : \"%ld\" }",filename, seq, timeid);
             if(sendto(fds[(c_af==AF_INET6)].fd,
               buf_send, len_local_header_,
               0,
@@ -595,7 +596,7 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
         close(fd_file);
         printf("debug: fd=%d closed: filename=%s, for %s\n",fd_file,filename, tempAddr);
 
-	size_t delay = 8000000; 			
+	size_t delay = 4000000; 			
 	printf("debug: wait %ld before checking, in tour:%d\n",delay, tour_i);
 	usleep(delay);				
        //free(timeid);
@@ -799,8 +800,8 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                         //printf("debug:  \n****************************end of file ***\n%s\n**********************************\n",buf_loc);
                       }
                       
-                      struct js_value *js_dst_v = get_js_value_of_key("dst", js_header_v );
-                      if(js_dst_v){
+                      /*struct js_value *js_dst_v = get_js_value_of_key("dst", js_header_v );
+                      if(js_dst_v){*/
                         struct js_value *js_tm_v = get_js_value_of_key("tm", js_header_v );
                         if(js_tm_v){
                            size_t length_js_header = js_org_str_length(js_header_v);
@@ -811,7 +812,7 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
 #if 0
                            size_nameid = sprintf(nameid, "%s_%s_%s_%s",name_f /*filename*/, srcAddr, value_of_(js_dst_v)->type.string, timeid/*value_of_(js_tm_v)->type.string*/);
 #endif
-                           size_nameid = sprintf(nameid, "%s_%s_%s_%s",name_f, srcAddr, value_of_(js_dst_v)->type.string, value_of_(js_tm_v)->type.string);
+                           size_nameid = sprintf(nameid, "%s_%s_%s",name_f, srcAddr, /*value_of_(js_dst_v)->type.string,*/ value_of_(js_tm_v)->type.string);
                            printf("debug: nameid = %s\n", nameid);
 
                            //int intTimeid = atoi(timeid);
@@ -865,10 +866,10 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                         }else{
                           printf("debug: tm missing!");
                         }
-                      }
+                      /*}
                       else{
                         printf("debug: dst missing!");
-                      }
+                      }*/
                     }
                     else{
                       printf("debug:  \n SSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ type:%d \n",js_seq_v->type.object.value->code_type);
