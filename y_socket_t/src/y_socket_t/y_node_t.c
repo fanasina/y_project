@@ -32,7 +32,7 @@ int y_NODE_T_cmp(y_NODE_T nodeA, y_NODE_T nodeB){
   int ret=0;
 
   //ret = nodeA.addr_len - nodeB.addr_len;
-  if(ret == 0){
+  //if(ret == 0){
     
     printf("debug: ++++++++++++ lenA=%d, lenB=%d\n", nodeA.addr_len , nodeB.addr_len);
     ret = nodeA.addr.ss_family - nodeB.addr.ss_family;
@@ -54,7 +54,7 @@ int y_NODE_T_cmp(y_NODE_T nodeA, y_NODE_T nodeB){
           ret = memcmp(((struct sockaddr_in6*)&(nodeA.addr))->sin6_addr.s6_addr , ((struct sockaddr_in6*)&(nodeB.addr))->sin6_addr.s6_addr, 8); 
       }
     }
-  }
+  //}
   return ret;
 }
 

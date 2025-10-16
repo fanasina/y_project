@@ -426,8 +426,8 @@ void *y_socket_poll_fds(void *arg){
 // I had to initialize all attribute of addr to avoid error uninitialized value with valgrind, for example "sin6_flowinfo" in sockaddr_in6
  	memset(&(node.addr), 0, sizeof(struct sockaddr_storage)); 
   //size_t len_sockaddr_storage = sizeof(struct sockaddr_storage);
-  //node.addr_len = len_sockaddr_storage; // sizeof(struct sockaddr_storage);
-  node.addr_len = 0;/* init here to be sure it will have the appropriate value */
+  node.addr_len = sizeof(struct sockaddr_storage);
+  //node.addr_len = 0;/* init here to be sure it will have the appropriate value */
 //  printf("debug: ------ //// node.addr_len = %d\n",node.addr_len); 
   for(;check_y_socket_go_on(argSock);){
     printf("poll: wait events\n");
