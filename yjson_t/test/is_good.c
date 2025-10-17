@@ -500,6 +500,18 @@ printf("\n##############################################\n");
 
 }
 
+TEST(errorFormat){
+  char *val1="{ \"hey\" }";
+  struct js_value *js = create_js_value(val1, NULL);
+  
+  EXPECT_EQ(js==NULL,1);
+  char *val2="{ \"hey }";
+js = create_js_value(val2, NULL);
+  EXPECT_EQ(js==NULL,1);
+  char *val3="{ 123 }";
+js = create_js_value(val3, NULL);
+  EXPECT_EQ(js==NULL,1);
+}
 
 int main(int argc, char **argv){
   

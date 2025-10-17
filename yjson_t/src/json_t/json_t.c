@@ -499,10 +499,25 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
    // key section
    // js->type.object.key = create_js_value_string(cur, js);
    
-    if(*cur == '"') ++cur;
+    if(*cur == '"'){
+      ++cur;
+    }else{// no key ! problem format
+      printf("debug: format json error, no string with \" symbole as key\n");
+      free(js->type.object.iter);
+      free(js);
+      return NULL;
+    }
     char *key = cur;
     // /1/js->type.object.key = cur;
-    for(; *cur != '"'; ++cur);
+    for(; *cur && *cur != '"'; ++cur);
+    if(*cur=='\0'){// no  \" ! problem format
+      printf("debug: format json error: no \" symbole after key!\n");
+      free(js->type.object.iter);
+      free(js);
+      return NULL;
+    }
+
+
     //js->key = cur;
     //for(; *cur != '"'; ++cur);
     //js->key_length = cur - js->key;
@@ -513,7 +528,15 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
     *(js->type.object.key + js->type.object.key_length) ='\0';
 
     //js->type.object.key = cur;
-    for(; *cur != ':'; ++cur);
+    for(; *cur && *cur != ':'; ++cur);
+    if(*cur=='\0'){// no  \" ! problem format
+      printf("debug: format json error, no : after key\n");
+      free(js->type.object.key);
+      free(js->type.object.iter);
+      free(js);
+      return NULL;
+    }
+
     ++cur;
     for(; is_js_space(*cur); ++cur);
 //    printf("cur=%s| lenKey :%ld \n",cur,js->type.object.key_length);
