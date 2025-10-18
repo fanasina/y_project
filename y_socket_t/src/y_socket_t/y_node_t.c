@@ -92,6 +92,11 @@ int set_addr_y_NODE_T_from_str_addr(y_NODE_T *node, char * addrStr){
   
 	}
   node->addr_len = sizeof(struct sockaddr_storage);
+  if(strcmp(addrStr,"::1")==0){
+    node->local_addr=1;
+  }else{
+    node->local_addr=0;
+  }
   return ret;
   
 }
@@ -170,8 +175,6 @@ void * add_node_to_nodes(void* arg){
 }
 
 void update_nodes(y_NODE_T node, struct main_list_y_NODE_T *nodes){
-  struct ifaddrs *if_addr=NULL;
-  getifaddrs(&if_addr);
 #if 0
 void* update_nodes(void* arg)
   struct arg_update_nodes * argU=(struct arg_update_nodes*)arg;
@@ -190,10 +193,12 @@ void* update_nodes(void* arg)
           fprintf(stderr, "getnameinfo: %s\n", gai_strerror(status));
 
 #endif
-                  node.local_addr = 0;
-        struct sockaddr_in6 local6;
-        inet_pton(AF_INET6, "::1", &local6);;
+         //         node.local_addr = 0;
+        //struct sockaddr_in6 local6;
+        //inet_pton(AF_INET6, "::1", &local6);
         if(NULL ==  search_node_in_list_y_NODE_T(nodes, node)){
+  struct ifaddrs *if_addr=NULL;
+  getifaddrs(&if_addr);
           int c_af = node.addr.ss_family;
           for(struct ifaddrs *cur_ifa = if_addr; cur_ifa; cur_ifa=cur_ifa->ifa_next){
             if( c_af == cur_ifa->ifa_addr->sa_family){
@@ -204,20 +209,26 @@ void* update_nodes(void* arg)
                 } 
               }else if(c_af==AF_INET6){
                 if(
-                  (memcmp(((struct sockaddr_in6*)&(node.addr))->sin6_addr.s6_addr , local6.sin6_addr.s6_addr, 8)==0)||
+                  //(memcmp(((struct sockaddr_in6*)&(node.addr))->sin6_addr.s6_addr , local6.sin6_addr.s6_addr, 8)==0)||
                   (memcmp(((struct sockaddr_in6*)&(node.addr))->sin6_addr.s6_addr , ((struct sockaddr_in6*)&(cur_ifa->ifa_addr))->sin6_addr.s6_addr, 8)==0)
                   ){
                   node.local_addr = 1;
                   break;
                 } 
+                /*char tempAddr[65];
+                set_addr_str_from_node(tempAddr,node);
+                if(strcmp(tempAddr,"::1")==0){
+                  node.local_addr = 1;
+                  break;
+                }*/
               }
             }
           }
           push_back_list_y_NODE_T(nodes, node);
             printf("debug: // /// // // update_nodes local_addr=%d\n",node.local_addr );
+  if(if_addr) freeifaddrs(if_addr);
         }
 
-  if(if_addr) freeifaddrs(if_addr);
 
 //  return NULL;
 }
