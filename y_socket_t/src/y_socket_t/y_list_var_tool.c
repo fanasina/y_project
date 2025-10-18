@@ -167,7 +167,9 @@ struct main_list_y_ptr_STRING * split_str_to_main_list_y_ptr_STRING(char *str_or
 void usage_cmdl(){
   printf("usage:\n"
   "sendto [addr] { \"cmd\" : \"[command]\" }\n"
-  "addr: ipv4 address or ipv6 address or all to send cmd to all nodes already in the list.\n"
+  "addr: ipv4 address or ipv6 address \n"
+  "\tor all to send cmd to all nodes already in the list.\n"
+  "\tor other to send cmd to all nodes excluding local address in the list.\n"
   "command: \n"
   "\tupdate kill: to gracefully shutdown socket server.\n"
   "\tupdate standby: to suspend all workers, but can receive all task but in queu tasks.\n"
