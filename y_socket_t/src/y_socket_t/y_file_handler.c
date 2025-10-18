@@ -711,6 +711,7 @@ void* y_send_buf_for_other_(void* arg){
       for(struct list_y_NODE_T *local_list_current = nodes->begin_list; local_list_current; local_list_current=local_list_current->next ){
         if(local_list_current->value.local_addr == 0){
           set_addr_str_from_node(tempAddr, local_list_current->value);
+          printf("debug: not local address:%s\n",tempAddr);
           c_af=(local_list_current->value).addr.ss_family;
 
       
