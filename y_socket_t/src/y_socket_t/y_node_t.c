@@ -21,7 +21,7 @@ void init_len_list_y_NODE_T(struct main_list_y_NODE_T *listNodes){
 }
 
 int y_NODE_T_cmp(y_NODE_T nodeA, y_NODE_T nodeB){
-#if 1
+#if 0
   char addrA[65];
   char addrB[65];
   set_addr_str_from_node(addrA, nodeA);
@@ -34,7 +34,7 @@ int y_NODE_T_cmp(y_NODE_T nodeA, y_NODE_T nodeB){
   //ret = nodeA.addr_len - nodeB.addr_len;
   //if(ret == 0){
     
-    printf("debug: ++++++++++++ lenA=%d, lenB=%d\n", nodeA.addr_len , nodeB.addr_len);
+    ///printf("debug: ++++++++++++ lenA=%d, lenB=%d\n", nodeA.addr_len , nodeB.addr_len);
     ret = nodeA.addr.ss_family - nodeB.addr.ss_family;
     if(ret == 0){
       if(nodeA.addr.ss_family == AF_INET){
@@ -208,7 +208,7 @@ void* update_nodes(void* arg)
             }
           }
           push_back_list_y_NODE_T(nodes, node);
-            printf("debug: // /// // // update_nodes local_addr=%d\n",node.local_addr );
+            ///printf("debug: // /// // // update_nodes local_addr=%d\n",node.local_addr );
         }
 
   if(if_addr) freeifaddrs(if_addr);
@@ -234,7 +234,7 @@ size_t set_addr_str_from_node(char *tempAddr, y_NODE_T node) {
             }
     
             size_t ret_len = strlen(tempAddr);
-            printf("debug: c_af=%d, ret_len=%ld, addr=%s\n",c_af, ret_len,tempAddr);
+            ///printf("debug: c_af=%d, ret_len=%ld, addr=%s\n",c_af, ret_len,tempAddr);
             return ret_len;
 }
 
@@ -255,7 +255,7 @@ int export_nodes_to_file(char * file_nodes_name, struct main_list_y_NODE_T *node
    buffer_addr[len_addr++]='\n';
    buffer_addr[len_addr]='\0';
    write(fd_file, buffer_addr, len_addr);
-   printf("debug: [#%d] buffer_addr=|%s|[index:%ld]\n",len_addr,buffer_addr,tmp_nd->index);
+   ///printf("debug: [#%d] buffer_addr=|%s|[index:%ld]\n",len_addr,buffer_addr,tmp_nd->index);
    tmp_nd=tmp_nd->next;
    memset(buffer_addr,0,65);
   }

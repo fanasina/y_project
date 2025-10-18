@@ -360,14 +360,14 @@ GENERATE_LIST_ALL(TYPE_PTR)
   }\
   struct list_##type * search_first_occ_from_begin_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type)){\
     pthread_mutex_lock(var_list->mut_list);\
-    printf("debug: cur_index change to 0");\
+    /*printf("debug: cur_index change to 0");*/\
     var_list->current_list = var_list->begin_list;\
     pthread_mutex_unlock(var_list->mut_list);\
     return search_first_occ_with_mov_from_curr_in_list_##type(var_list, value, funcCmp, local_increment_list_##type);\
   }\
   struct list_##type * search_first_occ_from_end_in_list_##type(struct main_list_##type *var_list, type value, int (*funcCmp)(type, type)){\
     pthread_mutex_lock(var_list->mut_list);\
-    printf("debug: cur_index change to end");\
+    /*printf("debug: cur_index change to end");*/\
     var_list->current_list = var_list->end_list;\
     pthread_mutex_unlock(var_list->mut_list);\
     return search_first_occ_with_mov_from_curr_in_list_##type(var_list, value, funcCmp, local_decrement_list_##type);\

@@ -83,7 +83,7 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
 	//int count_match = 0;
 	struct main_list_TYPE_SIZE_T * m_index_not_match = create_var_list_TYPE_SIZE_T();
 	int ret = 0;
-  printf("debug: size1=%ld vs size2=%ld\n",m_h1_nameid->size, m_h2_nameid->size);
+  ///printf("debug: size1=%ld vs size2=%ld\n",m_h1_nameid->size, m_h2_nameid->size);
 	if(m_h1_nameid->size != m_h2_nameid->size) {
 	  ret = -2;
 	}else{
@@ -91,10 +91,10 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
 			if(l_h1_->index != m_h1_nameid->size - 2){
 				if(strcmp(l_h1_->value->buf, l_h2_->value->buf )==0){
 					//++count_match ;
-          printf("debug: match [%ld] ! %s == %s !", l_h1_->index, l_h1_->value->buf, l_h2_->value->buf);
+          ///printf("debug: match [%ld] ! %s == %s !", l_h1_->index, l_h1_->value->buf, l_h2_->value->buf);
 				}
 				else{
-          printf("debug: NOT match [%ld] ! %s != %s !", l_h1_->index, l_h1_->value->buf, l_h2_->value->buf);
+          ///printf("debug: NOT match [%ld] ! %s != %s !", l_h1_->index, l_h1_->value->buf, l_h2_->value->buf);
 			  	push_back_list_TYPE_SIZE_T(m_index_not_match, l_h1_->index);
 				}
 			}
@@ -103,6 +103,8 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
 	
 
     if(m_index_not_match->size) {
+      //debug
+#if 0 
       for(struct list_y_ptr_STRING *l_h1_ = m_h1_nameid->end_list, *l_h2_ = m_h2_nameid->end_list; l_h1_ && l_h2_; l_h1_ = l_h1_->preview, l_h2_=l_h2_->preview){
         
         for(struct list_TYPE_SIZE_T * l_in = m_index_not_match->begin_list; l_in; l_in=l_in->next){
@@ -111,6 +113,7 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
           }
         }
       }
+#endif
       
       ret = -1;
     }
@@ -120,7 +123,7 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
     purge_ptr_type_list_y_ptr_STRING(m_h1_nameid);
     purge_ptr_type_list_y_ptr_STRING(m_h2_nameid);
     free_all_var_list_TYPE_SIZE_T(m_index_not_match);
-    printf("check_if_in_ok_header_l_ ret=%d, %s ns %s\n",ret,h1->nameid, h2->nameid);
+    ///printf("check_if_in_ok_header_l_ ret=%d, %s ns %s\n",ret,h1->nameid, h2->nameid);
   }
 	return ret;
 }
@@ -144,21 +147,21 @@ long y_append_to_ok_header_l_(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, ch
   struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_end_in_list_y_ptr_HEADER_T(m_ok_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
   if(l_ocate_header){
 		free_y_ptr_HEADER_T(current_header);
-		printf("debug: already in m_ok_head_l_t");
+		///printf("debug: already in m_ok_head_l_t");
 		return -1; // already in list
 
 	}
   else{
     push_back_list_y_ptr_HEADER_T(m_ok_head_l_t, current_header);
-    printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_ok_head_l_t->size);
+    ///printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_ok_head_l_t->size);
     return m_ok_head_l_t->size;
   }
 }
 
 #define TEST_DUPLICATE_SEQ()\
       if(temp_curr->value->seq == cnt->seq){\
-          printf("debug: index_nearest_seq=%ld: seq equal: doublon problem ? seq:%ld appuyer sur une touche\n", index_nearest_seq, cnt->seq);\
-          free_y_ptr_MSG_CONTENT_T(cnt); \
+          /*printf("debug: index_nearest_seq=%ld: seq equal: doublon problem ? seq:%ld appuyer sur une touche\n", index_nearest_seq, cnt->seq);\
+          */free_y_ptr_MSG_CONTENT_T(cnt); \
           /*getchar();*/\
           return -2;\
       }
@@ -167,7 +170,7 @@ long y_append_content_to_header_l(struct main_list_y_ptr_HEADER_T *m_head_l_t, y
   
   y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
   struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_end_in_list_y_ptr_HEADER_T(m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
-  printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
+  ///printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
   if(l_ocate_header){
     free_y_ptr_HEADER_T(current_header);
     pthread_mutex_t *mut_m_content_l = l_ocate_header->value->m_content_l->mut_list;
@@ -178,9 +181,9 @@ long y_append_content_to_header_l(struct main_list_y_ptr_HEADER_T *m_head_l_t, y
     
     if(begin_cnt == NULL){ 
       pthread_mutex_unlock(mut_m_content_l);
-      printf("debug: current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      ///printf("debug: current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
       push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
-      printf("debug: after current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      ///printf("debug: after current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
       return 0;
     }
     long last_seq = end_cnt->value->seq;
@@ -192,11 +195,11 @@ long y_append_content_to_header_l(struct main_list_y_ptr_HEADER_T *m_head_l_t, y
     
     struct list_y_ptr_MSG_CONTENT_T *temp_curr = NULL;
     
-    long from_current_seq = current_cnt->value->seq - cnt->seq; \
-    size_t abs_cur_diff_seq = abs(from_current_seq); \
-    size_t array_diff_seq[3]  = {cnt->seq -  begin_cnt->value->seq, abs_cur_diff_seq , end_cnt->value->seq - cnt->seq}; \
-    size_t index_nearest_seq = ARG_MIN_ARRAY_TYPE_SIZE_T(array_diff_seq, 3);\
-    if(index_nearest_seq == 0){\
+    long from_current_seq = current_cnt->value->seq - cnt->seq;
+    size_t abs_cur_diff_seq = abs(from_current_seq);
+    size_t array_diff_seq[3]  = {cnt->seq -  begin_cnt->value->seq, abs_cur_diff_seq , end_cnt->value->seq - cnt->seq};
+    size_t index_nearest_seq = ARG_MIN_ARRAY_TYPE_SIZE_T(array_diff_seq, 3);
+    if(index_nearest_seq == 0){
       for(temp_curr = begin_cnt ;temp_curr && (temp_curr->value->seq < cnt->seq); temp_curr = temp_curr->next){} 
       if(temp_curr){
         l_ocate_header->value->m_content_l->current_list = temp_curr;
@@ -208,7 +211,7 @@ long y_append_content_to_header_l(struct main_list_y_ptr_HEADER_T *m_head_l_t, y
         push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
         return 0;
       }
-    }\
+    }
     else if(index_nearest_seq == 2){
       
       for(temp_curr = end_cnt; temp_curr && temp_curr->value->seq > cnt->seq; temp_curr = temp_curr->preview) {}
@@ -278,7 +281,7 @@ long y_append_content_to_header_l(struct main_list_y_ptr_HEADER_T *m_head_l_t, y
   else{
     push_back_list_y_ptr_MSG_CONTENT_T(current_header->m_content_l, cnt);
     push_back_list_y_ptr_HEADER_T(m_head_l_t, current_header);
-    printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_head_l_t->size);
+    ///printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_head_l_t->size);
     return 0;
   }
 }
@@ -289,14 +292,14 @@ long y_append_content_to_header_l_from_end(struct main_list_y_ptr_HEADER_T *m_he
   
   y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
   struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T(m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
-  printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
+  ///printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
   if(l_ocate_header){
     free_y_ptr_HEADER_T(current_header);
     struct list_y_ptr_MSG_CONTENT_T * current_cnt = l_ocate_header->value->m_content_l->end_list;
     if(current_cnt == NULL){ 
-      printf("debug: current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      ///printf("debug: current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
       push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
-      printf("debug: after current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      ///printf("debug: after current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
       return 0;
     }
     long last_seq = current_cnt->value->seq + 1;
@@ -306,11 +309,11 @@ long y_append_content_to_header_l_from_end(struct main_list_y_ptr_HEADER_T *m_he
     }
     // cnt->seq < last_seq
     while(current_cnt){
-      printf("debug: last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
-      if(cnt->seq == current_cnt->value->seq){
-        printf("debug: equal last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
+      ///printf("debug: last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
+      ///if(cnt->seq == current_cnt->value->seq){
+        ///printf("debug: equal last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
         //return -2;
-      }
+      ///}
       if(cnt->seq < last_seq && cnt->seq > current_cnt->value->seq){
       /*if(cnt->seq > last_seq && cnt->seq < current_cnt->value->seq)*/
         return insert_into_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, current_cnt->index + 1, cnt);
@@ -322,14 +325,14 @@ long y_append_content_to_header_l_from_end(struct main_list_y_ptr_HEADER_T *m_he
       current_cnt = current_cnt->preview;
       
     }
-    printf("debug: some thing wrong here! last_seq: %ld, cnt->seq=%ld\n", last_seq, cnt->seq);
+    ///printf("debug: some thing wrong here! last_seq: %ld, cnt->seq=%ld\n", last_seq, cnt->seq);
     return -1;
 
   }
   else{
     push_back_list_y_ptr_MSG_CONTENT_T(current_header->m_content_l, cnt);
     push_back_list_y_ptr_HEADER_T(m_head_l_t, current_header);
-    printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_head_l_t->size);
+    ///printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_head_l_t->size);
     return 0;
   }
 }
@@ -339,23 +342,23 @@ long y_append_content_to_header_l_from_begin(struct main_list_y_ptr_HEADER_T *m_
   
   y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
   struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T(m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
-  printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
+  ///printf("debug: search done, nameid:%s, #%ld\n",cnt->nameid, cnt->size_nameid);
   if(l_ocate_header){
     free_y_ptr_HEADER_T(current_header);
     struct list_y_ptr_MSG_CONTENT_T * current_cnt = l_ocate_header->value->m_content_l->begin_list;
     if(current_cnt == NULL){ 
-      printf("debug: current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      ///printf("debug: current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
       push_back_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, cnt);
-      printf("debug: after current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
+      ///printf("debug: after current_cnt==NULL, size_ m_content_l=%ld cnt->seq=%ld, push_back_list_y_ptr_MSG_CONTENT_T\n", l_ocate_header->value->m_content_l->size, cnt->seq);
       return 0;
     }
     long last_seq = -1;
     while(current_cnt){
-      printf("debug: last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
-      if(cnt->seq == current_cnt->value->seq){
+      ///printf("debug: last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
+      /*if(cnt->seq == current_cnt->value->seq){
         printf("debug: equal last_seq: %ld, cnt->seq=%ld, current_cnt->value->seq:%ld\n", last_seq, cnt->seq,current_cnt->value->seq);
         //return -2;
-      }
+      }*/
       if(cnt->seq > last_seq && cnt->seq < current_cnt->value->seq){
         return insert_into_list_y_ptr_MSG_CONTENT_T(l_ocate_header->value->m_content_l, current_cnt->index, cnt);
       }else if(current_cnt->next==NULL){
@@ -366,14 +369,14 @@ long y_append_content_to_header_l_from_begin(struct main_list_y_ptr_HEADER_T *m_
       current_cnt = current_cnt->next;
       
     }
-    printf("debug: some thing wrong here! last_seq: %ld, cnt->seq=%ld\n", last_seq, cnt->seq);
+    ///printf("debug: some thing wrong here! last_seq: %ld, cnt->seq=%ld\n", last_seq, cnt->seq);
     return -1;
 
   }
   else{
     push_back_list_y_ptr_MSG_CONTENT_T(current_header->m_content_l, cnt);
     push_back_list_y_ptr_HEADER_T(m_head_l_t, current_header);
-    printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_head_l_t->size);
+    ///printf("debug:  push_back_list_y_ptr_HEADER_T when l_ocate_header == NULL, m_head_l_t->size=%ld\n",m_head_l_t->size);
     return 0;
   }
 }
@@ -381,29 +384,29 @@ long y_append_content_to_header_l_from_begin(struct main_list_y_ptr_HEADER_T *m_
 struct list_y_ptr_HEADER_T * check_if_all_contents_done_from_headers(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_ptr_MSG_CONTENT_T cnt){
 
   y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(cnt->nameid, cnt->size_nameid, cnt->cmd_t);
-  printf("debug: check_if_all_contents_done_from_headers, begin search\n");
+  ///printf("debug: check_if_all_contents_done_from_headers, begin search\n");
   struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_begin_in_list_y_ptr_HEADER_T (m_head_l_t, current_header, funcCmp_y_ptr_HEADER_T);
-  printf("debug: check_if_all_contents_done_from_headers, search done\n");
+  ///printf("debug: check_if_all_contents_done_from_headers, search done\n");
   free_y_ptr_HEADER_T(current_header);
   if(l_ocate_header){
-    printf("debug: check_if_all_contents_done_from_headers, l_ocate_header->index=%ld\n",l_ocate_header->index);
+    ///printf("debug: check_if_all_contents_done_from_headers, l_ocate_header->index=%ld\n",l_ocate_header->index);
     if(l_ocate_header->value->m_content_l){
-    struct list_y_ptr_MSG_CONTENT_T *end_list = l_ocate_header->value->m_content_l->end_list;
-    printf("debug: check_if_all_contents_done_from_headers, l_ocate_header->m_content_l->size=%ld,\n",l_ocate_header->value->m_content_l->size);
-    if(end_list){
-      printf("debug: check_if_all_contents_done_from_headers, end->eof=%d, end->seq=%ld, end->index = %ld\n",end_list->value->eof, end_list->value->seq, end_list->index);
-      // check if all contents are done!
-      if(end_list->value->eof && end_list->value->seq == end_list->index){  
-        return l_ocate_header;
-      }
-    }else{
-      printf("debug: check_if_all_contents_done_from_headers, end_list==NULL\n");
-      
-    }
-    }else{
+      struct list_y_ptr_MSG_CONTENT_T *end_list = l_ocate_header->value->m_content_l->end_list;
+      ///printf("debug: check_if_all_contents_done_from_headers, l_ocate_header->m_content_l->size=%ld,\n",l_ocate_header->value->m_content_l->size);
+      if(end_list){
+        ///printf("debug: check_if_all_contents_done_from_headers, end->eof=%d, end->seq=%ld, end->index = %ld\n",end_list->value->eof, end_list->value->seq, end_list->index);
+        // check if all contents are done!
+        if(end_list->value->eof && end_list->value->seq == end_list->index){  
+          return l_ocate_header;
+        }
+      }/*else{
+        printf("debug: check_if_all_contents_done_from_headers, end_list==NULL\n");
+        
+      }*/
+    }/*else{
       
       printf("debug: check_if_all_contents_done_from_headers, l_ocate_header->value->m_content_l==NULL\n");
-    }
+    }*/
 
   }
   return NULL;
@@ -428,12 +431,12 @@ int remove_content_from_headers(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_p
       return 0;
     }
     else{
-      printf("some thing wrong here: EOF:%d seq_end:%ld, size m_content_l :%ld\n",end_list->value->eof, end_list->value->seq, l_ocate_header->value->m_content_l->size);
+      ///printf("some thing wrong here: EOF:%d seq_end:%ld, size m_content_l :%ld\n",end_list->value->eof, end_list->value->seq, l_ocate_header->value->m_content_l->size);
       return 1;
     }
   }
   else{
-    printf("\n%s is not in header list\n",cnt->nameid);
+    ///printf("\n%s is not in header list\n",cnt->nameid);
     return -1;
   }
 }
@@ -577,9 +580,9 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
               retread + len_local_header_
               ){
 							fprintf(stderr, "Error sending response to %s\n",tempAddr);
-						}else{
+						}/*else{
 							printf("debug: sending response to < %s > seq=[%ld] ",tempAddr,seq);
-						}
+						}*/
           
             ++seq;    
             len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"tm\" : \"%ld\" }",filename, seq, timeid);
@@ -598,7 +601,7 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
             }
 
         close(fd_file);
-        printf("debug: fd=%d closed: filename=%s, for %s\n",fd_file,filename, tempAddr);
+        ///printf("debug: fd=%d closed: filename=%s, for %s\n",fd_file,filename, tempAddr);
 
 	size_t delay = 4000000; 			
 	printf("debug: wait %ld before checking, in tour:%d\n",delay, tour_i);
@@ -661,11 +664,11 @@ void* y_send_buf_for_all_(void* arg){
               len_buf_send
               ){
               fprintf(stderr, "Error sending %s to %s\n", tempAddr, buf_send);
-            }else{
+            }/*else{
               printf("debug: sending [%s] -> < %s >",buf_send,tempAddr);
-            }
+            }*/
 
-        printf("debug: for index = %ld\n",local_list_current->index);
+        ///printf("debug: for index = %ld\n",local_list_current->index);
               
       }
 
@@ -794,13 +797,13 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                   if(js_seq_v){
                     if(js_seq_v->type.object.value->code_type == jstype_number){
                       size_t seq_local = (long)(js_seq_v->type.object.value->type.number);
-                        printf("debug:  \n*********seq_local=%ld ***\n\n",seq_local);
+                        ///printf("debug:  \n*********seq_local=%ld ***\n\n",seq_local);
                       
                       struct js_value *js_eof_v = get_js_value_of_key("EOF", js_header_v );
                       if(js_eof_v){
                      //   size_m_str = seq_local;
                         eof=1;
-                        printf("debug:  \n****************************end of file ***\n\n");
+                        ///printf("debug:  \n****************************end of file ***\n\n");
                         //printf("debug:  \n****************************end of file ***\n%s\n**********************************\n",buf_loc);
                       }
                       
@@ -817,7 +820,7 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                            size_nameid = sprintf(nameid, "%s_%s_%s_%s",name_f /*filename*/, srcAddr, value_of_(js_dst_v)->type.string, timeid/*value_of_(js_tm_v)->type.string*/);
 #endif
                            size_nameid = sprintf(nameid, "%s_%s_%s",name_f, srcAddr, /*value_of_(js_dst_v)->type.string,*/ value_of_(js_tm_v)->type.string);
-                           printf("debug: nameid = %s\n", nameid);
+                           ///printf("debug: nameid = %s\n", nameid);
 
                            //int intTimeid = atoi(timeid);
 
@@ -839,7 +842,7 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
 
                                  while(tmpCnt_l){
                                    write(fd_file, tmpCnt_l->value->content, tmpCnt_l->value->size_content);
-                                   printf("debug: nameid:%s seq = %ld eof %d\n\n%s\n",tmpCnt_l->value->nameid, tmpCnt_l->value->seq, tmpCnt_l->value->eof, tmpCnt_l->value->content);
+                                   ///printf("debug: nameid:%s seq = %ld eof %d\n\n%s\n",tmpCnt_l->value->nameid, tmpCnt_l->value->seq, tmpCnt_l->value->eof, tmpCnt_l->value->content);
                                    tmpCnt_l=tmpCnt_l->next;
                                  }
                                  close(fd_file);
@@ -865,24 +868,24 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                             */ 
                           }
 
-                        }else{
+                        }/*else{
                           printf("debug: tm missing!");
-                        }
+                        }*/
                       /*}
                       else{
                         printf("debug: dst missing!");
                       }*/
-                    }
+                    }/*
                     else{
                       printf("debug:  \n SSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ type:%d \n",js_seq_v->type.object.value->code_type);
 
-                    }
+                    }*/
                   
 
-                  }else{
+                  }/*else{
 
                       printf("debug:  \n NNNNNNNNNNNNNNNNOOOOOOOOOOOOOSSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ :type header : %d \n",js_header_v->code_type);
-                  }
+                  }*/
                 }else{
                     printf("debug:  \n NO CMD :type header : %d \n",js_header_v->code_type);
 

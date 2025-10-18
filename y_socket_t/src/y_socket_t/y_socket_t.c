@@ -138,7 +138,10 @@ void  y_socket_get_fds(struct pollfd * fds, char * port, char * addrDistant){
         if(bind(fds[af].fd, rp->ai_addr, rp->ai_addrlen)==-1){
           close(fds[af].fd);
           fds[af].fd=-1;
-        }else{
+        }
+///debug print addr local : don't work really
+#if 0
+        else{
           char tempAddr[BUF_SIZE]={0};
           if(af_array[af]==AF_INET){
              if(NULL == inet_ntop(AF_INET, 
@@ -155,6 +158,8 @@ void  y_socket_get_fds(struct pollfd * fds, char * port, char * addrDistant){
           }
           printf("\n\ndebug: ADDR_LOCAL v%d:%s\n\n", 2*af+4,tempAddr);
         }
+#endif
+
 #if 0
 int flags = fcntl(fds[af].fd, F_GETFL);
         flags |= O_NONBLOCK;
@@ -202,6 +207,7 @@ void* y_socket_handler_(void *arg){
     struct js_value *js_cmd = get_js_value_of_key("cmd", js_header );
     if(js_cmd && js_cmd->type.object.value->code_type == jstype_string){
       /**  */
+      /*
       struct js_value *js_seq = get_js_value_of_key("seq", js_header );
       if(js_seq){
         size_t seq_local = (long)(js_seq->type.object.value->type.number);
@@ -209,7 +215,7 @@ void* y_socket_handler_(void *arg){
       }else{
         printf("debug:  \n HANDLER header  no seq\n");
   
-      }
+      }*/
       /* */
       char * buf = js_cmd->type.object.value->type.string; 
       size_t len_buf=strlen(buf);
@@ -481,7 +487,7 @@ void *y_socket_poll_fds(void *arg){
 			///
       }
       if(check_y_socket_go_on(argSock) && m_str){
-				printf("debug:  call handle_buf_socket_rec\n");
+				///printf("debug:  call handle_buf_socket_rec\n");
         handle_buf_socket_rec(m_ok_head_l_t,m_head_l_t, /*m_var,*/ m_str, node, workers, argx, list_arg, arg);
       
         m_str=NULL;
@@ -510,7 +516,7 @@ void *y_socket_poll_fds(void *arg){
 						cmd[index_str++]=buf[index_buf];
 					}
 					cmd[index_str]='\0';
-				printf("debug : index_str= %d; cmd=[%s]\n",index_str, cmd);
+				///printf("debug : index_str= %d; cmd=[%s]\n",index_str, cmd);
 					
 					index_str=0;
 					while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
@@ -525,12 +531,12 @@ void *y_socket_poll_fds(void *arg){
 						msg_buf[index_str++]=buf[index_buf];
 					msg_buf[index_str++]='\0';*/
 
-				printf("debug : index_str=%d, dst_addr=[%s]\n", index_str, dst_addr);
+				///printf("debug : index_str=%d, dst_addr=[%s]\n", index_str, dst_addr);
 #endif
 
 		
 			if(/*check_y_socket_go_on(argSock) &&*/ strncmp(cmd, "sendto", 6)==0){
-				printf("debug : sendto match, dst_addr=[%s]\n", dst_addr);
+				///printf("debug : sendto match, dst_addr=[%s]\n", dst_addr);
         if(strcmp(dst_addr, "all" ) == 0){
           struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
           argS->fds=fds;
@@ -553,20 +559,20 @@ void *y_socket_poll_fds(void *arg){
 
         }
         else if(set_addr_y_NODE_T_from_str_addr(&node, dst_addr)){
-					printf("debug : set_addr_y_NODE_T done\n");
+					///printf("debug : set_addr_y_NODE_T done\n");
 					set_port_y_NODE_T_from_str_port(&node, argSock->port);
 					update_nodes(node, argSock->nodes);
 					af=(node.addr.ss_family == AF_INET6);
 
 					
-					printf("debug : af = AF_INET=%d, af = AF_INET6=%d, vs  af=[%d]\n",AF_INET, AF_INET6, af);
+					///printf("debug : af = AF_INET=%d, af = AF_INET6=%d, vs  af=[%d]\n",AF_INET, AF_INET6, af);
 
           //node.addr_len = sizeof(struct sockaddr_storage);
           //node.addr_len = sizeof(node.addr); 
 					if(sendto(fds[af].fd, buf+index_buf  , buf_len-index_buf, 0,
           	(struct sockaddr*)(&(node.addr)), node.addr_len
             ) == -1){
-      			printf("message erreur sendto : %s, error :%d\n\n",buf,errno);
+      			fprintf(stderr,"message erreur sendto : %s, error :%d\n\n",buf,errno);
           	perror("sendto:");
           	close(fds[af].fd);
           	return NULL;
