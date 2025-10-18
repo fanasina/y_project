@@ -366,12 +366,20 @@ void handle_buf_socket_rec(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, struc
           .status=TASK_PENDING,
         };
         push_tasQ(argx->tasQ, task_handl);
+        m_str=NULL;
       }
 
     }
+  }else{
+
   }
 
    free_js_value(js_header);  
+   if(m_str){
+      purge_ptr_type_list_y_ptr_STRING(m_str);
+
+      printf("debug: m_str!=NULL -> purge_ptr_type_list_y_ptr_STRING in handle_buf_socket_rec done\n");
+    }
 }
 
 void *y_socket_poll_fds(void *arg){
@@ -421,8 +429,9 @@ void *y_socket_poll_fds(void *arg){
  	memset(&(node.addr), 0, sizeof(struct sockaddr_storage)); 
   //size_t len_sockaddr_storage = sizeof(struct sockaddr_storage);
   node.addr_len = sizeof(struct sockaddr_storage);
-  //node.addr_len = 0;/* init here to be sure it will have the appropriate value */
+  node.local_addr = 0;/* not local addr by default */
 //  printf("debug: ------ //// node.addr_len = %d\n",node.addr_len); 
+  
   for(;check_y_socket_go_on(argSock);){
     printf("poll: wait events\n");
     status = poll(fds, nbIpVersion + 1, -1);
