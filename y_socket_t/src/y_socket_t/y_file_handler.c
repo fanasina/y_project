@@ -2,7 +2,10 @@
 
 #include "y_socket_t/y_file_handler.h"
 
-#define TTL_SOCKDRAM 10
+#define TTL_SOCKDRAM 10 
+
+#define REPO_LOCAL ".dest"
+#define LEN_REPO_LOCAL 6
 
 //#include "y_socket_t/y_node_t.h"
 
@@ -787,11 +790,11 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
               //struct js_value *js_cmd_v = get_js_value_of_key("cmd", js_header_v );
               //printf("debug: index=[%ld] \n BEGIN file ***\n%s\n END\n",local_current->index,buf_loc);
               if(js_header_v){
-
+               /*     
                 struct js_value *js_cmd = get_js_value_of_key("cmd", js_header_v );
                 if(js_cmd && js_cmd->type.object.value->code_type == jstype_string){
                   char * buf_cmd_v = js_cmd->type.object.value->type.string;
-                
+               */ 
                   struct js_value *js_seq_v = get_js_value_of_key("seq", js_header_v );
                   char eof=0;
                   if(js_seq_v){
@@ -831,9 +834,11 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                              if(local_header){
                                struct main_list_y_ptr_MSG_CONTENT_T *m_content_l = local_header->value->m_content_l;
                                struct list_y_ptr_MSG_CONTENT_T * tmpCnt_l = m_content_l->begin_list;
-                               if(strncmp(buf_cmd_v+5,"file",4)==0){
+                               //if(strncmp(buf_cmd_v+5,"file",4)==0){
                                  int fd_file ;
-                                 if((fd_file = open(tmpCnt_l->value->nameid, O_WRONLY | O_CREAT ,
+                                 char fileNameLocal[tmpCnt_l->value->size_nameid + LEN_REPO_LOCAL + 1];
+                                 sprintf(fileNameLocal, "%s/%s",REPO_LOCAL,tmpCnt_l->value->nameid);
+                                 if((fd_file = open(fileNameLocal, O_WRONLY | O_CREAT ,
                                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
                                    fprintf(stderr,"erreur write %s\n",tmpCnt_l->value->nameid);
                                    break;//return NULL;
@@ -846,7 +851,7 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                                    tmpCnt_l=tmpCnt_l->next;
                                  }
                                  close(fd_file);
-                               }
+                               //}
                                struct list_y_ptr_HEADER_T * l_head_to_remove = pull_index_from_list_y_ptr_HEADER_T(m_head_l_t, local_header->index);
                                free_y_ptr_HEADER_T(l_head_to_remove->value);
                                free(l_head_to_remove); 
@@ -886,10 +891,10 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
 
                       printf("debug:  \n NNNNNNNNNNNNNNNNOOOOOOOOOOOOOSSSSSSSSSSSSSSSEEEEEEEEEEEEEEQQQQQQQQQQQQQ :type header : %d \n",js_header_v->code_type);
                   }*/
-                }else{
+                /*}else{
                     printf("debug:  \n NO CMD :type header : %d \n",js_header_v->code_type);
 
-                }
+                }*/
                               free_js_value(js_header_v);
               }else{
                 printf("\ndebug NULLL JS___HHHEADER_V \n");

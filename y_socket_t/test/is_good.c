@@ -165,12 +165,12 @@ TEST(searchNode){
 
 TEST(import_nodes){
   struct main_list_y_NODE_T * listNodes = create_var_list_y_NODE_T();
-  char *file_nodes_name = "FILE_NODES";
+  char *file_nodes_name = ".dest/.FILE_NODES";
   if(import_nodes_from_file(file_nodes_name, 1600, listNodes)==-1){
     LOG("something wrong check file %s\n",file_nodes_name);
   }
 
-  export_nodes_to_file("CPY_file_nodes_name", listNodes);
+  export_nodes_to_file(".dest/.CPY_file_nodes_name", listNodes);
 
 
   free_all_var_list_y_NODE_T(listNodes);
