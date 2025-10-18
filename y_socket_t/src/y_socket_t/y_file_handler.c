@@ -83,41 +83,45 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
 	//int count_match = 0;
 	struct main_list_TYPE_SIZE_T * m_index_not_match = create_var_list_TYPE_SIZE_T();
 	int ret = 0;
+  printf("debug: size1=%ld vs size2=%ld\n",m_h1_nameid->size, m_h2_nameid->size);
 	if(m_h1_nameid->size != m_h2_nameid->size) {
 	  ret = -2;
 	}else{
 		for(struct list_y_ptr_STRING *l_h1_ = m_h1_nameid->end_list, *l_h2_ = m_h2_nameid->end_list; l_h1_ && l_h2_; l_h1_ = l_h1_->preview, l_h2_=l_h2_->preview){
-			if((l_h1_->index >= m_h1_nameid->size - 1) || (l_h1_->index < m_h1_nameid->size - 2)){
+			if(l_h1_->index != m_h1_nameid->size - 2){
 				if(strcmp(l_h1_->value->buf, l_h2_->value->buf )==0){
 					//++count_match ;
+          printf("debug: match [%ld] ! %s == %s !", l_h1_->index, l_h1_->value->buf, l_h2_->value->buf);
 				}
 				else{
+          printf("debug: NOT match [%ld] ! %s != %s !", l_h1_->index, l_h1_->value->buf, l_h2_->value->buf);
 			  	push_back_list_TYPE_SIZE_T(m_index_not_match, l_h1_->index);
 				}
 			}
 
 		}
-	}
+	
 
-	if(m_index_not_match->size) {
-    for(struct list_y_ptr_STRING *l_h1_ = m_h1_nameid->end_list, *l_h2_ = m_h2_nameid->end_list; l_h1_ && l_h2_; l_h1_ = l_h1_->preview, l_h2_=l_h2_->preview){
-      
-      for(struct list_TYPE_SIZE_T * l_in = m_index_not_match->begin_list; l_in; l_in=l_in->next){
-        if(l_h1_->index == l_in->value){
-          printf("debug: DIFF ** **  %ld: %s vs %s ** **\n",l_in->value, l_h1_->value->buf, l_h2_->value->buf);
+    if(m_index_not_match->size) {
+      for(struct list_y_ptr_STRING *l_h1_ = m_h1_nameid->end_list, *l_h2_ = m_h2_nameid->end_list; l_h1_ && l_h2_; l_h1_ = l_h1_->preview, l_h2_=l_h2_->preview){
+        
+        for(struct list_TYPE_SIZE_T * l_in = m_index_not_match->begin_list; l_in; l_in=l_in->next){
+          if(l_h1_->index == l_in->value){
+            printf("debug: DIFF ** **  %ld: %s vs %s ** **\n",l_in->value, l_h1_->value->buf, l_h2_->value->buf);
+          }
         }
       }
+      
+      ret = -1;
     }
+    else ret = 0;
     
-    ret = -1;
+    
+    purge_ptr_type_list_y_ptr_STRING(m_h1_nameid);
+    purge_ptr_type_list_y_ptr_STRING(m_h2_nameid);
+    free_all_var_list_TYPE_SIZE_T(m_index_not_match);
+    printf("check_if_in_ok_header_l_ ret=%d, %s ns %s\n",ret,h1->nameid, h2->nameid);
   }
-	else ret = 0;
-	
-	
-	purge_ptr_type_list_y_ptr_STRING(m_h1_nameid);
-	purge_ptr_type_list_y_ptr_STRING(m_h2_nameid);
-	free_all_var_list_TYPE_SIZE_T(m_index_not_match);
-	printf("check_if_in_ok_header_l_ ret=%d, %s ns %s\n",ret,h1->nameid, h2->nameid);
 	return ret;
 }
 
