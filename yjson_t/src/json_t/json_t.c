@@ -183,7 +183,12 @@ struct js_value * create_js_value_string(char * input, struct js_value * parent)
   js->code_type =  jstype_string;
   char *cur = js->str_value;
   //if(*input == '"') ++cur;
-  for(; *cur!='"'; ++cur);
+  for(;*cur && *cur!='"'; ++cur);
+  if(*cur=='\0'){
+    fprintf(stderr, "error string format, \" missing\n");
+    free(js);
+    return NULL;
+  }
   js->length = cur - js->str_value;
   js->type.string = malloc(js->length + 1);
   strncpy(js->type.string, js->str_value, js->length);
@@ -546,6 +551,14 @@ struct js_value * create_js_value_object(char *_input /*, struct js_value *prev*
     char *str_value = cur; // + js->type.object.key->length;  
   
     js->type.object.value = create_js_value(str_value, js);
+    if(js->type.object.value==NULL){
+      fprintf(stderr,"debug: format json error value\n");
+      free(js->type.object.key);
+      free(js->type.object.iter);
+      free(js);
+      return NULL;
+
+    }
     //printf("\n[<<<: cur:%s\n(js->type.object.value->code_type != jstype_number)=%d\n",cur,(js->type.object.value->code_type != jstype_number));
     
     cur = str_value + js->type.object.value->length +  (js->type.object.value->code_type == jstype_string); // ((js->type.object.value->code_type < jstype_bool)||(js->type.object.value->code_type > jstype_number));// 1 ;
