@@ -8,11 +8,14 @@
 //#include "y_socket_t/y_socket_t.h"
 #include "list_t/list_t.h"
 
+#include <sys/types.h>
+#include <ifaddrs.h>
 
 typedef struct y_node_t{
   //char *id;
   struct sockaddr_storage addr;
   socklen_t addr_len;
+  int local_addr;/* 0 if not local address */
 } y_NODE_T;
 
 
