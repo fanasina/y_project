@@ -383,6 +383,7 @@ void handle_buf_socket_rec(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, struc
 }
 
 void *y_socket_poll_fds(void *arg){
+  usage_cmdl();
   struct y_socket_t * argSock = (struct y_socket_t*)arg;
 // // //
   struct main_list_ptr_y_WORKER_T * workers = create_var_list_ptr_y_WORKER_T();

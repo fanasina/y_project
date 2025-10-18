@@ -41,4 +41,6 @@ size_t total_size_list_y_ptr_STRING(struct main_list_y_ptr_STRING *mstr);
 size_t copy_list_y_ptr_STRING_to_one_string(char **p_dst_str, struct main_list_y_ptr_STRING *mstr);
 struct main_list_y_ptr_STRING * split_str_to_main_list_y_ptr_STRING(char *str_org, char sep, size_t limit_size_str_org);
 
+void usage_cmdl();
+
 #endif /* Y_PTR_VAR_TOOL_H__C */

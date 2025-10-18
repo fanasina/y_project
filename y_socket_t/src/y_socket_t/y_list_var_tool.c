@@ -164,3 +164,22 @@ struct main_list_y_ptr_STRING * split_str_to_main_list_y_ptr_STRING(char *str_or
   return m_str;
 }
 
+void usage_cmdl(){
+  printf("usage:\n"
+  "sendto [addr] { \"cmd\" : \"[command]\" }\n"
+  "addr: ipv4 address or ipv6 address or all to send cmd to all nodes already in the list.\n"
+  "command: \n"
+  "\tupdate kill: to gracefully shutdown socket server.\n"
+  "\tupdate standby: to suspend all workers, but can receive all task but in queu tasks.\n"
+  "\tupdate wakeup: to wakeup all workers, and then execute all tasks in queu.\n"
+  "\tupdate remove node [addr]: to remove [addr] in the list.\n"
+  "\tupdate add node [addr]: to add [addr] in the list.\n"
+  "\tget file [filename]: to ask server to send file named [filename].\n"
+  "\t\tfilename can be absolute path or relative working directory path\n"
+  "\tpost file [filename] : to send file [filename] after header.\n"
+  "\t\tNeed to add \"seq\" and \"tm\" keys to have good handling, the payload is after the header {}\n"
+  "\t\tSee y_socket_send_file_for_node function.\n"
+  "\tpost ok [filenameid]: to acknowledge receipt [filename].\n"
+  "\t\t[filenameid] is to precise witch [filename] (file name from whom and when)\n"
+  );
+}
