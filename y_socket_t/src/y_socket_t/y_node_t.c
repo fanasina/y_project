@@ -190,6 +190,7 @@ void* update_nodes(void* arg)
           fprintf(stderr, "getnameinfo: %s\n", gai_strerror(status));
 
 #endif
+                  node.local_addr = 0;
         struct sockaddr_in6 local6;
         inet_pton(AF_INET6, "::1", &local6);;
         if(NULL ==  search_node_in_list_y_NODE_T(nodes, node)){
