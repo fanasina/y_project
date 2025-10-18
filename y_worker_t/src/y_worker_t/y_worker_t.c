@@ -112,7 +112,7 @@ void* execute_work(void* arg){
 
   };
 
-    printf("debug: execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
+    //printf("debug: execute_task end, worker exec=%d id:%ld self:%ld \n",exec,pworker->id, pworker->id_thread);
   
   pthread_mutex_lock(pworker->mut_worker);
   pworker->status=WORKER_OFF;

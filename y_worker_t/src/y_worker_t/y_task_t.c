@@ -26,22 +26,22 @@ void free_y_tasQ(struct y_tasQ * tasQ){
 }
 
 void push_tasQ(struct y_tasQ *tasQ, struct y_task_t task){
-  printf("debug: push_tasQ debut\n");
+  ///printf("debug: push_tasQ debut\n");
   pthread_mutex_lock(tasQ->mut_tasQ);
   push_back_list_y_TASK_T(tasQ->list_tasQ, task);
   pthread_mutex_unlock(tasQ->mut_tasQ);
   pthread_cond_signal(tasQ->cond_tasQ);
-  printf("debug: push_tasQ fin\n");
+  ///printf("debug: push_tasQ fin\n");
 }
 struct list_y_TASK_T* pull_tasQ(struct y_tasQ *tasQ){
-  printf("debug: pull_tasQ debut id_th:%ld\n",pthread_self());
+  ///printf("debug: pull_tasQ debut id_th:%ld\n",pthread_self());
   struct list_y_TASK_T *valueRet = NULL;
   pthread_mutex_lock(tasQ->mut_tasQ);
   while(tasQ->list_tasQ->end_list == NULL){
     pthread_cond_wait(tasQ->cond_tasQ, tasQ->mut_tasQ);
   }
   valueRet  = pull_begin_from_list_y_TASK_T(tasQ->list_tasQ);
-  printf("debug: call pull_begin_from_list_y_TASK_T  debut\n");
+  ///printf("debug: call pull_begin_from_list_y_TASK_T  debut\n");
 //  valueRet  = pull_end_from_list_y_TASK_T(tasQ->list_tasQ);
   //printf("debug: call pull_begin_from_list_y_TASK_T  fin, is tasQ NULL? : %d\nis tasQ->list_tasQ NULL?:%d\n", tasQ==NULL, tasQ->list_tasQ == NULL);
   pthread_mutex_unlock(tasQ->mut_tasQ);
@@ -78,10 +78,10 @@ void * execute_task(void *arg){
   struct y_tasQ *historytasQ = argx->historytasQ;
   struct list_y_TASK_T *l_task=NULL;
   while(check_go_on_tasQ(argx)){
-    printf("\n\ndebug: ------------------->  task begin\n\n \n");
+    ///printf("\n\ndebug: ------------------->  task begin\n\n \n");
 
     l_task = pull_tasQ(tasQ);
-    printf("debug: is l_task NULL? = %d\n", l_task==NULL);
+    ///printf("debug: is l_task NULL? = %d\n", l_task==NULL);
     if(l_task){
       if((l_task->value.status != TASK_DONE) && (l_task->value.func!=NULL))
         l_task->value.ret = l_task->value.func(l_task->value.arg);
@@ -92,7 +92,7 @@ void * execute_task(void *arg){
     if(l_task) append_list_y_TASK_T(historytasQ->list_tasQ, l_task);
     pthread_mutex_unlock(historytasQ->mut_tasQ);
 
-    printf("\n\ndebug: ------------------->  task done\n\n \n");
+    ///printf("\n\ndebug: ------------------->  task done\n\n \n");
   
   }
     //printf("debug: -------------------> exit task exec \n");
