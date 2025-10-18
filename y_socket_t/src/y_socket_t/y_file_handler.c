@@ -144,6 +144,21 @@ long check_if_in_ok_header_l_(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, ch
 	return 0;
 }
 
+void remove_header_ok_if_done(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, char *nameid ){
+    
+  y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(nameid, strlen(nameid), cmd_post_ok );
+  struct list_y_ptr_HEADER_T * l_ocate_header = search_first_occ_from_end_in_list_y_ptr_HEADER_T(m_ok_head_l_t, current_header, funcCmp_y_ptr_HEADER_T_fn_nameid_mask);
+  free_y_ptr_HEADER_T(current_header);
+  
+	if(l_ocate_header){
+		struct list_y_ptr_HEADER_T * l_head_to_remove = pull_index_from_list_y_ptr_HEADER_T(m_ok_head_l_t, l_ocate_header->index);
+    free_y_ptr_HEADER_T(l_head_to_remove->value);
+    free(l_head_to_remove);
+    printf("debug: remove_header_ok_if_done %s\n",nameid);
+	}
+	
+}
+
 long y_append_to_ok_header_l_(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, char *nameid ){
     
   y_ptr_HEADER_T current_header = create_y_ptr_HEADER_T(nameid, strlen(nameid), cmd_post_ok );
@@ -614,6 +629,7 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
 			 //sprintf(nameid, "%s_%s_%s_%s",name_f, tempAddr, tempAddr, timeid);
 }
 
+remove_header_ok_if_done(argS->m_ok_head_l_t, nameid);
 
 
         //free(timeid);
