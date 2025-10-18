@@ -213,7 +213,7 @@ void* update_nodes(void* arg)
             }
           }
           push_back_list_y_NODE_T(nodes, node);
-            //printf("debug: // /// // // update_nodes local_addr=%d\n",node.local_addr );
+            printf("debug: // /// // // update_nodes local_addr=%d\n",node.local_addr );
         }
 
   if(if_addr) freeifaddrs(if_addr);

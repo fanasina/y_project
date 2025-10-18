@@ -123,11 +123,11 @@ int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
     else ret = 0;
     
     
+  }
     purge_ptr_type_list_y_ptr_STRING(m_h1_nameid);
     purge_ptr_type_list_y_ptr_STRING(m_h2_nameid);
     free_all_var_list_TYPE_SIZE_T(m_index_not_match);
     ///printf("check_if_in_ok_header_l_ ret=%d, %s ns %s\n",ret,h1->nameid, h2->nameid);
-  }
 	return ret;
 }
 
