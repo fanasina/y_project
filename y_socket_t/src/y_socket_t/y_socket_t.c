@@ -253,6 +253,10 @@ void* y_socket_handler_(void *arg){
           pthread_mutex_unlock(sock->mut_go_on);
     //      kill_all_workers(argw);
     //      printf("debug: kill_all\n");
+        }else if(strncmp(buf+7,"cleanup",7)==0){
+          remove_all_ptr_type_list_y_ptr_HEADER_T(argH->m_ok_head_l_t);
+          remove_all_ptr_type_list_y_ptr_HEADER_T(argH->m_head_l_t);
+          //      printf("debug: kill_all\n");
         }else if(strncmp(buf+7,"file nodes",10)==0){
            if(export_nodes_to_file(".file_nodes_name", nodes)==-1){
               fprintf(stderr, "error export_nodes_to_file\n");
