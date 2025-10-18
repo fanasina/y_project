@@ -172,6 +172,7 @@ void usage_cmdl(){
   "\tor other to send cmd to all nodes excluding local address in the list.\n"
   "command: \n"
   "\tupdate kill: to gracefully shutdown socket server.\n"
+  "\tupdate cleanup: to free m_headers lists.\n"
   "\tupdate standby: to suspend all workers, but can receive all task but in queu tasks.\n"
   "\tupdate wakeup: to wakeup all workers, and then execute all tasks in queu.\n"
   "\tupdate remove node [addr]: to remove [addr] in the list.\n"
