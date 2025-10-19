@@ -48,10 +48,12 @@ int y_NODE_T_cmp(y_NODE_T nodeA, y_NODE_T nodeB){
       }else
       if(nodeA.addr.ss_family == AF_INET6){
         ret = ((struct sockaddr_in6*)&(nodeA.addr))->sin6_port - ((struct sockaddr_in6*)&(nodeB.addr))->sin6_port;
-        if(ret ==0)
+        if(ret ==0){
           //ret = memcmp((struct sockaddr_in6*)&(nodeA.addr), (struct sockaddr_in6*)&(nodeB.addr), sizeof(struct sockaddr_in6));
           //ret = memcmp(GET_IN_type_ADDR(&(nodeA.addr),6), GET_IN_type_ADDR(&(nodeB.addr),6), 8);
-          ret = memcmp(((struct sockaddr_in6*)&(nodeA.addr))->sin6_addr.s6_addr , ((struct sockaddr_in6*)&(nodeB.addr))->sin6_addr.s6_addr, 8); 
+          int len_s6_addr = sizeof(struct in6_addr);
+          ret = memcmp(((struct sockaddr_in6*)&(nodeA.addr))->sin6_addr.s6_addr , ((struct sockaddr_in6*)&(nodeB.addr))->sin6_addr.s6_addr, len_s6_addr); 
+        }
       }
     }
   //}
@@ -92,11 +94,11 @@ int set_addr_y_NODE_T_from_str_addr(y_NODE_T *node, char * addrStr){
   
 	}
   node->addr_len = sizeof(struct sockaddr_storage);
-  if(strcmp(addrStr,"::1")==0){
+  /*if(strcmp(addrStr,"::1")==0){
     node->local_addr=1;
   }else{
     node->local_addr=0;
-  }
+  }*/
   return ret;
   
 }
@@ -195,12 +197,14 @@ void* update_nodes(void* arg)
 
 #endif
          //         node.local_addr = 0;
-        //struct sockaddr_in6 local6;
-        //inet_pton(AF_INET6, "::1", &local6);
         if(NULL ==  search_node_in_list_y_NODE_T(nodes, node)){
-  struct ifaddrs *if_addr=NULL;
-  getifaddrs(&if_addr);
+          struct ifaddrs *if_addr=NULL;
+          getifaddrs(&if_addr);
+          struct sockaddr_in6 local6;
+          inet_pton(AF_INET6, "::1", &local6);
+          int len_s6_addr = sizeof(struct in6_addr);
           int c_af = node.addr.ss_family;
+          node.local_addr = 0;
           for(struct ifaddrs *cur_ifa = if_addr; cur_ifa; cur_ifa=cur_ifa->ifa_next){
             if( c_af == cur_ifa->ifa_addr->sa_family){
               if(c_af==AF_INET){
@@ -210,8 +214,8 @@ void* update_nodes(void* arg)
                 } 
               }else if(c_af==AF_INET6){
                 if(
-                  //(memcmp(((struct sockaddr_in6*)&(node.addr))->sin6_addr.s6_addr , local6.sin6_addr.s6_addr, 8)==0)||
-                  (memcmp(((struct sockaddr_in6*)&(node.addr))->sin6_addr.s6_addr , ((struct sockaddr_in6*)&(cur_ifa->ifa_addr))->sin6_addr.s6_addr, 8)==0)
+                  (memcmp(((struct sockaddr_in6*)&(node.addr))->sin6_addr.s6_addr , local6.sin6_addr.s6_addr, len_s6_addr)==0)||
+                  (memcmp(((struct sockaddr_in6*)&(node.addr))->sin6_addr.s6_addr , ((struct sockaddr_in6*)&(cur_ifa->ifa_addr))->sin6_addr.s6_addr, len_s6_addr)==0)
                   ){
                   node.local_addr = 1;
                   break;
@@ -226,8 +230,8 @@ void* update_nodes(void* arg)
             }
           }
           push_back_list_y_NODE_T(nodes, node);
-            printf("debug: // /// // // update_nodes local_addr=%d\n",node.local_addr );
-  if(if_addr) freeifaddrs(if_addr);
+          printf("debug: // /// // // update_nodes local_addr=%d\n",node.local_addr );
+          if(if_addr) freeifaddrs(if_addr);
         }
 
 
