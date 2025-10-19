@@ -7,6 +7,8 @@
 
 const int af_array[nbIpVersion]={AF_INET, AF_INET6};
 
+void handle_input_cmd(char * buf, int buf_len, struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t);
+
 struct y_socket_t * y_socket_create(char *port, size_t size_fds, int nb_workers){ 
   struct y_socket_t *sock_temp=malloc(sizeof(struct y_socket_t));
 	if(size_fds>=nbIpVersion+1)
@@ -219,7 +221,23 @@ void* y_socket_handler_(void *arg){
       /* */
       char * buf = js_cmd->type.object.value->type.string; 
       size_t len_buf=strlen(buf);
-      if(strncmp(buf, "get", 3)==0){
+      if(strncmp(buf, "pipe", 4)==0){
+        size_t length_js_header = js_org_str_length(js_header);
+        char *content = buf_org + length_js_header;
+        size_t size_content = strlen(content);
+        /*pid_t pid=getpid();
+
+        //printf("debug: content = %s|#=%ld\n",content, size_content);
+        char duplicate_stdin_path[64];
+        sprintf(duplicate_stdin_path,"/proc/%d/fd/0",pid);
+        int fd_0 = open(duplicate_stdin_path, O_WRONLY);
+        if(fd_0>-1){
+          write(fd_0,content,size_content);
+          close(fd_0);
+        }*/
+        handle_input_cmd(content, size_content, sock, argw->list_arg, argw->argx , argH->m_ok_head_l_t);
+      }
+      else if(strncmp(buf, "get", 3)==0){
         if(len_buf > 4 && strncmp(buf+4,"file",4)==0){
           if(len_buf > 9){
             size_t len_filename = strlen(buf + 9);
@@ -392,6 +410,113 @@ void handle_buf_socket_rec(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, struc
     }
 }
 
+void handle_input_cmd(char * buf, int buf_len, struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t){
+  y_NODE_T node;
+  memset(&(node.addr), 0, sizeof(struct sockaddr_storage));
+  node.addr_len = sizeof(struct sockaddr_storage);
+  struct pollfd *fds = argSock->fds; 
+
+if(buf_len>6){
+#if 1
+					char cmd[BUF_SIZE], dst_addr[BUF_SIZE];//, msg_buf[BUF_SIZE];
+					int index_buf=0, index_str=0;
+					for(; buf[index_buf]!=' '; ++index_buf){
+						cmd[index_str++]=buf[index_buf];
+					}
+					cmd[index_str]='\0';
+				///printf("debug : index_str= %d; cmd=[%s]\n",index_str, cmd);
+					
+					index_str=0;
+					while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
+					for(; (index_buf < buf_len) && (buf[index_buf]!=' '); ++index_buf){
+						dst_addr[index_str++]=buf[index_buf];
+					}
+					dst_addr[index_str]='\0';
+					//while(buf[index_buf]==' '){++index_buf;}
+					while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
+					/*index_str=0;
+					for(; buf[index_buf]!='\n'; ++index_buf)
+						msg_buf[index_str++]=buf[index_buf];
+					msg_buf[index_str++]='\0';*/
+
+				///printf("debug : index_str=%d, dst_addr=[%s]\n", index_str, dst_addr);
+#endif
+
+		
+			if(/*check_y_socket_go_on(argSock) &&*/ strncmp(cmd, "sendto", 6)==0){
+				///printf("debug : sendto match, dst_addr=[%s]\n", dst_addr);
+        if(strcmp(dst_addr, "all" ) == 0){
+          struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
+          argS->fds=fds;
+          argS->nodes=argSock->nodes;
+          argS->node=node;
+          argS->filename=malloc(buf_len-index_buf+1); /* put here message to send for all */
+          memcpy(argS->filename, buf+index_buf, buf_len-index_buf);
+          argS->filename[buf_len-index_buf] = '\0';
+          argS->m_ok_head_l_t=m_ok_head_l_t; 
+        
+          push_back_list_TYPE_PTR(list_arg, argS);
+          push_back_list_TYPE_PTR(list_arg, argS->filename);
+          struct y_task_t task_handl = {
+            .func=y_send_buf_for_all_,
+            .arg=argS,
+            .status=TASK_PENDING,
+          };
+          push_tasQ(argx->tasQ, task_handl);
+      
+
+        }else if(strcmp(dst_addr, "other" ) == 0){
+          struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
+          argS->fds=fds;
+          argS->nodes=argSock->nodes;
+          argS->node=node;
+          argS->filename=malloc(buf_len-index_buf+1); /* put here message to send for all */
+          memcpy(argS->filename, buf+index_buf, buf_len-index_buf);
+          argS->filename[buf_len-index_buf] = '\0';
+          argS->m_ok_head_l_t=m_ok_head_l_t; 
+        
+          push_back_list_TYPE_PTR(list_arg, argS);
+          push_back_list_TYPE_PTR(list_arg, argS->filename);
+          struct y_task_t task_handl = {
+            .func=y_send_buf_for_other_,
+            .arg=argS,
+            .status=TASK_PENDING,
+          };
+          push_tasQ(argx->tasQ, task_handl);
+      
+
+        }
+        else if(set_addr_y_NODE_T_from_str_addr(&node, dst_addr)){
+					///printf("debug : set_addr_y_NODE_T done\n");
+					set_port_y_NODE_T_from_str_port(&node, argSock->port);
+					update_nodes(node, argSock->nodes);
+					int af=(node.addr.ss_family == AF_INET6);
+
+					
+					///printf("debug : af = AF_INET=%d, af = AF_INET6=%d, vs  af=[%d]\n",AF_INET, AF_INET6, af);
+
+          //node.addr_len = sizeof(struct sockaddr_storage);
+          //node.addr_len = sizeof(node.addr); 
+					if(sendto(argSock->fds[af].fd, buf+index_buf  , buf_len-index_buf, 0,
+          	(struct sockaddr*)(&(node.addr)), node.addr_len
+            ) == -1){
+      			fprintf(stderr,"message erreur sendto : %s, error :%d\n\n",buf,errno);
+          	perror("sendto:");
+          	close(fds[af].fd);
+          	return /*NULL*/;
+        	}
+          /*
+					char dddnn[56];
+				  put_y_NODE_T_in_string(&node, dddnn);
+      		printf("debug: sendto : %s: msg :%s\n\n",dddnn,  buf+index_buf);
+          */
+
+				}
+			}
+		}
+
+}
+
 void *y_socket_poll_fds(void *arg){
   usage_cmdl();
   struct y_socket_t * argSock = (struct y_socket_t*)arg;
@@ -440,7 +565,7 @@ void *y_socket_poll_fds(void *arg){
  	memset(&(node.addr), 0, sizeof(struct sockaddr_storage)); 
   //size_t len_sockaddr_storage = sizeof(struct sockaddr_storage);
   node.addr_len = sizeof(struct sockaddr_storage);
-  node.local_addr = 0;/* not local addr by default */
+  //node.local_addr = 0;/* not local addr by default */
 //  printf("debug: ------ //// node.addr_len = %d\n",node.addr_len); 
   
   for(;check_y_socket_go_on(argSock);){
@@ -511,7 +636,7 @@ void *y_socket_poll_fds(void *arg){
       buf_len = read(0,buf,BUF_SIZE);
       printf("message saisi : %s\n len = %ld\n",buf, buf_len);
 //      handle_input_kbd(buf, buf_len ,arg);
-#if 1
+#if 0
 			if(buf_len>6){
 #if 1
 					char cmd[BUF_SIZE], dst_addr[BUF_SIZE];//, msg_buf[BUF_SIZE];
@@ -610,6 +735,8 @@ void *y_socket_poll_fds(void *arg){
 				}
 			}
 		}
+#else
+    handle_input_cmd(buf, buf_len, argSock, list_arg, argx, m_ok_head_l_t);
 #endif
 
     }
