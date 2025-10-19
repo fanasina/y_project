@@ -630,11 +630,11 @@ void *y_socket_poll_fds(void *arg){
 //printf("fd = %d\n event=%d\n\n",fds[1].fd,pollEventRec);
       //fds[1].events = 0;
       
-      puts("Saisie du message : ");
+      puts(">>");
       memset(buf, 0, sizeof buf);
       //scanf(" %"xstr(BUF_SIZE)"[^\n]%*c", buf);
       buf_len = read(0,buf,BUF_SIZE);
-      printf("message saisi : %s\n len = %ld\n",buf, buf_len);
+      ///printf("message saisi : %s\n len = %ld\n",buf, buf_len);
 //      handle_input_kbd(buf, buf_len ,arg);
 #if 0
 			if(buf_len>6){
