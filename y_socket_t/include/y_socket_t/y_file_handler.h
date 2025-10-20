@@ -2,6 +2,8 @@
 #ifndef Y_FILE_HANDLER_T_H__C
 #define Y_FILE_HANDLER_T_H__C
 
+#include <sys/stat.h>
+
 #include "y_socket_t/y_socket_t.h"
 #include "y_socket_t/y_node_t.h"
 #include "y_socket_t/y_list_var_tool.h"

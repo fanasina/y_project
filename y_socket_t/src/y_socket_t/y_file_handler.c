@@ -928,6 +928,11 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                                  
                                  char fileNameLocal[tmpCnt_l->value->size_nameid + len_dir + 1];
                                  if(dst_dir){
+                                   if(mkdir(dst_dir, 0777) && errno != EEXIST)
+                                     fprintf(stderr, "error while trying to create '%s'\n%m\n", dst_dir);
+                                   else
+                                     printf("debug:%s exists now\n", dst_dir);
+
                                    sprintf(fileNameLocal, "%s/%s",dst_dir,tmpCnt_l->value->nameid);
                                  }else{
                                    sprintf(fileNameLocal, "%s/%s",REPO_LOCAL,tmpCnt_l->value->nameid);
