@@ -4,7 +4,7 @@
 
 #define TTL_SOCKDRAM 10 
 
-#define REPO_LOCAL ".dest"
+#define REPO_LOCAL ".ff__dest"
 #define LEN_REPO_LOCAL 6
 
 //#include "y_socket_t/y_node_t.h"
@@ -925,18 +925,17 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                                //if(strncmp(buf_cmd_v+5,"file",4)==0){
                                  int fd_file ;
                                  size_t len_dir=MAX(len_dst_dir, LEN_REPO_LOCAL);
-                                 
+                                 char *local_dest_dir=REPO_LOCAL; 
                                  char fileNameLocal[tmpCnt_l->value->size_nameid + len_dir + 1];
                                  if(dst_dir){
-                                   if(mkdir(dst_dir, 0777) && errno != EEXIST)
-                                     fprintf(stderr, "error while trying to create '%s'\n%m\n", dst_dir);
-                                   else
-                                     printf("debug:%s exists now\n", dst_dir);
-
-                                   sprintf(fileNameLocal, "%s/%s",dst_dir,tmpCnt_l->value->nameid);
-                                 }else{
-                                   sprintf(fileNameLocal, "%s/%s",REPO_LOCAL,tmpCnt_l->value->nameid);
+                                   local_dest_dir = dst_dir;
                                  }
+                                 if(mkdir(local_dest_dir, 0777) && errno != EEXIST){
+                                   fprintf(stderr, "error while trying to create '%s'\n%m\n", local_dest_dir);
+                                 }else{
+                                   printf("debug:%s exists now\n", local_dest_dir);
+                                 }
+                                 sprintf(fileNameLocal, "%s/%s",local_dest_dir,tmpCnt_l->value->nameid);
                                  if((fd_file = open(fileNameLocal, O_WRONLY | O_CREAT ,
                                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
                                    fprintf(stderr,"erreur write %s\n",tmpCnt_l->value->nameid);
