@@ -605,8 +605,12 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
             ++seq;    
             len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"tm\" : \"%ld\" }",filename, seq, timeid);
           }
+          if(argS->dst_dir){
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"tm\" : \"%ld\" , \"dst_dir\" : \"%s\" }",filename, seq, timeid, argS->dst_dir);
+          }else{ 
             len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"tm\" : \"%ld\" }",filename, seq, timeid);
-            if(sendto(fds[(c_af==AF_INET6)].fd,
+          } 
+          if(sendto(fds[(c_af==AF_INET6)].fd,
               buf_send, len_local_header_,
               0,
               (struct sockaddr*)&((node).addr),
@@ -855,6 +859,9 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
           //size_t size_m_str = 0;
           struct list_y_ptr_STRING * local_current_no_rec = m_str->begin_list; 
           struct list_y_ptr_STRING * local_current;
+                  char *dst_dir=NULL;
+                  size_t len_dst_dir=0;
+                  char eof=0;
             for(local_current = local_current_no_rec; local_current; local_current = local_current->next){
               char *buf_loc = local_current->value->buf;
               char nameid[BUF_SIZE/2]="";
@@ -869,7 +876,6 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                   char * buf_cmd_v = js_cmd->type.object.value->type.string;
                */ 
                   struct js_value *js_seq_v = get_js_value_of_key("seq", js_header_v );
-                  char eof=0;
                   if(js_seq_v){
                     if(js_seq_v->type.object.value->code_type == jstype_number){
                       size_t seq_local = (long)(js_seq_v->type.object.value->type.number);
@@ -881,6 +887,15 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                         eof=1;
                         ///printf("debug:  \n****************************end of file ***\n\n");
                         //printf("debug:  \n****************************end of file ***\n%s\n**********************************\n",buf_loc);
+                        struct js_value *js_dst_dir_v = get_js_value_of_key("dst_dir", js_header_v );
+                        if(js_dst_dir_v){
+                          if(value_of_(js_dst_dir_v)->code_type == jstype_string){
+                            dst_dir = value_of_(js_dst_dir_v)->type.string;
+                            len_dst_dir = js_dst_dir_v->type.object.value->length;
+                            // copy address of string and then remove from js by assign NULL, we have to free dst_dir after, if not string will free with js_header_v
+                            js_dst_dir_v->type.object.value->type.string=NULL;
+                          }
+                        }
                       }
                       
                       /*struct js_value *js_dst_v = get_js_value_of_key("dst", js_header_v );
@@ -909,8 +924,14 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
                                struct list_y_ptr_MSG_CONTENT_T * tmpCnt_l = m_content_l->begin_list;
                                //if(strncmp(buf_cmd_v+5,"file",4)==0){
                                  int fd_file ;
-                                 char fileNameLocal[tmpCnt_l->value->size_nameid + LEN_REPO_LOCAL + 1];
-                                 sprintf(fileNameLocal, "%s/%s",REPO_LOCAL,tmpCnt_l->value->nameid);
+                                 size_t len_dir=MAX(len_dst_dir, LEN_REPO_LOCAL);
+                                 
+                                 char fileNameLocal[tmpCnt_l->value->size_nameid + len_dir + 1];
+                                 if(dst_dir){
+                                   sprintf(fileNameLocal, "%s/%s",dst_dir,tmpCnt_l->value->nameid);
+                                 }else{
+                                   sprintf(fileNameLocal, "%s/%s",REPO_LOCAL,tmpCnt_l->value->nameid);
+                                 }
                                  if((fd_file = open(fileNameLocal, O_WRONLY | O_CREAT ,
                                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) == -1){
                                    fprintf(stderr,"erreur write %s\n",tmpCnt_l->value->nameid);
@@ -972,6 +993,9 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
               }else{
                 printf("\ndebug NULLL JS___HHHEADER_V \n");
               }
+            }
+            if(dst_dir){
+              free(dst_dir);
             }
             //if(local_current){
             //  printf("debug: getchar\n");

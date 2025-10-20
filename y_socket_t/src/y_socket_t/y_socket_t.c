@@ -250,6 +250,14 @@ void* y_socket_handler_(void *arg){
             argS->nodes=nodes;
             argS->node=argH->node;
             argS->filename=filename;
+            struct js_value *js_dst_dir = get_js_value_of_key("dst_dir", js_header );
+            if(js_dst_dir){
+              argS->dst_dir=js_dst_dir->type.object.value->type.string;
+              push_back_list_TYPE_PTR(argw->list_arg, argS->dst_dir);
+              js_dst_dir->type.object.value->type.string=NULL;
+            }else{
+              argS->dst_dir = NULL;
+            }
             argS->m_ok_head_l_t=argH->m_ok_head_l_t;
             push_back_list_TYPE_PTR(argw->list_arg, argS);
             push_back_list_TYPE_PTR(argw->list_arg, filename);
@@ -569,7 +577,7 @@ void *y_socket_poll_fds(void *arg){
 //  printf("debug: ------ //// node.addr_len = %d\n",node.addr_len); 
   
   for(;check_y_socket_go_on(argSock);){
-    printf("poll: wait events\n");
+    printf(">");//poll: wait events\n");
     status = poll(fds, nbIpVersion + 1, -1);
     if(status <= 0){
       if(status == -1 && errno != EINTR){
@@ -630,7 +638,7 @@ void *y_socket_poll_fds(void *arg){
 //printf("fd = %d\n event=%d\n\n",fds[1].fd,pollEventRec);
       //fds[1].events = 0;
       
-      puts(">>");
+      //puts(">>");
       memset(buf, 0, sizeof buf);
       //scanf(" %"xstr(BUF_SIZE)"[^\n]%*c", buf);
       buf_len = read(0,buf,BUF_SIZE);

@@ -20,6 +20,7 @@ struct arg_send_file{
 	struct main_list_y_NODE_T *nodes;
 	y_NODE_T node;
 	char * filename;
+	char * dst_dir;
 	struct main_list_y_ptr_HEADER_T *m_ok_head_l_t;
 	//struct main_list_y_ptr_VARIABLE *m_var;
 };
