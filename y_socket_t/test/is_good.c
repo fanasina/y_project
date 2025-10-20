@@ -181,11 +181,21 @@ TEST(import_nodes){
 
 
 TEST(pollThread){
-  struct y_socket_t *argS=y_socket_create("1600", 2, 3);
+  struct arg_var_ * var = create_arg_var_();
+  struct y_socket_t *argS=y_socket_create("1600", 2, 3, var);
 
   pthread_t pollTh;
   pthread_create(&pollTh, NULL, y_socket_poll_fds, (void*)argS);
 
+
+  wait_var_set_up_value_not_equal(var, 0);
+  EXPECT_EQ(var->set_up,1);
+  
+  char buf[] = "sendto 192.168.1.250 { \"cmd\" : \"get file __exode.txt\" }";
+  size_t len_buf = strlen(buf);
+
+  set_cmd_to_socket(buf, len_buf, var);
+  
 /*  
   struct argdst dstarg={
     .port="1600",
@@ -200,6 +210,7 @@ TEST(pollThread){
   pthread_join(pollTh, NULL);
 
   y_socket_free(argS);
+  free_arg_var_(var);
 
 }
 

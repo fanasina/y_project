@@ -9,7 +9,72 @@ const int af_array[nbIpVersion]={AF_INET, AF_INET6};
 
 void handle_input_cmd(char * buf, int buf_len, struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t);
 
-struct y_socket_t * y_socket_create(char *port, size_t size_fds, int nb_workers){ 
+
+struct arg_var_ * create_arg_var_(){
+  struct arg_var_ * new_var=malloc(sizeof(struct arg_var_));
+  new_var->set_up = 0;
+  new_var->mut_var = malloc(sizeof(pthread_mutex_t));
+  pthread_mutex_init(new_var->mut_var, NULL);
+  new_var->cond_var = malloc(sizeof(pthread_cond_t));
+  pthread_cond_init(new_var->cond_var, NULL);
+
+  new_var->argSock = NULL; 
+  new_var->list_arg = NULL; 
+  new_var->argx = NULL; 
+  new_var->m_ok_head_l_t = NULL;
+  
+  return new_var; 
+}
+
+void set_up_arg_var_init_(struct arg_var_ *var, struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t){
+  pthread_mutex_lock(var->mut_var);
+  if(var->set_up == 0){
+    var->argSock = argSock; 
+    var->list_arg = list_arg; 
+    var->argx = argx; 
+    var->m_ok_head_l_t = m_ok_head_l_t;
+    var->set_up = 1; 
+  }
+  pthread_mutex_unlock(var->mut_var);
+  pthread_cond_signal(var->cond_var);
+}
+
+void change_var_set_up_value(struct arg_var_ *var, int value_set_up){
+  pthread_mutex_lock(var->mut_var);
+  var->set_up = value_set_up;
+  pthread_mutex_unlock(var->mut_var);
+  pthread_cond_signal(var->cond_var);
+}
+
+void wait_var_set_up_value_not_equal(struct arg_var_ *var, int value_set_up){
+  pthread_mutex_lock(var->mut_var);
+    while(var->set_up == value_set_up){
+      pthread_cond_wait(var->cond_var, var->mut_var);
+    }
+
+  pthread_mutex_unlock(var->mut_var);
+  
+}
+
+void free_arg_var_(struct arg_var_ *var){
+ if(var->mut_var){ 
+  pthread_mutex_destroy(var->mut_var);
+  free(var->mut_var);
+ }
+ if(var->cond_var){
+  pthread_cond_destroy(var->cond_var);
+  free(var->cond_var);
+ }
+
+ if(var) 
+   free(var);
+}
+void set_cmd_to_socket(char * buf, size_t len_buf, struct arg_var_ *var){
+  handle_input_cmd(buf, len_buf, var->argSock, var->list_arg, var->argx , var->m_ok_head_l_t);
+
+
+}
+struct y_socket_t * y_socket_create(char *port, size_t size_fds, int nb_workers, struct arg_var_ *var){ 
   struct y_socket_t *sock_temp=malloc(sizeof(struct y_socket_t));
 	if(size_fds>=nbIpVersion+1)
 		sock_temp->size_fds = size_fds;
@@ -25,11 +90,12 @@ struct y_socket_t * y_socket_create(char *port, size_t size_fds, int nb_workers)
 	sock_temp->mut_go_on = malloc(sizeof(pthread_mutex_t));
   pthread_mutex_init(sock_temp->mut_go_on, NULL);
   sock_temp->nb_workers = nb_workers;
+  sock_temp->var = var;
 
   return sock_temp;
 }
 struct y_socket_t * y_socket_create_(char * port){ 
-	return y_socket_create(port, 3, 2);
+	return y_socket_create(port, 3, 2, NULL);
 }
 void y_socket_free(struct y_socket_t *socket){
   free(socket->fds);
@@ -564,6 +630,9 @@ void *y_socket_poll_fds(void *arg){
   struct main_list_y_ptr_HEADER_T *m_head_l_t = create_var_list_y_ptr_HEADER_T();
   struct main_list_y_ptr_HEADER_T *m_ok_head_l_t = create_var_list_y_ptr_HEADER_T();
   //struct main_list_y_ptr_VARIABLE *m_var = create_var_list_y_ptr_VARIABLE();
+  
+  //set up var to be used out side!
+  set_up_arg_var_init_(argSock->var, argSock, list_arg, argx , m_ok_head_l_t);
 
 //	char *temp_all_buf=NULL;
 
