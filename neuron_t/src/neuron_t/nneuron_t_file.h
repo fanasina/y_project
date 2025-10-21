@@ -270,7 +270,7 @@ do{\
   char *recInput=malloc(buf_size + 1);\
   memset(recInput,0, buf_size + 1);\
   char *iinput=malloc(buf_size * 2);\
-  bool size_unknown=false, broken=false; \
+  /*bool size_unknown=false, broken=false*/; \
   bool Done=false;\
   int retread = 0, curIn=0, lastNonNumber=0, lenRecIn=0;\
 \
@@ -279,7 +279,7 @@ do{\
   size_t ss;\
   char *ttmp=NULL;\
   char *ppEnd=NULL;\
-  bool bracketsDown=false, endTensor = false;\
+  bool bracketsDown=false/*, endTensor = false*/;\
   size_t j=0;\
   neurons_##type * tmpNN = neuronDst;\
   tensor_##type * T=NULL;\
@@ -307,7 +307,7 @@ j=0;\
           iinput[curIn]=recInput[lenRecIn-curIn-1];\
         }\
         retread = read(fd_input, input, buf_size) ;\
-        endTensor = (retread != buf_size);\
+        /*endTensor = (retread != buf_size);*/\
         /*printf("debug: ************************* ------>input = |%s|, retread=%d, input[ret-1]={%c}\n", input,retread,input[retread-1]);*/\
         lenRecIn = 0;\
         for(lastNonNumber=retread-1; lastNonNumber>=0; --lastNonNumber){ \
@@ -405,7 +405,7 @@ j=0;\
               }\
               ttmp=ppEnd;\
               Done=(j==dim->rank);\
-              endTensor=(j==dim->rank);\
+              /*endTensor=(j==dim->rank);*/\
             }\
             if(Done) break;\
             if(j == dim->rank ){\

@@ -31,6 +31,7 @@ $(TOPTARGETS): $(SUBDIRS)
 
 $(PROJECT_LIB): $(OBJ)
 	echo $(OBJ)
+	echo $(SUBDIRS)
 	#$(CC) -shared -o $@ $^ $(INCLUDE) $(LDFLAGS)
 	#$(CC) -shared -o $@ $^ $(LDFLAGS)
 	$(CC) -shared -o $@ $^ $(CFLAGS)

@@ -16,9 +16,9 @@ LISTDIR=$(PWD)/../../list_t
 
 NEURODIR=$(PWD)/../../neuron_t
 INCLUDE_DIR=$(PWD)/../src/deepQlearning
-INCLUDE=-I$(ROOT_DIR)/src/deepQlearning -I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(YTOOLDIR)/include -I$(LISTDIR)/src
+INCLUDE=-I$(INCLUDE_DIR) -I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(YTOOLDIR)/include -I$(LISTDIR)/src
  #"-D DEBUG=1"
-CFLAGS=-Wall -Werror -fpic -I$(INCLUDE)  #-lcurses
+CFLAGS=-Wall -Werror -fpic $(INCLUDE)  #-lcurses
 LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL -lm -lpthread  #-lcurses
 
 #SRC_DIR=$(ROOT_DIR)/src
@@ -57,10 +57,6 @@ LIB_YTEST=$(YTESTDIR)/libytest.so
 
 LIB_DEEPQLEARN=$(ROOT_DIR)/libdeepqlearn.so
 
-$(LIB_YTEST) : $(YTESTDIR)
-
-$(LIB_DEEPQLEARN) : $(ROOT_DIR)
-
 TOPTARGETS := all clean 
 
 DEPS=$(DIMDIR) $(YPERMDIR) $(YTESTDIR) $(TENSDIR) $(NEURODIR) $(YTOOLDIR) $(LISTDIR) $(ROOT_DIR)
@@ -68,12 +64,17 @@ DEPS=$(DIMDIR) $(YPERMDIR) $(YTESTDIR) $(TENSDIR) $(NEURODIR) $(YTOOLDIR) $(LIST
 OBJ=$(VEHICLESRC_O) $(DIMSRC_O) $(PERMSRC_O) $(TENSRC_O) $(NEUROSRC_O) $(TOOLSRC_O) $(LISTSRC_O) $(LEARNTODRIVESRC_O)
 
 
+all: $(EXEC) $(LIB_DEEPQLEARN)
 
 $(TOPTARGETS): $(DEPS) 
 
 $(DEPS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
+
+$(LIB_YTEST) : $(YTESTDIR)
+
+$(LIB_DEEPQLEARN) : $(ROOT_DIR)
 
 #PERMSRC_O=$(PERMSRC:.c=.o)
 #SETTSRC_O=$(PWD)/../src/set_theoric_t/set_theoric_t.o
@@ -82,7 +83,6 @@ $(DEPS):
 #TOOLSRC_O=$(TOOLSRC:.c=.o)
 
 
-all: $(EXEC) $(LIB_DEEPQLEARN)
 
 $(EXEC):	$(EXECSRC) $(OBJ) $(LIB_YTEST)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
