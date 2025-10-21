@@ -378,22 +378,22 @@ void signedvCoordFromLin(long int *ret, long int line, dimension *dim ){
 long int* signedCoordFromLin(long int line, dimension *dim){
     long int *ret;
     ret=malloc(dim->size*sizeof(long int));
-    vCoordFromLin(ret,line,dim);
+    signedvCoordFromLin(ret,line,dim);
     return ret;
 }
 
 /* */
 /* unsigned */
 size_t LineFromCoord(size_t *coo, dimension *dim) {
-  return signedLineFromCoord(coo,dim);
+  return (long)signedLineFromCoord((long*)coo,dim);
 }
 
 void vCoordFromLin(size_t *ret, size_t line, dimension *dim ){
-  signedvCoordFromLin(ret, line, dim);
+  signedvCoordFromLin((long*)ret, (long)line, dim);
 }
 
 size_t* CoordFromLin(size_t line, dimension *dim){
-  return signedCoordFromLin(line, dim);
+  return (size_t*)signedCoordFromLin((long)line, dim);
 }
 
 

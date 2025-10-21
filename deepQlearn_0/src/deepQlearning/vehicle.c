@@ -20,6 +20,7 @@ struct game_status * create_game_status(){
   status->reward = 0;
   status->cumulative_reward = 0;
   status->done = false;
+  return status;
 }
 
 coordinate * create_coordinate(size_t dim_size){
@@ -423,13 +424,12 @@ float distance2_coordinate(coordinate *c0, coordinate *c1){
   v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),dist))/SUBDIVISION ;\
   
   
-  
-  //v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),(int)dist))/SUBDIVISION ;\
-  
-  
-  //v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)/5))) ;\
-  //v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)))) / 50;\
-  //v->sensor->x[position] = (MIN(49,(int)(distance2_coordinate(diStep_sensor, v->coord)/10))) / 50;\
+ #if 0 
+  //v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),(int)dist))/SUBDIVISION ; 
+  //v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)/5))) ;
+  //v->sensor->x[position] = (MIN(49,(distance2_coordinate(diStep_sensor, v->coord)))) / 50;
+  //v->sensor->x[position] = (MIN(49,(int)(distance2_coordinate(diStep_sensor, v->coord)/10))) / 50;
+#endif
 
 void read_sensor(struct vehicle *v){
   copy_tensor_TYPE_FLOAT(v->old_sensor, v->sensor);

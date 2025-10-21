@@ -768,11 +768,11 @@ neurons_##type * calculate_output_by_network_neurons_##type(neurons_##type *base
     if(tmp->next_layer==NULL){\
       /*print_tensor_msg_##type(tmp->output,"retult");*/\
       *output_link = tmp->output;\
-      \
       return tmp;\
     }\
     tmp = tmp->next_layer;\
   }\
+  return NULL;\
 \
 }\
 void print_predict_by_network_neurons_##type(neurons_##type *base, tensor_##type *input){\

@@ -7,7 +7,7 @@
 #include "neuron_t/neuron_t.h"
 #include "tensor_t/tensor_t.h"
 
-//#define GEN_TYPE_FILE_NN(type)\
+//#define GEN_TYPE_FILE_NN(type)
 //void export_to_file_weight_in_nneurons_##type(char *fileName, neurons_##type *src);
 
 #define EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(type,nneurons ,attribute, file_name) \

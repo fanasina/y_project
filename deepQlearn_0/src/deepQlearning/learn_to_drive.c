@@ -45,7 +45,7 @@ struct networks_qlearning * create_nework_qlearning(
   struct networks_qlearning *qnets = malloc(sizeof(struct networks_qlearning));
   qnets->config = config;
 
-  setup_networks_alloutputs_config_TYPE_FLOAT(&(qnets->main_net), config, random, minR, maxR, randomRange);  
+  setup_networks_alloutputs_config_TYPE_FLOAT(&(qnets->main_net), config, randomize, minR, maxR, randomRange);  
   setup_networks_alloutputs_config_TYPE_FLOAT(&(qnets->target_net), config, false, minR, maxR, randomRange);  
   copy_weight_in_networks_from_main_to_target(qnets);
   
@@ -283,7 +283,7 @@ int select_action(struct RL_agent * rlAgent){
     //init =false;
   //}
   //int random = xrand() % randRange;
-  float proba_explor =  (float) (xrand() % (1<<17 -1))/ (1<<17 -1); //frand(); //(float)(random ) / randRange;
+  float proba_explor =  (float) (xrand() % ((1<<17) -1))/ ((1<<17) -1); //frand(); //(float)(random ) / randRange;
   if(proba_explor > rlAgent->qlearnParams->exploration_factor ){
     action = ARG_MAX_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  );
     //if(action == ARG_MIN_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  )) 
@@ -385,7 +385,7 @@ void learn_to_drive(struct RL_agent * rlAgent){
   struct game_status * car_status = car->status;
   struct qlearning_params * qlParams = rlAgent->qlearnParams;
   struct status_qlearning * qlStatus = rlAgent->status;
-  struct print_params * pprint = rlAgent->pprint;
+  //struct print_params * pprint = rlAgent->pprint;
   char msg[100];
   
   pthread_t threadPrint;

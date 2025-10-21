@@ -51,9 +51,9 @@ size_t LineFromCoord(size_t *coo, dimension *dim);
 size_t* CoordFromLin(size_t line, dimension *dim);
 void vCoordFromLin(size_t *ret, size_t line, dimension *dim );
 
-long int signedLineFromCoord(long int *coo, dimension *dim);
-long int* signedCoordFromLin(long int line, dimension *dim);
-void signedvCoordFromLin(long int *ret, long int line, dimension *dim );
+long int signedLineFromCoord(long *coo, dimension *dim);
+long int* signedCoordFromLin(long line, dimension *dim);
+void signedvCoordFromLin(long *ret, long int line, dimension *dim );
 
 
 void increment_dim_var(dimension *d);
