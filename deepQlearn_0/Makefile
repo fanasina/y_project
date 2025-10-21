@@ -2,30 +2,31 @@
 
 
 
-NAME_TEST=is_good
+LIB_DEEPQLEARN=libdeepqlearn.so
 CC=gcc
-ROOT_DIR=$(PWD)/..
-YTESTDIR=$(PWD)/../../ytest_t
-YTOOLDIR=$(PWD)/../../ytools_t
-YPERMDIR=$(PWD)/../../ypermutation_t
-DIMDIR=$(PWD)/../../dimension_t
+ROOT_DIR=$(PWD)
+YTESTDIR=$(PWD)/../ytest_t
+YTOOLDIR=$(PWD)/../ytools_t
+YPERMDIR=$(PWD)/../ypermutation_t
+DIMDIR=$(PWD)/../dimension_t
 
-TENSDIR=$(PWD)/../../tensor_t
-LISTDIR=$(PWD)/../../list_t
+TENSDIR=$(PWD)/../tensor_t
+LISTDIR=$(PWD)/../list_t
 
 
-NEURODIR=$(PWD)/../../neuron_t
-INCLUDE_DIR=$(PWD)/../src/deepQlearning
+NEURODIR=$(PWD)/../neuron_t
+INCLUDE_DIR=$(PWD)/src/deepQlearning
 INCLUDE=-I$(ROOT_DIR)/src/deepQlearning -I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(YTOOLDIR)/include -I$(LISTDIR)/src
+#CFLAGS=-I$(INCLUDE_DIR) -I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(YTOOLDIR)/include -I$(LISTDIR)/src
  #"-D DEBUG=1"
-CFLAGS=-Wall -Werror -fpic -I$(INCLUDE)  #-lcurses
-LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL -lm -lpthread  #-lcurses
+CFLAGS=-Wall -lOpenCL -lm -lpthread -Werror -fpic $(INCLUDE) #-lcurses
+#LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL -lm -lpthread  #-lcurses
 
 #SRC_DIR=$(ROOT_DIR)/src
 #SRC=$(wildcard */*/*.c) 
 SRC=$(wildcard **/**/*.c) 
 #HEADS=$(OBJS:.o=.h)
-TEST_DIR=$(PWD)
+#TEST_DIR=$(PWD)
 
 EXECSRC=$(NAME_TEST).c 
 #EXECSRC=openF.c
@@ -53,21 +54,16 @@ DIMSRC_O=$(DIMDIR)/src/dimension_t/dimension_t.o
 
 LISTSRC_O=$(LISTDIR)/src/list_t/list_t.o
 
-LIB_YTEST=$(YTESTDIR)/libytest.so
-
-LIB_DEEPQLEARN=$(ROOT_DIR)/libdeepqlearn.so
-
-$(LIB_YTEST) : $(YTESTDIR)
-
-$(LIB_DEEPQLEARN) : $(ROOT_DIR)
 
 TOPTARGETS := all clean 
 
-DEPS=$(DIMDIR) $(YPERMDIR) $(YTESTDIR) $(TENSDIR) $(NEURODIR) $(YTOOLDIR) $(LISTDIR) $(ROOT_DIR)
+DEPS=$(DIMDIR) $(YPERMDIR) $(YTESTDIR) $(TENSDIR) $(NEURODIR) $(YTOOLDIR) $(LISTDIR)
 
 OBJ=$(VEHICLESRC_O) $(DIMSRC_O) $(PERMSRC_O) $(TENSRC_O) $(NEUROSRC_O) $(TOOLSRC_O) $(LISTSRC_O) $(LEARNTODRIVESRC_O)
 
+LIB_YTEST=$(YTESTDIR)/libytest.so
 
+all: $(LIB_DEEPQLEARN)
 
 $(TOPTARGETS): $(DEPS) 
 
@@ -82,18 +78,19 @@ $(DEPS):
 #TOOLSRC_O=$(TOOLSRC:.c=.o)
 
 
-all: $(EXEC) $(LIB_DEEPQLEARN)
-
-$(EXEC):	$(EXECSRC) $(OBJ) $(LIB_YTEST)
+$(EXEC):	$(EXECSRC) $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
-#$(VEHICLESRC_O): $(VEHICLESRC) $(TOOLSRC_O) $(DIMSRC_O)
-#	$(CC) -o $@ -c $< $(CFLAGS) 
+$(LIB_DEEPQLEARN):	$(OBJ)
+	$(CC) -shared -o $@ $^ $(CFLAGS)
 
-#$(LEARNTODRIVESRC_O): $(LEARNTODRIVESRC) $(VEHICLESRC_O)  $(LISTSRC_O)
-#	$(CC) -o $@ -c $< $(CFLAGS) 
+$(VEHICLESRC_O): $(VEHICLESRC) $(TOOLSRC_O) $(DIMSRC_O)
+	$(CC) -o $@ -c $< $(CFLAGS) 
 
-.PHONY: all clean mrproper
+$(LEARNTODRIVESRC_O): $(LEARNTODRIVESRC) $(VEHICLESRC_O)  $(LISTSRC_O)
+	$(CC) -o $@ -c $< $(CFLAGS) 
+
+.PHONY: clean mrproper
 
 clean:
 	rm -f $(OBJ)
