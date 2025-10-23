@@ -7,10 +7,12 @@
 
 const int af_array[nbIpVersion]={AF_INET, AF_INET6};
 
-void handle_input_cmd(char * buf, int buf_len, struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t);
+//void handle_input_cmd(char * buf, int buf_len, struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t);
+void handle_input_cmd(char * buf, int buf_len, struct arg_var_ *var); 
+//struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t);
 
 
-struct arg_var_ * create_arg_var_(){
+struct arg_var_ * create_arg_var_(void (*extern_socket_handler)(char*,int)){
   struct arg_var_ * new_var=malloc(sizeof(struct arg_var_));
   new_var->set_up = 0;
   new_var->mut_var = malloc(sizeof(pthread_mutex_t));
@@ -22,6 +24,7 @@ struct arg_var_ * create_arg_var_(){
   new_var->list_arg = NULL; 
   new_var->argx = NULL; 
   new_var->m_ok_head_l_t = NULL;
+  new_var->extern_socket_handler = extern_socket_handler;
   
   return new_var; 
 }
@@ -70,7 +73,8 @@ void free_arg_var_(struct arg_var_ *var){
    free(var);
 }
 void set_cmd_to_socket(char * buf, size_t len_buf, struct arg_var_ *var){
-  handle_input_cmd(buf, len_buf, var->argSock, var->list_arg, var->argx , var->m_ok_head_l_t);
+  //handle_input_cmd(buf, len_buf, var->argSock, var->list_arg, var->argx , var->m_ok_head_l_t);
+  handle_input_cmd(buf, len_buf, var);//->argSock, var->list_arg, var->argx , var->m_ok_head_l_t);
 
 
 }
@@ -301,7 +305,7 @@ void* y_socket_handler_(void *arg){
           write(fd_0,content,size_content);
           close(fd_0);
         }*/
-        handle_input_cmd(content, size_content, sock, argw->list_arg, argw->argx , argH->m_ok_head_l_t);
+        handle_input_cmd(content, size_content, sock->var); //, argw->list_arg, argw->argx , argH->m_ok_head_l_t);
       }
       else if(strncmp(buf, "get", 3)==0){
         if(len_buf > 4 && strncmp(buf+4,"file",4)==0){
@@ -484,7 +488,12 @@ void handle_buf_socket_rec(struct main_list_y_ptr_HEADER_T *m_ok_head_l_t, struc
     }
 }
 
-void handle_input_cmd(char * buf, int buf_len, struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t){
+void handle_input_cmd(char * buf, int buf_len, struct arg_var_ *var){
+  //struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t
+  struct y_socket_t * argSock=var->argSock; 
+  struct main_list_TYPE_PTR * list_arg=var->list_arg; 
+  struct argExecTasQ *argx=var->argx;
+  struct main_list_y_ptr_HEADER_T *m_ok_head_l_t=var->m_ok_head_l_t;
   y_NODE_T node;
   memset(&(node.addr), 0, sizeof(struct sockaddr_storage));
   node.addr_len = sizeof(struct sockaddr_storage);
@@ -494,6 +503,7 @@ if(buf_len>6){
 #if 1
 					char cmd[BUF_SIZE], dst_addr[BUF_SIZE];//, msg_buf[BUF_SIZE];
 					int index_buf=0, index_str=0;
+					while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
 					for(; buf[index_buf]!=' '; ++index_buf){
 						cmd[index_str++]=buf[index_buf];
 					}
@@ -517,83 +527,98 @@ if(buf_len>6){
 #endif
 
 		
-			if(/*check_y_socket_go_on(argSock) &&*/ strncmp(cmd, "sendto", 6)==0){
+			if(*cmd &&/*check_y_socket_go_on(argSock) &&*/ strncmp(cmd, "sendto", 6)==0){
 				///printf("debug : sendto match, dst_addr=[%s]\n", dst_addr);
-        if(strcmp(dst_addr, "all" ) == 0){
-          struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
-          argS->fds=fds;
-          argS->nodes=argSock->nodes;
-          argS->node=node;
-          argS->filename=malloc(buf_len-index_buf+1); /* put here message to send for all */
-          memcpy(argS->filename, buf+index_buf, buf_len-index_buf);
-          argS->filename[buf_len-index_buf] = '\0';
-          argS->m_ok_head_l_t=m_ok_head_l_t; 
+        if(*dst_addr){
+          if(strcmp(dst_addr, "all" ) == 0){
+            struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
+            argS->fds=fds;
+            argS->nodes=argSock->nodes;
+            argS->node=node;
+            argS->filename=malloc(buf_len-index_buf+1); /* put here message to send for all */
+            memcpy(argS->filename, buf+index_buf, buf_len-index_buf);
+            argS->filename[buf_len-index_buf] = '\0';
+            argS->m_ok_head_l_t=m_ok_head_l_t; 
+          
+            push_back_list_TYPE_PTR(list_arg, argS);
+            push_back_list_TYPE_PTR(list_arg, argS->filename);
+            struct y_task_t task_handl = {
+              .func=y_send_buf_for_all_,
+              .arg=argS,
+              .status=TASK_PENDING,
+            };
+            push_tasQ(argx->tasQ, task_handl);
         
-          push_back_list_TYPE_PTR(list_arg, argS);
-          push_back_list_TYPE_PTR(list_arg, argS->filename);
-          struct y_task_t task_handl = {
-            .func=y_send_buf_for_all_,
-            .arg=argS,
-            .status=TASK_PENDING,
-          };
-          push_tasQ(argx->tasQ, task_handl);
-      
 
-        }else if(strcmp(dst_addr, "other" ) == 0){
-          struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
-          argS->fds=fds;
-          argS->nodes=argSock->nodes;
-          argS->node=node;
-          argS->filename=malloc(buf_len-index_buf+1); /* put here message to send for all */
-          memcpy(argS->filename, buf+index_buf, buf_len-index_buf);
-          argS->filename[buf_len-index_buf] = '\0';
-          argS->m_ok_head_l_t=m_ok_head_l_t; 
+          }else if(strcmp(dst_addr, "other" ) == 0){
+            struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
+            argS->fds=fds;
+            argS->nodes=argSock->nodes;
+            argS->node=node;
+            argS->filename=malloc(buf_len-index_buf+1); /* put here message to send for all */
+            memcpy(argS->filename, buf+index_buf, buf_len-index_buf);
+            argS->filename[buf_len-index_buf] = '\0';
+            argS->m_ok_head_l_t=m_ok_head_l_t; 
+          
+            push_back_list_TYPE_PTR(list_arg, argS);
+            push_back_list_TYPE_PTR(list_arg, argS->filename);
+            struct y_task_t task_handl = {
+              .func=y_send_buf_for_other_,
+              .arg=argS,
+              .status=TASK_PENDING,
+            };
+            push_tasQ(argx->tasQ, task_handl);
         
-          push_back_list_TYPE_PTR(list_arg, argS);
-          push_back_list_TYPE_PTR(list_arg, argS->filename);
-          struct y_task_t task_handl = {
-            .func=y_send_buf_for_other_,
-            .arg=argS,
-            .status=TASK_PENDING,
-          };
-          push_tasQ(argx->tasQ, task_handl);
-      
 
+          }
+          else if(set_addr_y_NODE_T_from_str_addr(&node, dst_addr)){
+            ///printf("debug : set_addr_y_NODE_T done\n");
+            set_port_y_NODE_T_from_str_port(&node, argSock->port);
+            update_nodes(node, argSock->nodes);
+            int af=(node.addr.ss_family == AF_INET6);
+
+            
+            ///printf("debug : af = AF_INET=%d, af = AF_INET6=%d, vs  af=[%d]\n",AF_INET, AF_INET6, af);
+
+            //node.addr_len = sizeof(struct sockaddr_storage);
+            //node.addr_len = sizeof(node.addr); 
+            if(sendto(argSock->fds[af].fd, buf+index_buf  , buf_len-index_buf, 0,
+              (struct sockaddr*)(&(node.addr)), node.addr_len
+              ) == -1){
+              fprintf(stderr,"message erreur sendto : %s, error :%d\n\n",buf,errno);
+              perror("sendto:");
+              close(fds[af].fd);
+              return /*NULL*/;
+            }
+            /*
+            char dddnn[56];
+            put_y_NODE_T_in_string(&node, dddnn);
+            printf("debug: sendto : %s: msg :%s\n\n",dddnn,  buf+index_buf);
+            */
+
+          }
         }
-        else if(set_addr_y_NODE_T_from_str_addr(&node, dst_addr)){
-					///printf("debug : set_addr_y_NODE_T done\n");
-					set_port_y_NODE_T_from_str_port(&node, argSock->port);
-					update_nodes(node, argSock->nodes);
-					int af=(node.addr.ss_family == AF_INET6);
-
-					
-					///printf("debug : af = AF_INET=%d, af = AF_INET6=%d, vs  af=[%d]\n",AF_INET, AF_INET6, af);
-
-          //node.addr_len = sizeof(struct sockaddr_storage);
-          //node.addr_len = sizeof(node.addr); 
-					if(sendto(argSock->fds[af].fd, buf+index_buf  , buf_len-index_buf, 0,
-          	(struct sockaddr*)(&(node.addr)), node.addr_len
-            ) == -1){
-      			fprintf(stderr,"message erreur sendto : %s, error :%d\n\n",buf,errno);
-          	perror("sendto:");
-          	close(fds[af].fd);
-          	return /*NULL*/;
-        	}
-          /*
-					char dddnn[56];
-				  put_y_NODE_T_in_string(&node, dddnn);
-      		printf("debug: sendto : %s: msg :%s\n\n",dddnn,  buf+index_buf);
-          */
-
-				}
-			}
+			}else{
+        if(var->extern_socket_handler){
+          var->extern_socket_handler(buf,buf_len);
+        }else{
+          printf("debug: No extern_socket_handler in var\n");
+        }
+      }
 		}else if(buf_len && strncmp(buf, "help", 4)==0){
       usage_cmdl();
     }else if(buf_len && strncmp(buf, "kill", 4)==0){
       pthread_mutex_lock(argSock->mut_go_on);
       argSock->go_on = 0;
       pthread_mutex_unlock(argSock->mut_go_on);
-   }
+    }else{
+        if(var->extern_socket_handler){
+          var->extern_socket_handler(buf,buf_len);
+        }else{
+          printf("debug: No extern_socket_handler in var\n");
+        }
+      }
+
 
 }
 
@@ -819,7 +844,8 @@ void *y_socket_poll_fds(void *arg){
 			}
 		}
 #else
-    handle_input_cmd(buf, buf_len, argSock, list_arg, argx, m_ok_head_l_t);
+    //handle_input_cmd(buf, buf_len, argSock, list_arg, argx, m_ok_head_l_t);
+    handle_input_cmd(buf, buf_len, argSock->var); //argSock, list_arg, argx, m_ok_head_l_t);
 #endif
 
     }
