@@ -587,7 +587,13 @@ if(buf_len>6){
 
 				}
 			}
-		}
+		}else if(buf_len && strncmp(buf, "help", 4)==0){
+      usage_cmdl();
+    }else if(buf_len && strncmp(buf, "kill", 4)==0){
+      pthread_mutex_lock(argSock->mut_go_on);
+      argSock->go_on = 0;
+      pthread_mutex_unlock(argSock->mut_go_on);
+   }
 
 }
 

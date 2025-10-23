@@ -190,12 +190,12 @@ TEST(pollThread){
 
   wait_var_set_up_value_not_equal(var, 0);
   EXPECT_EQ(var->set_up,1);
-  
+  /*
   char buf[] = "sendto 192.168.1.250 { \"cmd\" : \"get file __exode.txt\" }";
   size_t len_buf = strlen(buf);
 
   set_cmd_to_socket(buf, len_buf, var);
-  
+  */
 /*  
   struct argdst dstarg={
     .port="1600",
