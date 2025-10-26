@@ -15,7 +15,7 @@
 
 #include "list_t/list_t.h"
 
-void fileNameDateScore(char* filename, char * pre, char* post,size_t score);
+void y_fileNameDateScore(char* filename, char * pre, char* post,size_t score);
 
 struct arg_send_file{
 	struct pollfd *fds;
