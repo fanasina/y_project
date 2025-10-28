@@ -1,17 +1,17 @@
+# file neuron_t/Makefile
 # lib: -lneurons
 
 PROJECT_LIB=libneurons.so
-
+ROOTPROJECTDIR:=$(realpath ..)
 CC=gcc
-ROOT_DIR=$(PWD)
-YTESTDIR=$(PWD)/../ytest_t
-YPERMDIR=$(PWD)/../ypermutation_t
+ROOT_DIR=$(ROOTPROJECTDIR)/neuron_t
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+YPERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
 
-TENSDIR=$(PWD)/../tensor_t
+TENSDIR=$(ROOTPROJECTDIR)/tensor_t
 
-NEURODIR=$(PWD)
-DIMDIR=$(PWD)/../dimension_t
-INCLUDE_DIR=$(PWD)/sr
+NEURODIR=$(ROOT_DIR)
+DIMDIR=$(ROOTPROJECTDIR)/dimension_t
 
 #CFLAGS=-I$(INCLUDE_DIR) -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src #"-D DEBUG=1"
 INCLUDE=-I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(DIMDIR)/src -I$(TENSDIR)/src #"-D DEBUG=1"
@@ -24,7 +24,7 @@ LDFLAGS= -lOpenCL -lpthread
 #SRC=$(wildcard */*/*.c) 
 SRC=$(wildcard **/**/*.c) 
 #HEADS=$(OBJS:.o=.h)
-TEST_DIR=$(PWD)
+TEST_DIR=$(PWD)/test
 
 EXECSRC=$(NAME_TEST).c
 #EXECSRC=openF.c
@@ -77,7 +77,7 @@ update_headers: $(PROJECT_LIB)
 
 
 #PERMSRC_O=$(PERMSRC:.c=.o)
-#SETTSRC_O=$(PWD)/../src/set_theoric_t/set_theoric_t.o
+#SETTSRC_O=$(ROOTPROJECTDIR)/src/set_theoric_t/set_theoric_t.o
 #SETTSRC_O=$(SETTSRC:.c=.o)
 #TOOLSRC=$(TOOLDIR)/src/tools_t/tools_t.c
 #TOOLSRC_O=$(TOOLSRC:.c=.o)

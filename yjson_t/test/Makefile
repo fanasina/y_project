@@ -1,16 +1,16 @@
+# file: yjson_t/test/Makefile
 
-
-
+ROOTPROJECTDIR:=$(realpath ../..)
 
 NAME_TEST=is_good
 CC=gcc
-ROOT_DIR=$(PWD)
-YTESTDIR=$(PWD)/../../ytest_t
-LISTDIR=$(PWD)/../../list_t
-YSOCKETDIR=$(PWD)/../../y_socket_t
+ROOT_DIR=$(ROOTPROJECTDIR)/yjson_t
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+LISTDIR=$(ROOTPROJECTDIR)/list_t
+YSOCKETDIR=$(ROOTPROJECTDIR)/y_socket_t
 INCLUDE_LIST=$(LISTDIR)/src
 
-INCLUDE_DIR=$(PWD)/../src
+INCLUDE_DIR=$(ROOT_DIR)/src
 CFLAGS=-I$(INCLUDE_DIR) -I$(INCLUDE_LIST)  -I$(YTESTDIR)/include_ytest/include  -I$(YSOCKETDIR)/include
 LDFLAGS=-L$(YTESTDIR) -lytest
 
@@ -25,7 +25,7 @@ EXEC=launch_$(NAME_TEST)_m
 
 LISTSRC_O=$(LISTDIR)/src/list_t/list_t.o
 
-JSONDIR=$(PWD)/..
+JSONDIR=$(ROOT_DIR)
 JSONSRC=$(JSONDIR)/src/json_t/json_t.c
 JSONSRC_O=$(JSONDIR)/src/json_t/json_t.o
 YSTRINGLIST_O=$(YSOCKETDIR)/src/y_socket_t/y_list_var_tool.o

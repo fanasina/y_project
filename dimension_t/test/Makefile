@@ -1,14 +1,16 @@
-
+# file dimension_t/test/Makefile
+ROOTPROJECTDIR:=$(realpath ../..)
 
 
 
 NAME_TEST=is_good
 CC=gcc
-ROOT_DIR=$(PWD)
-YTESTDIR=$(PWD)/../../ytest_t
-YPERMDIR=$(PWD)/../../ypermutation_t
+ROOT_DIR=$(DIMDIR)/test
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+YPERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
 
-INCLUDE_DIR=$(PWD)/../src
+DIMDIR=$(ROOTPROJECTDIR)/dimension_t
+INCLUDE_DIR=$(DIMDIR)/src
 CFLAGS=-I$(INCLUDE_DIR) -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include
 LDFLAGS=-L$(YTESTDIR) -lytest
 
@@ -16,11 +18,10 @@ LDFLAGS=-L$(YTESTDIR) -lytest
 #SRC=$(wildcard */*/*.c) 
 SRC=$(wildcard **/**/*.c) 
 #HEADS=$(OBJS:.o=.h)
-TEST_DIR=$(PWD)
+TEST_DIR=$(ROOT_DIR)
 EXECSRC=$(NAME_TEST).c
 EXEC=launch_$(NAME_TEST)_m
 
-DIMDIR=$(PWD)/..
 
 PERMSRC_O=$(YPERMDIR)/src/permutation_t/permutation_t.o
 

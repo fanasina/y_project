@@ -1,18 +1,18 @@
+# file qlearn_0/test/Makefile
 
-
-
+ROOTPROJECTDIR:=$(realpath ../..)
 
 NAME_TEST=is_good
 CC=gcc
-ROOT_DIR=$(PWD)
-FROZENLAKEDIR=$(PWD)/..
-YTESTDIR=$(PWD)/../../ytest_t
-YPERMDIR=$(PWD)/../../ypermutation_t
-DIMDIR=$(PWD)/../../dimension_t
-LISTDIR=$(PWD)/../../list_t
-TOOLDIR=$(PWD)/../../ytools_t
+ROOT_DIR=$(ROOTPROJECTDIR)/qlearn_0
+FROZENLAKEDIR=$(ROOT_DIR)
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+YPERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
+DIMDIR=$(ROOTPROJECTDIR)/dimension_t
+LISTDIR=$(ROOTPROJECTDIR)/list_t
+TOOLDIR=$(ROOTPROJECTDIR)/ytools_t
 
-INCLUDE_DIR=$(PWD)/../src
+INCLUDE_DIR=$(ROOT_DIR)/src
 CFLAGS=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include  -I$(YPERMDIR)/src   -I$(DIMDIR)/src -I$(LISTDIR)/src -I$(TOOLDIR)/include
 LDFLAGS=-L$(YTESTDIR) -lytest #"-D DEBUG=1"
 
@@ -20,7 +20,7 @@ LDFLAGS=-L$(YTESTDIR) -lytest #"-D DEBUG=1"
 #SRC=$(wildcard */*/*.c) 
 SRC=$(wildcard **.c) 
 #HEADS=$(OBJS:.o=.h)
-TEST_DIR=$(PWD)
+TEST_DIR=$(ROOT_DIR)/test
 EXECSRC=$(NAME_TEST).c
 EXEC=launch_$(NAME_TEST)_m
 LISTSRC_O=$(LISTDIR)/src/list_t/list_t.o
@@ -44,7 +44,7 @@ $(DEPS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
 
-OBJ=$(FROZENLAKESRC_O) $(LISTSRC_O) $(PERMSRC_O)  $(DIMSRC_O) $(TOOLSRC_O)
+OBJ=$(FROZENLAKESRC_O) $(PERMSRC_O)  $(DIMSRC_O) $(TOOLSRC_O) $(LISTSRC_O)
 
 LIB_YTEST=$(YTESTDIR)/libytest.so
 
@@ -54,7 +54,7 @@ $(EXEC):	$(EXECSRC) $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
 $(FROZENLAKESRC_O): $(FROZENLAKESRC) $(LISTSRC_O) $(PERMSRC_O)  $(DIMSRC_O) $(TOOLSRC_O)
-	$(CC) -o $@ -c $^ $(CFLAGS) 
+	$(CC) -o $@ -c $< $(CFLAGS) 
   
 #$(LDFLAGS)
 

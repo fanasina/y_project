@@ -1,18 +1,28 @@
 #file: y_network_neural_network_/Makefile
 # lib: -lynetneurnet
-PROJECT_LIB=libynetneurnet.so
 CC=gcc
-NETNEURNETDIR=$(PWD)
+ROOTPROJECTDIR:=$(realpath ..)
+NETNEURNETDIR=$(ROOTPROJECTDIR)/y_network_neural_network_
+PROJECT_LIB=$(NETNEURNETDIR)/libynetneurnet.so
 
-ROOTPROJECTDIR=$(PWD)/..
+YNETMANAGER_SRC=$(NETNEURNETDIR)/src/y_net_neur_net/y_nnn_manager.c
+YNETMANAGER_SRC_O=$(YNETMANAGER_SRC:.c=.o)
+
+YNETSCREENMANAGER_SRC=$(NETNEURNETDIR)/src/y_net_neur_net/y_nnn_screen_manager.c
+YNETSCREENMANAGER_SRC_O=$(YNETSCREENMANAGER_SRC:.c=.o)
+
+OBJ_NNN=$(YNETMANAGER_SRC_O) $(YNETSCREENMANAGER_SRC_O)
+
+INCLUDE_NNN=-I$(NETNEURNETDIR)/include
+
 
 #$(wildcard $(PWD)/**/include)
 
-YLISTDIR=$(PWD)/../list_t
-YWORKDIR=$(PWD)/../y_worker_t
-YJSONDIR=$(PWD)/../yjson_t
+YLISTDIR=$(ROOTPROJECTDIR)/list_t
+YWORKDIR=$(ROOTPROJECTDIR)/y_worker_t
+YJSONDIR=$(ROOTPROJECTDIR)/yjson_t
 #YSOCKETDIR=$(YSOCKET_DIR) 
-YSOCKET_DIR=$(PWD)/../y_socket_t
+YSOCKET_DIR=$(ROOTPROJECTDIR)/y_socket_t
 
 INCLUDE_SOCKET=-I$(YSOCKET_DIR)/include -I$(YLISTDIR)/src -I$(YWORKDIR)/include -I$(YJSONDIR)/src -I$(YSOCKET_DIR)/include 
 
@@ -41,18 +51,18 @@ OBJ_SOCKET=$(YSOCKSRC_O) $(YNODESRC_O) $(YY_STRINGSRC_O) $(YLISTSRC_O) $(WORKSRC
 
 
 #CC=gcc
-DEEPQLEARNDIR=$(PWD)/../deepQlearn_0
+DEEPQLEARNDIR=$(ROOTPROJECTDIR)/deepQlearn_0
 LIB_DEEPQLEARN=$(DEEPQLEARNDIR)/libdeepqlearn.so
 
-YTESTDIR=$(PWD)/../ytest_t
-YTOOLDIR=$(PWD)/../ytools_t
-YPERMDIR=$(PWD)/../ypermutation_t
-DIMDIR=$(PWD)/../dimension_t
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+YTOOLDIR=$(ROOTPROJECTDIR)/ytools_t
+YPERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
+DIMDIR=$(ROOTPROJECTDIR)/dimension_t
 
-TENSDIR=$(PWD)/../tensor_t
-LISTDIR=$(PWD)/../list_t
+TENSDIR=$(ROOTPROJECTDIR)/tensor_t
+LISTDIR=$(ROOTPROJECTDIR)/list_t
 
-NEURODIR=$(PWD)/../neuron_t
+NEURODIR=$(ROOTPROJECTDIR)/neuron_t
 
 #DEEPQLEARN_SRC_DIR=$(PWD)/src/deepQlearning
 INCLUDE_DEEPQLEARN=-I$(DEEPQLEARNDIR)/src/deepQlearning -I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(YTOOLDIR)/include -I$(LISTDIR)/src
@@ -111,7 +121,7 @@ $(TOPTARGETS): $(DEPS)
 
 
 
-INCLUDE=$(INCLUDE_SOCKET) $(INCLUDE_DEEPQLEARN)
+INCLUDE=$(INCLUDE_NNN) $(INCLUDE_SOCKET) $(INCLUDE_DEEPQLEARN) 
 
 CFLAGS=-Wall -lOpenCL -lm -lpthread -Werror -fpic $(INCLUDE) #-lcurses
 #LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL -lm -lpthread  #-lcurses
@@ -120,7 +130,7 @@ CFLAGS=-Wall -lOpenCL -lm -lpthread -Werror -fpic $(INCLUDE) #-lcurses
 #CFLAGS=-g -lpthread -Wall -Werror -fpic $(INCLUDE) #"-D DEBUG=1" 
 #LDFLAGS=
 
-OBJ=$(OBJ_DEEPQLEARN) $(OBJ_SOCKET) 
+OBJ=$(OBJ_NNN) $(OBJ_DEEPQLEARN) $(OBJ_SOCKET) 
 
 
 $(PROJECT_LIB): $(OBJ) #$(LIB_SOCKET) $(LIB_DEEPQLEARN)
@@ -131,11 +141,19 @@ $(PROJECT_LIB): $(OBJ) #$(LIB_SOCKET) $(LIB_DEEPQLEARN)
 
 # .PHONY: $(TOPTARGETS) $(SUBDIRS)
 
+$(YNETMANAGER_SRC_O): $(YNETMANAGER_SRC) $(LISTSRC_O)
+	$(CC) -o $@ -c $< $(CFLAGS)
+
+
+$(YNETSCREENMANAGER_SRC_O): $(YNETSCREENMANAGER_SRC) $(LISTSRC_O)
+	$(CC) -o $@ -c $< $(CFLAGS)
+
 
 $(DEPS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
 .PHONY: all clean
+
 
 clean: 
 	rm -f $(OBJ)

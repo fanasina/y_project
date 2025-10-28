@@ -49,10 +49,11 @@ TEST(double_equal){
   ASSERT_EQ_TYPE_DOUBLE(1.0000000100000002,b);
 }
 
-TEST(){
+TEST(unsigned){
   unsigned char c = 'a';
 
-  debug_print("another test, a = %c\n",c);
+  LOG("another test, a = %c\n",c);
+  EXPECT_EQ('a',c);
   ASSERT_FALSE(true);
   ASSERT_TRUE(true);
   ASSERT_TRUE(true);

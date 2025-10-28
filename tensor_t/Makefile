@@ -1,11 +1,12 @@
-
+# file tensor_t/Makefile
+ROOTPROJECTDIR:=$(realpath ..)
 CC=gcc
-TOOLDIR=$(PWD)/../ytools_t
-PERMDIR=$(PWD)/../ypermutation_t
+TOOLDIR=$(ROOTPROJECTDIR)/ytools_t
+PERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
 
-DIMDIR=$(PWD)/../dimension_t
-
-INCLUDE_TENS=$(PWD)/src
+DIMDIR=$(ROOTPROJECTDIR)/dimension_t
+TENSEDIR=$(ROOTPROJECTDIR)/tensor_t
+INCLUDE_TENS=$(TENSEDIR)/src
 INCLUDE_PERMDIR=$(PERMDIR)/src 
 INCLUDE_DIMDIR=$(DIMDIR)/src 
 INCLUDE_TOOLDIR=$(TOOLDIR)/include

@@ -1,13 +1,13 @@
+# file: y_worker_t/test/Makefile
 
-
-
+ROOTPROJECTDIR:=$(realpath ../..)
 
 NAME_TEST=is_good
 CC=gcc
-YTESTDIR=$(PWD)/../../ytest_t
-YLISTDIR=$(PWD)/../../list_t
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+YLISTDIR=$(ROOTPROJECTDIR)/list_t
 
-ROOT_DIR=$(PWD)/..
+ROOT_DIR=$(ROOTPROJECTDIR)/y_worker_t
 INCLUDE_DIR=$(ROOT_DIR)/include
 CFLAGS=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include -I$(YLISTDIR)/src
 LDFLAGS=-L$(YTESTDIR) -lytest -lpthread -lm -lOpenCL -Wall -Werror
@@ -42,7 +42,7 @@ OBJ=$(YWORKSRC_O) $(YTASKSRC_O)  $(YLISTSRC_O)
 
 LIB_YTEST=$(YTESTDIR)/libytest.so
 
-LIB_YWORK=$(PWD)/../libyworker.so
+LIB_YWORK=$(ROOT_DIR)/libyworker.so
 
 $(TOPTARGETS): $(DEPS)
 

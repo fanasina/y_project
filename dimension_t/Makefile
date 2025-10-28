@@ -1,7 +1,8 @@
-
+# file: dimension_t/Makefile
 CC=gcc
-TOOLDIR=$(PWD)/../ytools_t
-PERMDIR=$(PWD)/../ypermutation_t
+ROOTPROJECTDIR:=$(realpath ..)
+TOOLDIR=$(ROOTPROJECTDIR)/ytools_t
+PERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
 
 INCLUDE_PERMDIR=$(PERMDIR)/src 
 INCLUDE_TOOLDIR=$(TOOLDIR)/include

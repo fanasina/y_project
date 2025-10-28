@@ -1,12 +1,16 @@
+#file: y_worker_t/Makefile
+
 # lib: -lyworker
+ROOTPROJECTDIR:=$(realpath ..)
+YWORKERDIR=$(ROOTPROJECTDIR)/y_worker_t
+
 PROJECT_LIB=libyworker.so
 CC=gcc
-INCLUDE_DIRS=$(PWD)/include
-SOCDIR=$(PWD) 
+INCLUDE_DIRS=$(YWORKERDIR)/include
 #$(wildcard $(PWD)/**/include)
 
-TOOLDIR=$(PWD)/../ytools_t
-YLISTDIR=$(PWD)/../list_t
+TOOLDIR=$(ROOTPROJECTDIR)/ytools_t
+YLISTDIR=$(ROOTPROJECTDIR)/list_t
 
 
 INCLUDE=-I$(INCLUDE_DIRS) -I$(YLISTDIR)/src -I$(TOOLDIR)/include

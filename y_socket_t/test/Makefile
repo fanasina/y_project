@@ -1,15 +1,15 @@
 #file: y_socket_t/test/Makefil
-
+ROOTPROJECTDIR:=$(realpath ../..)
 
 
 NAME_TEST=is_good
 CC=gcc
-YTESTDIR=$(PWD)/../../ytest_t
-YLISTDIR=$(PWD)/../../list_t
-YWORKDIR=$(PWD)/../../y_worker_t
-YJSONDIR=$(PWD)/../../yjson_t
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+YLISTDIR=$(ROOTPROJECTDIR)/list_t
+YWORKDIR=$(ROOTPROJECTDIR)/y_worker_t
+YJSONDIR=$(ROOTPROJECTDIR)/yjson_t
 
-ROOT_DIR=$(PWD)/..
+ROOT_DIR=$(ROOTPROJECTDIR)/y_socket_t
 INCLUDE_DIR=$(ROOT_DIR)/include
 INCLUDE=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include -I$(YLISTDIR)/src -I$(YWORKDIR)/include -I$(YJSONDIR)/src
 CFLAGS=-Wall -Werror -fpic $(INCLUDE)
@@ -74,7 +74,7 @@ $(LIB_YSOCK): $(ROOT_DIR)
 $(EXEC):	$(EXECSRC) $(OBJ) $(LIB_YTEST)
 	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
-.PHONY: all clean mrproper
+.PHONY: all clean mrproper $(YTESTDIR) $(ROOT_DIR)
 
 clean:
 	rm -f $(OBJ)

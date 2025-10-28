@@ -1,17 +1,18 @@
-
+# file: yjson_t/Makefile
+ROOTPROJECTDIR:=$(realpath ..)
 CC=gcc
-TOOLDIR=$(PWD)/../ytools_t
+TOOLDIR=$(ROOTPROJECTDIR)/ytools_t
 
 
 #SRC_DIR=$(ROOT_DIR)/src
 #SRC=$(wildcard */*/*.c) 
 #HEADS=$(OBJS:.o=.h)
 
-LISTDIR=$(PWD)/../list_t
+LISTDIR=$(ROOTPROJECTDIR)/list_t
 LISTSRC=$(LISTDIR)/src/list_t/list_t.c
 LISTSRC_O=$(LISTSRC:.c=.o)
 
-YSOCKETDIR=$(PWD)/../y_socket_t/
+YSOCKETDIR=$(ROOTPROJECTDIR)/y_socket_t/
 YSTRINGLISTSRC=$(YSOCKETDIR)/src/y_socket_t/y_list_var_tool.c
 YSTRINGLISTSRC_O=$(YSOCKETSRC:.c=.o)
 

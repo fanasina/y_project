@@ -1,14 +1,15 @@
 #file: y_socket_t/Makefile
 # lib: -lysocket
-PROJECT_LIB=libysocket.so
+ROOTPROJECTDIR:=$(realpath ..)
+SOCDIR:=$(ROOTPROJECTDIR)/y_socket_t
+PROJECT_LIB=$(SOCDIR)/libysocket.so
 CC=gcc
-INCLUDE_DIRS=$(PWD)/include
-SOCDIR=$(PWD) 
-#$(wildcard $(PWD)/**/include)
+INCLUDE_DIRS=$(SOCDIR)/include
+#$(wildcard $(SOCDIR)/**/include)
 
-YLISTDIR=$(PWD)/../list_t
-YWORKDIR=$(PWD)/../y_worker_t
-YJSONDIR=$(PWD)/../yjson_t
+YLISTDIR=$(ROOTPROJECTDIR)/list_t
+YWORKDIR=$(ROOTPROJECTDIR)/y_worker_t
+YJSONDIR=$(ROOTPROJECTDIR)/yjson_t
 
 
 INCLUDE=-I$(INCLUDE_DIRS) -I$(YLISTDIR)/src -I$(YWORKDIR)/include -I$(YJSONDIR)/src 
@@ -16,16 +17,16 @@ CFLAGS=-g -lpthread -Wall -Werror -fpic $(INCLUDE) #"-D DEBUG=1"
 #LDFLAGS=
 
 
-YSOCKSRC=$(PWD)/src/y_socket_t/y_socket_t.c
+YSOCKSRC=$(SOCDIR)/src/y_socket_t/y_socket_t.c
 YSOCKSRC_O=$(YSOCKSRC:.c=.o)
 
-YNODESRC=$(PWD)/src/y_socket_t/y_node_t.c
+YNODESRC=$(SOCDIR)/src/y_socket_t/y_node_t.c
 YNODESRC_O=$(YNODESRC:.c=.o)
 
-YY_STRINGSRC=$(PWD)/src/y_socket_t/y_list_var_tool.c
+YY_STRINGSRC=$(SOCDIR)/src/y_socket_t/y_list_var_tool.c
 YY_STRINGSRC_O=$(YY_STRINGSRC:.c=.o)
 
-FILEHANDLERSRC=$(PWD)/src/y_socket_t/y_file_handler.c
+FILEHANDLERSRC=$(SOCDIR)/src/y_socket_t/y_file_handler.c
 YFILEHANDLERSRC_O=$(YFILEHANDLERSRC:.c=.o)
 
 YLISTSRC=$(YLISTDIR)/src/list_t/list_t.c
@@ -39,9 +40,9 @@ YJSONSRC_O=$(YJSONSRC:.c=.o)
 
 all: $(PROJECT_LIB) 
 
-TOPTARGETS := all clean 
+TOPTARGETS= all clean 
 
-DEPS:=$(YLISTDIR) $(YWORKDIR) $(YJSONDIR)
+DEPS=$(YLISTDIR) $(YWORKDIR) $(YJSONDIR)
 
 OBJ=$(YSOCKSRC_O) $(YNODESRC_O) $(YY_STRINGSRC_O) $(YLISTSRC_O) $(WORKSRC_0) $(YTASKSRC_0) $(YFILEHANDLERSRC_O) $(YJSONSRC_O) 
 
@@ -53,7 +54,7 @@ $(TOPTARGETS): $(DEPS)
 
 
 $(PROJECT_LIB): $(OBJ)
-	echo "objects:" $(OBJ)
+	#echo "objects:" $(OBJ)
 	#$(CC) -shared -o $@ $^ $(INCLUDE) $(LDFLAGS)
 	#$(CC) -shared -o $@ $^ $(LDFLAGS)
 	$(CC) -shared -o $@ $^ $(CFLAGS)

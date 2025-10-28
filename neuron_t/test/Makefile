@@ -1,18 +1,18 @@
-
-
-
+# file neuron_t/test/Makefile
+# is_good.c 
+ROOTPROJECTDIR:=$(realpath ../..)
 
 NAME_TEST=is_good
 CC=gcc
-ROOT_DIR=$(PWD)
-YTESTDIR=$(PWD)/../../ytest_t
-YPERMDIR=$(PWD)/../../ypermutation_t
+ROOT_DIR=$(ROOTPROJECTDIR)/neuron_t
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+YPERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
 
-TENSDIR=$(PWD)/../../tensor_t
+TENSDIR=$(ROOTPROJECTDIR)/tensor_t
 
-NEURODIR=$(PWD)/..
-DIMDIR=$(PWD)/../../dimension_t
-INCLUDE_DIR=$(PWD)/../src
+NEURODIR=$(ROOT_DIR)
+DIMDIR=$(ROOTPROJECTDIR)/dimension_t
+INCLUDE_DIR=$(ROOT_DIR)/src
 CFLAGS=-I$(INCLUDE_DIR) -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src #"-D DEBUG=1"
 LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL -lm -lpthread
 
@@ -20,7 +20,7 @@ LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL -lm -lpthread
 #SRC=$(wildcard */*/*.c) 
 SRC=$(wildcard **/**/*.c) 
 #HEADS=$(OBJS:.o=.h)
-TEST_DIR=$(PWD)
+TEST_DIR=$(ROOT_DIR)/test
 
 EXECSRC=$(NAME_TEST).c
 #EXECSRC=openF.c

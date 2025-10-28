@@ -1,6 +1,9 @@
+# file : ypermutation_t/Makefile
+
+ROOTPROJECTDIR:=$(realpath ..)
 
 CC=gcc
-TOOLDIR=$(PWD)/../ytools_t
+TOOLDIR=$(ROOTPROJECTDIR)/ytools_t
 
 INCLUDE_DIR=$(TOOLDIR)/include
 CFLAGS=-I$(INCLUDE_DIR) -I./src 

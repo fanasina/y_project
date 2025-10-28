@@ -1,21 +1,21 @@
 
 
-
+ROOTPROJECTDIR:=$(realpath ../..)
 
 NAME_TEST=is_good
 CC=gcc
-ROOT_DIR=$(PWD)/..
-YTESTDIR=$(PWD)/../../ytest_t
-YTOOLDIR=$(PWD)/../../ytools_t
-YPERMDIR=$(PWD)/../../ypermutation_t
-DIMDIR=$(PWD)/../../dimension_t
+ROOT_DIR=$(ROOTPROJECTDIR)/deepQlearn_0
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+YTOOLDIR=$(ROOTPROJECTDIR)/ytools_t
+YPERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
+DIMDIR=$(ROOTPROJECTDIR)/dimension_t
 
-TENSDIR=$(PWD)/../../tensor_t
-LISTDIR=$(PWD)/../../list_t
+TENSDIR=$(ROOTPROJECTDIR)/tensor_t
+LISTDIR=$(ROOTPROJECTDIR)/list_t
 
 
-NEURODIR=$(PWD)/../../neuron_t
-INCLUDE_DIR=$(PWD)/../src/deepQlearning
+NEURODIR=$(ROOTPROJECTDIR)/neuron_t
+INCLUDE_DIR=$(ROOT_DIR)/src/deepQlearning
 INCLUDE=-I$(INCLUDE_DIR) -I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(YTOOLDIR)/include -I$(LISTDIR)/src
  #"-D DEBUG=1"
 CFLAGS=-Wall -Werror -fpic $(INCLUDE)  #-lcurses

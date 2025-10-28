@@ -1,13 +1,13 @@
+# file list_t/test/Makefile
 
-
-
+ROOTPROJECTDIR:=$(realpath ../..)
 
 NAME_TEST=is_good
 CC=gcc
-ROOT_DIR=$(PWD)
-YTESTDIR=$(PWD)/../../ytest_t
+ROOT_DIR=$(ROOTPROJECTDIR)/list_t
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
 
-INCLUDE_DIR=$(PWD)/../src
+INCLUDE_DIR=$(ROOT_DIR)/src
 CFLAGS=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include
 LDFLAGS=-L$(YTESTDIR) -lytest
 
@@ -15,11 +15,11 @@ LDFLAGS=-L$(YTESTDIR) -lytest
 #SRC=$(wildcard */*/*.c) 
 SRC=$(wildcard **/**/*.c) 
 #HEADS=$(OBJS:.o=.h)
-TEST_DIR=$(PWD)
+TEST_DIR=$(ROOT_DIR)/test
 EXECSRC=$(NAME_TEST).c
 EXEC=launch_$(NAME_TEST)_m
 
-LISTDIR=$(PWD)/..
+LISTDIR=$(ROOT_DIR)
 
 LISTSRC_O=$(LISTDIR)/src/list_t/list_t.o
 

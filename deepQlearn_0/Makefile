@@ -1,21 +1,24 @@
+# file: deepQlearn_0/Makefile
+
+ROOTPROJECTDIR:=$(realpath ..)
 
 
-
-
-LIB_DEEPQLEARN=libdeepqlearn.so
 CC=gcc
-ROOT_DIR=$(PWD)
-YTESTDIR=$(PWD)/../ytest_t
-YTOOLDIR=$(PWD)/../ytools_t
-YPERMDIR=$(PWD)/../ypermutation_t
-DIMDIR=$(PWD)/../dimension_t
+DEEPQLEARNDIR=$(ROOTPROJECTDIR)/deepQlearn_0
+LIB_DEEPQLEARN=$(DEEPQLEARNDIR)/libdeepqlearn.so
 
-TENSDIR=$(PWD)/../tensor_t
-LISTDIR=$(PWD)/../list_t
+ROOT_DIR=$(ROOTPROJECTDIR)/deepQlearn_0
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+YTOOLDIR=$(ROOTPROJECTDIR)/ytools_t
+YPERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
+DIMDIR=$(ROOTPROJECTDIR)/dimension_t
+
+TENSDIR=$(ROOTPROJECTDIR)/tensor_t
+LISTDIR=$(ROOTPROJECTDIR)/list_t
 
 
-NEURODIR=$(PWD)/../neuron_t
-INCLUDE_DIR=$(PWD)/src/deepQlearning
+NEURODIR=$(ROOTPROJECTDIR)/neuron_t
+INCLUDE_DIR=$(ROOT_DIR)/src/deepQlearning
 INCLUDE=-I$(ROOT_DIR)/src/deepQlearning -I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(YTOOLDIR)/include -I$(LISTDIR)/src
 #CFLAGS=-I$(INCLUDE_DIR) -I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(YTOOLDIR)/include -I$(LISTDIR)/src
  #"-D DEBUG=1"
@@ -72,7 +75,7 @@ $(DEPS):
 
 
 #PERMSRC_O=$(PERMSRC:.c=.o)
-#SETTSRC_O=$(PWD)/../src/set_theoric_t/set_theoric_t.o
+#SETTSRC_O=$(ROOTPROJECTDIR)/src/set_theoric_t/set_theoric_t.o
 #SETTSRC_O=$(SETTSRC:.c=.o)
 #TOOLSRC=$(TOOLDIR)/src/tools_t/tools_t.c
 #TOOLSRC_O=$(TOOLSRC:.c=.o)
@@ -96,7 +99,7 @@ clean:
 	rm -f $(OBJ)
 
 mrproper: clean
-	rm -f $(EXEC)
+	rm -f $(LIB_DEEPQLEARN)
 
 run: $(EXEC)
 	$(EXEC) -h

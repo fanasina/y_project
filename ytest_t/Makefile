@@ -1,25 +1,27 @@
 # lib: -lytest
-PROJECT_LIB=libytest.so
+ROOTPROJECTDIR:=$(realpath ..)
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
+PROJECT_LIB=$(YTESTDIR)/libytest.so
 CC=gcc
-INCLUDE_DIRS=$(PWD) 
-#$(wildcard $(PWD)/**/include)
-TOOLDIR=$(PWD)/../ytools_t
-BARPDIR=$(PWD)/../ybar_progress
+INCLUDE_DIRS=$(YTESTDIR) 
+#$(wildcard $(YTESTDIR)/**/include)
+TOOLDIR=$(ROOTPROJECTDIR)/ytools_t
+BARPDIR=$(ROOTPROJECTDIR)/ybar_progress
 TOOL_O=$(TOOLDIR)/src/tools_t/tools_t.o
 BARP_O=$(BARPDIR)/src/bar_progress/bar_progress.o
 
 
-INCLUDE=-I$(PWD)/yftest/include  -I$(PWD)/yfmock/include -I$(TOOLDIR)/include -I$(BARPDIR)/include
+INCLUDE=-I$(YTESTDIR)/yftest/include  -I$(YTESTDIR)/yfmock/include -I$(TOOLDIR)/include -I$(BARPDIR)/include
 CFLAGS=-g -lpthread -Wall -Werror -fpic $(INCLUDE) #"-D DEBUG=1" 
 #LDFLAGS=
 
-TOPTARGETS := all clean #update_headers
+TOPTARGETS= all clean #update_headers
 
 #SRC=$(wildcard y*/src/**/**/*.c) 
 SRC=$(wildcard y*/*/*/*.c) 
 OBJ=$(SRC:.c=.o) $(TOOL_O) $(BARP_O)
 
-SUBDIRS :=$(wildcard y*) $(TOOLDIR) $(BARPDIR)
+SUBDIRS=$(wildcard y*) $(TOOLDIR) $(BARPDIR)
 
 export
 

@@ -1,13 +1,13 @@
-
-
+# file: ypermutation_t/test/Makefile
+ROOTPROJECTDIR:=$(realpath ../..)
 
 
 NAME_TEST=is_good
 CC=gcc
-ROOT_DIR=$(PWD)
-YTESTDIR=$(PWD)/../../ytest_t
+ROOT_DIR=$(ROOTPROJECTDIR)/ypermutation_t
+YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
 
-INCLUDE_DIR=$(PWD)/../src
+INCLUDE_DIR=$(ROOT_DIR)/src
 CFLAGS=-I$(INCLUDE_DIR) -I$(YTESTDIR)/include_ytest/include
 LDFLAGS=-L$(YTESTDIR) -lytest
 
@@ -19,7 +19,7 @@ TEST_DIR=$(PWD)
 EXECSRC=$(NAME_TEST).c
 EXEC=launch_$(NAME_TEST)_m
 
-PERMDIR=$(PWD)/..
+PERMDIR=$(ROOT_DIR)
 
 PERMSRC_O=$(PERMDIR)/src/permutation_t/permutation_t.o
 

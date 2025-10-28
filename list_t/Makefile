@@ -1,6 +1,7 @@
-
+# file list_t/Makefile
 CC=gcc
-TOOLDIR=$(PWD)/../ytools_t
+ROOTPROJECTDIR:=$(realpath ..)
+TOOLDIR=$(ROOTPROJECTDIR)/ytools_t
 
 INCLUDE_DIR=$(TOOLDIR)/include
 CFLAGS=-I$(INCLUDE_DIR) -I./src 
