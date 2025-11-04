@@ -181,7 +181,7 @@ TEST(import_nodes){
 
 
 TEST(pollThread){
-  struct arg_var_ * var = create_arg_var_(NULL);
+  struct arg_var_ * var = create_arg_var_(NULL, NULL);
   struct y_socket_t *argS=y_socket_create("1600", 2, 3, var);
 
   pthread_t pollTh;

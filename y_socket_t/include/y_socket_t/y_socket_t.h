@@ -55,10 +55,11 @@ struct arg_var_{
   struct main_list_y_ptr_HEADER_T *m_ok_head_l_t;
   pthread_mutex_t *mut_var;
   pthread_cond_t *cond_var;
-  void (*extern_socket_handler)(char*,int);
+  void* bash_arg;
+  void (*extern_socket_handler)(char*,int, void*);
 };
 
-struct arg_var_ * create_arg_var_(void (*extern_socket_handler)(char*,int));
+struct arg_var_ * create_arg_var_(void (*extern_socket_handler)(char*,int, void*), void* bash_arg);
 void set_up_arg_var_init_(struct arg_var_ *var, struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t);
 void free_arg_var_(struct arg_var_ *var);
 void wait_var_set_up_value_not_equal(struct arg_var_ *var, int value_set_up);

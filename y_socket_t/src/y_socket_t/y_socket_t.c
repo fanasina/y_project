@@ -12,7 +12,7 @@ void handle_input_cmd(char * buf, int buf_len, struct arg_var_ *var);
 //struct y_socket_t * argSock, struct main_list_TYPE_PTR * list_arg, struct argExecTasQ *argx , struct main_list_y_ptr_HEADER_T *m_ok_head_l_t);
 
 
-struct arg_var_ * create_arg_var_(void (*extern_socket_handler)(char*,int)){
+struct arg_var_ * create_arg_var_(void (*extern_socket_handler)(char*,int, void*), void *bash_arg){
   struct arg_var_ * new_var=malloc(sizeof(struct arg_var_));
   new_var->set_up = 0;
   new_var->mut_var = malloc(sizeof(pthread_mutex_t));
@@ -25,6 +25,7 @@ struct arg_var_ * create_arg_var_(void (*extern_socket_handler)(char*,int)){
   new_var->argx = NULL; 
   new_var->m_ok_head_l_t = NULL;
   new_var->extern_socket_handler = extern_socket_handler;
+  new_var->bash_arg=bash_arg;
   
   return new_var; 
 }
@@ -600,7 +601,7 @@ if(buf_len>6){
         }
 			}else{
         if(var->extern_socket_handler){
-          var->extern_socket_handler(buf,buf_len);
+          var->extern_socket_handler(buf,buf_len,var->bash_arg);
         }else{
           printf("debug: No extern_socket_handler in var\n");
         }
@@ -613,7 +614,7 @@ if(buf_len>6){
       pthread_mutex_unlock(argSock->mut_go_on);
     }else{
         if(var->extern_socket_handler){
-          var->extern_socket_handler(buf,buf_len);
+          var->extern_socket_handler(buf,buf_len,var->bash_arg);
         }else{
           printf("debug: No extern_socket_handler in var\n");
         }
