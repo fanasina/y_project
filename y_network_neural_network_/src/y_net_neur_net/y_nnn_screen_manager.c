@@ -222,7 +222,7 @@ void* wait_sleep_newbash(void* argg){
   struct arg_bash *arg=(struct arg_bash*)argg;
   //* fork exec better than system call!
   
-  char *msg="Please, open new terminal or new ssh to this machine!, then touch enter in this terminal.";
+  char *msg="Please, open new terminal or new ssh to this machine!";
   int len_msg=strlen(msg);
   char pad[len_msg+1];
   memset(pad,' ',len_msg);
