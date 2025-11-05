@@ -24,6 +24,7 @@ struct arg_var_ * create_arg_var_(void (*extern_socket_handler)(char*,int, void*
   new_var->list_arg = NULL; 
   new_var->argx = NULL; 
   new_var->m_ok_head_l_t = NULL;
+
   new_var->extern_socket_handler = extern_socket_handler;
   new_var->bash_arg=bash_arg;
   
@@ -69,6 +70,7 @@ void free_arg_var_(struct arg_var_ *var){
   pthread_cond_destroy(var->cond_var);
   free(var->cond_var);
  }
+
 
  if(var) 
    free(var);
@@ -502,35 +504,33 @@ void handle_input_cmd(char * buf, int buf_len, struct arg_var_ *var){
 
 if(buf_len>6){
 #if 1
-					char cmd[BUF_SIZE], dst_addr[BUF_SIZE];//, msg_buf[BUF_SIZE];
-					int index_buf=0, index_str=0;
+					char cmd[BUF_SIZE]; //, dst_addr[BUF_SIZE]={0};//, msg_buf[BUF_SIZE];
+					int index_buf=0, index_cmd=0;
 					while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
-					for(; buf[index_buf]!=' '; ++index_buf){
-						cmd[index_str++]=buf[index_buf];
+					for(;(index_buf<buf_len) && (buf[index_buf]!=' '); ++index_buf){
+						cmd[index_cmd++]=buf[index_buf];
 					}
-					cmd[index_str]='\0';
-				///printf("debug : index_str= %d; cmd=[%s]\n",index_str, cmd);
+					cmd[index_cmd]='\0';
+				  printf("debug : index_cmd= %d; cmd=[%s]\n",index_cmd, cmd);
 					
-					index_str=0;
-					while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
-					for(; (index_buf < buf_len) && (buf[index_buf]!=' '); ++index_buf){
-						dst_addr[index_str++]=buf[index_buf];
-					}
-					dst_addr[index_str]='\0';
-					//while(buf[index_buf]==' '){++index_buf;}
-					while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
-					/*index_str=0;
-					for(; buf[index_buf]!='\n'; ++index_buf)
-						msg_buf[index_str++]=buf[index_buf];
-					msg_buf[index_str++]='\0';*/
-
-				///printf("debug : index_str=%d, dst_addr=[%s]\n", index_str, dst_addr);
 #endif
 
 		
-			if(*cmd &&/*check_y_socket_go_on(argSock) &&*/ strncmp(cmd, "sendto", 6)==0){
-				///printf("debug : sendto match, dst_addr=[%s]\n", dst_addr);
-        if(*dst_addr){
+			if(index_cmd &&/*check_y_socket_go_on(argSock) &&*/ strncmp(cmd, "sendto", 6)==0){
+				char dst_addr[BUF_SIZE]="";
+        int index_dst=0;
+
+        while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
+        for(; (index_buf < buf_len) && (buf[index_buf]!=' '); ++index_buf){
+          dst_addr[index_dst++]=buf[index_buf];
+        }
+        dst_addr[index_dst]='\0';
+        //while(buf[index_buf]==' '){++index_buf;}
+        while((index_buf < buf_len) && (buf[index_buf]==' ')){++index_buf;}
+        printf("debug : index_dst=%d, dst_addr=[%s], index_cmd=%d cmd=%s index_buf=%d\n", index_dst, dst_addr, index_cmd, cmd, index_buf);
+
+        ///printf("debug : sendto match, dst_addr=[%s]\n", dst_addr);
+        if(index_dst){
           if(strcmp(dst_addr, "all" ) == 0){
             struct arg_send_file *argS = malloc(sizeof(struct arg_send_file));
             argS->fds=fds;
@@ -600,6 +600,7 @@ if(buf_len>6){
           }
         }
 			}else{
+          printf("debug: call 1 extern_socket_handler\n");
         if(var->extern_socket_handler){
           var->extern_socket_handler(buf,buf_len,var->bash_arg);
         }else{
@@ -613,6 +614,7 @@ if(buf_len>6){
       argSock->go_on = 0;
       pthread_mutex_unlock(argSock->mut_go_on);
     }else{
+          printf("debug: call 2 extern_socket_handler\n");
         if(var->extern_socket_handler){
           var->extern_socket_handler(buf,buf_len,var->bash_arg);
         }else{
@@ -740,7 +742,8 @@ void *y_socket_poll_fds(void *arg){
       //fds[1].events = 0;
       
       //puts(">>");
-      memset(buf, 0, sizeof buf);
+      //memset(buf, 0, sizeof buf);
+      memset(buf, 0, BUF_SIZE+1);
       //scanf(" %"xstr(BUF_SIZE)"[^\n]%*c", buf);
       buf_len = read(0,buf,BUF_SIZE);
       ///printf("message saisi : %s\n len = %ld\n",buf, buf_len);

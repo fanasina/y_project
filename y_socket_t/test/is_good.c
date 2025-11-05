@@ -179,9 +179,13 @@ TEST(import_nodes){
 
 }
 
+void repeat_buf(char *buf, int len_buf, void *arg){
+  write(1,buf,len_buf);
+}
 
 TEST(pollThread){
-  struct arg_var_ * var = create_arg_var_(NULL, NULL);
+  //struct arg_var_ * var = create_arg_var_(NULL, NULL);
+  struct arg_var_ * var = create_arg_var_(repeat_buf, NULL);
   struct y_socket_t *argS=y_socket_create("1600", 2, 3, var);
 
   pthread_t pollTh;
