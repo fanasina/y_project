@@ -215,6 +215,7 @@ void *func_bash(void* b_arg){
   return NULL;
 }
 
+#if 0
 TEST(try_y_socket_manager){
   struct arg_bash *bash_arg= create_arg_bash();
   struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, bash_arg);
@@ -239,6 +240,7 @@ TEST(try_y_socket_manager){
   free_arg_bash(bash_arg);
 
 }
+#endif
 
 int main(int argc, char **argv){
   

@@ -25,6 +25,7 @@
 
 //float d_reLU(float x);
 
+extern char *action_name[8];
 
 struct qlearning_params {
   float gamma;
@@ -67,7 +68,10 @@ struct print_params {
   float scale_y;
   struct delay_params *delay;
   char *string_space;//[LOG_LENTH];
+  int go_on;
 };
+
+int check_go_on_print_params(struct print_params *pprint);
 
 struct networks_qlearning {
   config_layers *config;
@@ -136,5 +140,9 @@ void train_qlearning(struct RL_agent * rlAgent,
 //  long reward;
 
 void learn_to_drive(struct RL_agent * rlAgent);
+int is_ending(struct status_qlearning *qlStatus);
+
+///char *fileNameDateScore(char * pre, char* post,size_t score);
+///int select_action(struct RL_agent * rlAgent);
 
 #endif /* __LEARNING_VEHICLE__C_H____ */

@@ -130,6 +130,7 @@ struct print_params * create_print_params(float scale_x, float scale_y,  struct 
   pprint->delay = delay;
   pprint->string_space = malloc(LOG_LENTH+1);
   pthread_mutex_init(&(pprint->mut_printed), NULL);
+  pprint->go_on = 1;
 
   int i;
   for( i=0; i<LOG_LENTH; ++i)  
@@ -202,6 +203,15 @@ void free_status_qlearning(struct status_qlearning *status_ql){
 }
 void free_delay_params (struct delay_params *dly_p){
   free(dly_p);
+}
+
+int check_go_on_print_params(struct print_params *pprint){
+  int ret=0;
+  pthread_mutex_lock(&(pprint->mut_printed));
+  ret=pprint->go_on;
+  pthread_mutex_unlock(&(pprint->mut_printed));
+
+  return ret;
 }
 
 void free_print_params (struct print_params *pprint){
@@ -388,15 +398,15 @@ void learn_to_drive(struct RL_agent * rlAgent){
   //struct print_params * pprint = rlAgent->pprint;
   char msg[100];
   
-  pthread_t threadPrint;
-  pthread_create(&threadPrint, NULL, runPrint, (void*)rlAgent);
+  ////pthread_t threadPrint;
+  ////pthread_create(&threadPrint, NULL, runPrint, (void*)rlAgent);
   
  // while(true){
     for(size_t index_episode = 0; index_episode < qlParams->number_episodes; ++index_episode){
       reset(car);
       qlStatus->nb_training_after_updated_weight_in_target = 0;
       qlStatus->index_episode = index_episode;
-      while(true){
+      while(!is_ending(qlStatus) /*true*/){
         ++(qlStatus->nb_episodes);
         ++(qlStatus->nb_training_after_updated_weight_in_target);
         action = select_action(rlAgent);
@@ -435,6 +445,6 @@ void learn_to_drive(struct RL_agent * rlAgent){
 			pthread_mutex_unlock(qlStatus->mut_ending);
 //  }
 
-  pthread_join(threadPrint, NULL);
+  ////pthread_join(threadPrint, NULL);
 }
 

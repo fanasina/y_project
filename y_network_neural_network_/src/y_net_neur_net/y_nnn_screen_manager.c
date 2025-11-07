@@ -133,6 +133,10 @@ void free_arg_bash(struct arg_bash *arg){
   free(arg);
 }
 
+int new_bash_exist(struct arg_bash *bash_arg){
+  return ((bash_arg->fd_new_bash_pid>0) || (bash_arg->fd_current_bash_pid));
+}
+
 /* run new bash terminal graphic, can be called directly or in a thread */
 void* run_newbash(void* argg){
   struct arg_bash *arg=(struct arg_bash*)argg;
@@ -337,6 +341,91 @@ void* launch_wait_bash(void *b_arg){
 
     //free_arg_bash(arg);
   return NULL;
+}
+
+#define __BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)\
+            if(bash_arg->fd_new_bash_pid>0){\
+              write(bash_arg->fd_new_bash_pid, buf , len_buf);\
+            }\
+            if(bash_arg->fd_current_bash_pid>0){\
+              write(bash_arg->fd_current_bash_pid, buf, len_buf);\
+            }\
+  
+
+void bash_print_vehicle_n_path(struct vehicle *v, float scale_x, float scale_y, struct arg_bash *bash_arg){
+  static bool first = true;
+  if(first){
+    first = false;
+    init_win();
+    char pad[w.ws_col+1];
+    int i=0;
+    for(i=0; i<w.ws_col+1; ++i) pad[i]=' ';
+    pad[i]='\0';
+    for(i=0; i<w.ws_row / 2 ; ++i) printf("%s\n",pad);;
+
+  }
+    //goto_xy(0,w.ws_row - lines);
+  ////goto_xy(0,0);
+  BASH_WRITE_IF_EXIST(bash_arg, GOTO_TOP_LEFT, LEN_GOTO_TOP_LEFT);
+    //printf("lines : %d , row : %d : diff: %d\n",lines, w.ws_row , w.ws_row - lines);
+  bash_print2D_blocks_indexOne_withPoint(v->path, scale_x, scale_y,  v->coord, bash_arg);
+  //printf("lines print : %d\n",lines);
+  char loggg[SIZE_LOCAL_BUF];
+  int len_loggg=sprintf(loggg,"\nlog : %s \n",v->status->log);
+  BASH_WRITE_IF_EXIST(bash_arg, loggg, len_loggg);
+}
+
+
+void bash_print2D_blocks_indexOne_withPoint(struct blocks *blk, float scale_x, float scale_y, coordinate *coordPoint, struct arg_bash *bash_arg){
+  if(blk->dimension_size == 2){
+    update_bounds_limits_blocks(blk);
+    coordinate ** bounds_coord = blk->bounds_all_blocks;
+
+    coordinate * coord = create_coordinate(2);
+
+    float *radius = malloc(2 * sizeof(float));
+    radius[0]=scale_x;
+    radius[1]=scale_y;
+    char buf[SIZE_LOCAL_BUF];
+    int len_buf;
+    struct blocks * blk_point = block_neighbord_Point(coordPoint, radius);
+    for(coord->x[1] = bounds_coord[1]->x[1]; coord->x[1] > bounds_coord[0]->x[1]; coord->x[1]-=scale_y ){
+      for(coord->x[0] = bounds_coord[0]->x[0]; coord->x[0] < bounds_coord[1]->x[0]; coord->x[0]+=scale_x ){
+        if(is_in_blocks(blk_point, coord)){
+          ////printf("\033[0;31m"); // red
+            BASH_WRITE_IF_EXIST(bash_arg, "\033[0;31m", 7);
+        }
+        int in = is_in_blocks(blk,coord);
+        if(in){
+          if(in>9){
+            int div=in%10;
+            ////printf("%d",div);
+            len_buf=sprintf(buf,"%d",div);
+            BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf);
+          }else{
+            ////printf("%d",in);
+            len_buf=sprintf(buf,"%d",in);
+            BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf);
+          }
+        }else{
+          ////printf("."); //printf(" ");
+          BASH_WRITE_IF_EXIST(bash_arg, ".", 1);
+        }
+
+        ////printf("\033[0;37m"); // white
+        BASH_WRITE_IF_EXIST(bash_arg, "\033[0;37m", 7); // white
+      }
+      ///printf("\n");
+      BASH_WRITE_IF_EXIST(bash_arg,"\n",1);
+    }
+
+
+    free_coordinate(coord);
+
+    free_blocks(blk_point);
+    free(radius);
+  }
+
 }
 
 

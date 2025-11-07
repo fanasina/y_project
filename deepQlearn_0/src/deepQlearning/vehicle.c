@@ -370,7 +370,8 @@ void goto_xy(int x, int y)
 }
 
 
-static struct winsize w;
+//static 
+struct winsize w;
 
 void init_win(){
   ioctl(1, TIOCGWINSZ, &w);

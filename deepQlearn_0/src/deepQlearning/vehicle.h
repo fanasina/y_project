@@ -130,4 +130,8 @@ float distance2_coordinate(coordinate *c0, coordinate *c1);
 void print2D_blocks(struct blocks *blk, float scale_x, float scale_y, char pad);
 void print2D_blocks_withPoint(struct blocks *blk, float scale_x, float scale_y, char pad, coordinate *coordPoint);
 
+extern struct winsize w;
+void init_win();
+struct blocks * block_neighbord_Point(coordinate *coord, float *radius );
+
 #endif /* __VEHICLE__C_H__  */
