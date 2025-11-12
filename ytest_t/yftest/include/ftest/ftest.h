@@ -925,6 +925,16 @@ do{                                                                             
 #define TEST(name_f)                                            \
   FTEST__(__COUNTER__,name_f)
 
+// HIDE_TEST 
+// to not execute test, it helps to manualy avoid test in code, 
+// instead of comment or  #if 0 #endif
+#define H__TEST__(count, name_f)                                                \
+  void CONCAT(TEST_##name_f##____,count)(void)                                       \
+
+
+#define HIDE_TEST(name_f)\
+  H__TEST__(__COUNTER__,name_f)
+
 /*  
 #define ASSERT_TRUE(val)\
   if(expected_true_f(val,#val,__func__) == false) {error_print("%s\n\n","Failure"); return;}
