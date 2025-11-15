@@ -19,9 +19,12 @@ void free_arg_run_qlearn_bprint(struct arg_run_qlearn_bprint *arg){
   free(arg);
 }
 
+void* run_sleep_wait_bash_and_print(void *arg);
+
 void y_nnn_manager_handle_input(char * buf, int len_buf, void *arg){
-  struct arg_run_qlearn_bprint *run_arg=(struct arg_run_bash_print*)arg;
+  struct arg_run_qlearn_bprint *run_arg=(struct arg_run_qlearn_bprint*)arg;
   struct arg_bash *bash_arg=run_arg->bash_arg;
+  struct RL_agent *rlAgent = run_arg->rlAgent;
   
   if(arg && (len_buf>0)){
     
@@ -32,6 +35,27 @@ void y_nnn_manager_handle_input(char * buf, int len_buf, void *arg){
       launch_sleep_wait_bash(bash_arg);
     }else if(strncmp(buf,"killbash",8)==0){
       kill_all_bash(bash_arg);
+    }else if(strncmp(buf,"stoplearn",9)==0){
+      pthread_mutex_lock(rlAgent->status->mut_ending);
+      rlAgent->status->ending=1;
+      pthread_mutex_unlock(rlAgent->status->mut_ending);
+
+      kill_all_bash(bash_arg);
+    }else if(strncmp(buf,"startprintnewbash",17)==0){
+      run_newbash(bash_arg);
+      pthread_t thread_run;
+      pthread_create(&thread_run, NULL, runBashPrint, arg);
+      //Sleep(2);
+      
+    }else if(strncmp(buf,"startprintwaitbash",18)==0){
+      
+      pthread_t thread_run;
+      pthread_create(&thread_run, NULL, run_sleep_wait_bash_and_print, arg);
+
+    }else if(strncmp(buf,"stopprintbash",13)==0){
+      pthread_mutex_lock(bash_arg->mut_bash_var);
+      bash_arg->go_on=0;
+      pthread_mutex_unlock(bash_arg->mut_bash_var);
     }else{
       printf("debug: %s is not handle\n",buf);
     }
@@ -40,10 +64,29 @@ void y_nnn_manager_handle_input(char * buf, int len_buf, void *arg){
 }
 
 
+void* run_sleep_wait_bash_and_print(void *arg){
+  struct arg_run_qlearn_bprint *arg_run=(struct arg_run_qlearn_bprint*)arg;
+  //struct RL_agent *rlAgent = arg_run->rlAgent;
+  struct arg_bash *bash_arg = arg_run->bash_arg;
+  wait_sleep_newbash(bash_arg);
+  return runBashPrint(arg);
+}
 
+void wait_valid_pid_bash(struct arg_bash *bash_arg){
+  pthread_mutex_lock(bash_arg->mut_bash_var);
+    while(
+      (bash_arg->fd_new_bash_pid == -1) &&
+      (bash_arg->fd_current_bash_pid == -1)
+      ){
+      printf("debug: wait new bash!\n");
+      pthread_cond_wait(bash_arg->cond_bash_var, bash_arg->mut_bash_var);
+    }
+    pthread_mutex_unlock(bash_arg->mut_bash_var);
+
+}
 
 void* runBashPrint(void *arg){
-  struct arg_run_bash_print *arg_run=(struct arg_run_bash_print*)arg;
+  struct arg_run_qlearn_bprint *arg_run=(struct arg_run_qlearn_bprint*)arg;
   struct RL_agent *rlAgent = arg_run->rlAgent;
   struct arg_bash *bash_arg = arg_run->bash_arg;
 
@@ -53,6 +96,10 @@ void* runBashPrint(void *arg){
   size_t count_print = 0;
   char buf[SIZE_LOCAL_BUF];
   int len_buf;
+  
+  wait_valid_pid_bash(bash_arg);
+
+  printf("debug: start runBashPrint in episode: %ld\n",qlStatus->index_episode);
   while((new_bash_exist(bash_arg)) && check_go_on_print_params(pprint) && !is_ending(qlStatus)){
     if(/*(qlStatus->nb_episodes %125 == 0)  &&*/  pprint->printed){
           //pthread_mutex_lock(&(pprint->mut_printed));
@@ -64,7 +111,7 @@ void* runBashPrint(void *arg){
           len_buf=sprintf(buf,"%s ",pprint->string_space);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
 
-          ////printf("ep: %ld\n",qlStatus->index_episode);
+          ////printf("ep: %ld ",qlStatus->index_episode);
           len_buf=sprintf(buf,"ep: %ld\n",qlStatus->index_episode);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
           neurons_TYPE_FLOAT * net_main = rlAgent->networks->main_net;
@@ -104,5 +151,11 @@ void* runBashPrint(void *arg){
             clear_screen();
           }
   }
+  printf("debug: end runBashPrint\n");
   return NULL;
+}
+
+// 0 if filename it exists
+int file_exists(char *filename){
+  return access(filename, F_OK);
 }

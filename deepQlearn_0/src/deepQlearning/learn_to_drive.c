@@ -387,9 +387,12 @@ char *fileNameDateScore(char * pre, char* post,size_t score){
   return filename;
 }
 
+const char* target_symlink = ".ff_target_.symlink";
+const char* main_symlink = ".ff_main_.symlink";
 
 
 void learn_to_drive(struct RL_agent * rlAgent){
+  printf("debug: start learn_to_drive\n");
   int action;
   struct vehicle * car = rlAgent->car;
   struct game_status * car_status = car->status;
@@ -402,7 +405,7 @@ void learn_to_drive(struct RL_agent * rlAgent){
   ////pthread_create(&threadPrint, NULL, runPrint, (void*)rlAgent);
   
  // while(true){
-    for(size_t index_episode = 0; index_episode < qlParams->number_episodes; ++index_episode){
+    for(size_t index_episode = 0; (!is_ending(qlStatus)) && (index_episode < qlParams->number_episodes) ; ++index_episode){
       reset(car);
       qlStatus->nb_training_after_updated_weight_in_target = 0;
       qlStatus->index_episode = index_episode;
@@ -427,9 +430,21 @@ void learn_to_drive(struct RL_agent * rlAgent){
             push_back_list_TYPE_L_INT(qlStatus->progress_best_cumul, car_status->cumulative_reward);
             char *file = fileNameDateScore(".ff_main_",".txt",car_status->cumulative_reward);
             EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->main_net ,weight_in, file);
+            unlink(main_symlink);
+            if(symlink(file, main_symlink)==-1){
+              fprintf(stderr,"debug: symlink %s with %s.\n",main_symlink, file);
+              //fprintf(stderr,"debug: symlink %s with %s. explain:%s \n",main_symlink, file, explain_symlink(file, main_symlink) );
+            }
+            else write(1,":",1);
             free(file);
             file = fileNameDateScore(".ff_target_",".txt",car_status->cumulative_reward);
             EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->target_net ,weight_in, file);
+            unlink(target_symlink);
+            if(symlink(file, target_symlink)==-1){
+              fprintf(stderr,"debug: symlink %s with %s\n",target_symlink,file );
+              //fprintf(stderr,"debug: symlink %s with %s explain:%s\n",target_symlink,file,explain_symlink(file, target_symlink) );
+            }
+            else write(1,"-",1);
             free(file);
           }
           break;

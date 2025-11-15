@@ -109,6 +109,7 @@ struct arg_bash *create_arg_bash(){
   pthread_cond_init(b_arg->cond_bash_var,NULL);
   
   b_arg->go_on=1;
+  b_arg->thread_launch=NULL;
 
   return b_arg;
 }
@@ -130,11 +131,16 @@ void free_arg_bash(struct arg_bash *arg){
     kill(arg->current_bash_pid, SIGKILL);
   }
 
+  if(arg->thread_launch){
+    pthread_join(*(arg->thread_launch), NULL);
+    free(arg->thread_launch);
+  }
+
   free(arg);
 }
 
 int new_bash_exist(struct arg_bash *bash_arg){
-  return ((bash_arg->fd_new_bash_pid>0) || (bash_arg->fd_current_bash_pid));
+  return ((bash_arg->fd_new_bash_pid>0) || (bash_arg->fd_current_bash_pid>0));
 }
 
 /* run new bash terminal graphic, can be called directly or in a thread */
@@ -153,14 +159,23 @@ if(arg->new_bash_pid == arg->old_bash_pid){
   }else{
     wait(NULL);
 
+    usleep(20000);
+
     pthread_mutex_lock(arg->mut_bash_var);
-    arg->new_bash_pid=pidof("bash",NULL);
-    if(arg->new_bash_pid > arg->old_bash_pid){
+    arg->new_bash_pid = pidof("bash",NULL);
+    arg->fd_new_bash_pid = open_duplicate_bash(arg->new_bash_pid);
+    while(arg->new_bash_pid == arg->old_bash_pid)
+    {
+      printf("debug: create new terminal: %d vs %d\n",arg->new_bash_pid,arg->old_bash_pid);
+      getchar();
+      arg->new_bash_pid = pidof("bash",NULL);
       arg->fd_new_bash_pid = open_duplicate_bash(arg->new_bash_pid);
-      printf("runnewbash: ready\n");
+      //usleep(2000);
     }
+    
     pthread_mutex_unlock(arg->mut_bash_var);
     pthread_cond_signal(arg->cond_bash_var);
+      printf("debug: send signal run_newbash\n");
 
   }
 }

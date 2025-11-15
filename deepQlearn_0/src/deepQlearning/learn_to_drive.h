@@ -25,6 +25,13 @@
 
 //float d_reLU(float x);
 
+// to debug symlink error!: have to instal libexplain-dev (apt install), 
+// and add -lexplain in cflag (or in compile flag)
+//#include <libexplain/symlink.h>
+
+//#define target_symlink ".ff_target_.symlink"
+//#define main_symlink ".ff_main_.symlink"
+
 extern char *action_name[8];
 
 struct qlearning_params {

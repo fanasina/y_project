@@ -51,7 +51,9 @@ struct arg_bash{
   int fd_old_bash_pid;
   int fd_new_bash_pid;
   int fd_current_bash_pid;
-  
+ 
+  pthread_t *thread_launch;
+
   pthread_mutex_t *mut_bash_var;
   pthread_cond_t *cond_bash_var;
   int go_on;

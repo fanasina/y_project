@@ -127,7 +127,7 @@ DEPLIBS=$(NETNEURNETDIR) $(YTESTDIR) $(YSOCKET_DIR) $(DEEPQLEARNDIR)
 
 INCLUDE=$(INCLUDE_NNN) $(INCLUDE_SOCKET) $(INCLUDE_DEEPQLEARN) 
 
-CFLAGS=-Wall -lOpenCL -lm -lpthread -Werror -fpic $(INCLUDE) #-lcurses
+CFLAGS=-Wall -lOpenCL -lm -lpthread -Werror -fpic $(INCLUDE) #-lcurses  -lexplain 
 #LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL -lm -lpthread  #-lcurses
 
 

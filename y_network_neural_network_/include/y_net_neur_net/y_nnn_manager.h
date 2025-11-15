@@ -2,6 +2,7 @@
 #ifndef Y_NETWORK_NEURAL_NETWORK__MANAGER__H_C
 #define Y_NETWORK_NEURAL_NETWORK__MANAGER__H_C
 
+#include <pthread.h>
 #include <string.h>
 
 #include "learn_to_drive.h"
