@@ -146,7 +146,8 @@ void train_qlearning(struct RL_agent * rlAgent,
 //  tensor_TYPE_FLOAT * state /*input*/,
 //  long reward;
 
-void learn_to_drive(struct RL_agent * rlAgent);
+//void* learn_to_drive(struct RL_agent * rlAgent);
+void* learn_to_drive(void * rlAgent);
 int is_ending(struct status_qlearning *qlStatus);
 
 ///char *fileNameDateScore(char * pre, char* post,size_t score);

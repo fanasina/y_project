@@ -391,7 +391,8 @@ const char* target_symlink = ".ff_target_.symlink";
 const char* main_symlink = ".ff_main_.symlink";
 
 
-void learn_to_drive(struct RL_agent * rlAgent){
+void* learn_to_drive(void * lrnarg){
+	struct RL_agent *rlAgent = (struct RL_agent *)lrnarg;
   printf("debug: start learn_to_drive\n");
   int action;
   struct vehicle * car = rlAgent->car;
@@ -461,5 +462,7 @@ void learn_to_drive(struct RL_agent * rlAgent){
 //  }
 
   ////pthread_join(threadPrint, NULL);
+	printf("debug: end learn\n");
+	return NULL;
 }
 
