@@ -53,6 +53,8 @@ struct arg_bash{
   int fd_current_bash_pid;
  
   pthread_t *thread_launch;
+  pthread_t *thread_run_newbash;
+  pthread_t *thread_run_waitbash;
 
   pthread_mutex_t *mut_bash_var;
   pthread_cond_t *cond_bash_var;

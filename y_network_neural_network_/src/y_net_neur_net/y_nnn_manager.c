@@ -43,14 +43,17 @@ void y_nnn_manager_handle_input(char * buf, int len_buf, void *arg){
       kill_all_bash(bash_arg);
     }else if(strncmp(buf,"startprintnewbash",17)==0){
       run_newbash(bash_arg);
-      pthread_t thread_run;
-      pthread_create(&thread_run, NULL, runBashPrint, arg);
+			bash_arg->thread_run_newbash=malloc(sizeof(pthread_t));
+      pthread_create(bash_arg->thread_run_newbash, NULL, runBashPrint, arg);
+      //pthread_t thread_run;
+      //pthread_create(&thread_run, NULL, runBashPrint, arg);
       //Sleep(2);
       
     }else if(strncmp(buf,"startprintwaitbash",18)==0){
-      
-      pthread_t thread_run;
-      pthread_create(&thread_run, NULL, run_sleep_wait_bash_and_print, arg);
+      bash_arg->thread_run_waitbash=malloc(sizeof(pthread_t));
+      pthread_create(bash_arg->thread_run_waitbash, NULL, run_sleep_wait_bash_and_print, arg);
+      //pthread_t thread_run;
+      //pthread_create(&thread_run, NULL, run_sleep_wait_bash_and_print, arg);
 
     }else if(strncmp(buf,"stopprintbash",13)==0){
       pthread_mutex_lock(bash_arg->mut_bash_var);
@@ -106,11 +109,12 @@ void* runBashPrint(void *arg){
           pthread_mutex_lock(&(car->mut_coord));
           bash_print_vehicle_n_path(car, pprint->scale_x, pprint->scale_y,bash_arg);
           pthread_mutex_unlock(&(car->mut_coord));
+
           //pthread_mutex_unlock(&(pprint->mut_printed));
           ////printf("%s ",pprint->string_space);
           len_buf=sprintf(buf,"%s ",pprint->string_space);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
-
+#if 0
           ////printf("ep: %ld ",qlStatus->index_episode);
           len_buf=sprintf(buf,"ep: %ld\n",qlStatus->index_episode);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
@@ -142,13 +146,15 @@ void* runBashPrint(void *arg){
           ////printf("[%ld] %s ", rlAgent->car->status->cumulative_reward, pprint->string_space);
           len_buf=sprintf(buf,"[%ld] %s ", rlAgent->car->status->cumulative_reward, pprint->string_space);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
-
+#endif
     }
           Sleep(pprint->delay->delay_between_games);
           ++count_print;
           if(count_print > 20){
             count_print = 0;
-            clear_screen();
+            ////clear_screen();
+						len_buf=sprintf(buf,"\e[2J\e[H");
+          	BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
           }
   }
   printf("debug: end runBashPrint\n");

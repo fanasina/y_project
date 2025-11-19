@@ -111,6 +111,9 @@ struct arg_bash *create_arg_bash(){
   b_arg->go_on=1;
   b_arg->thread_launch=NULL;
 
+	b_arg->thread_run_newbash=NULL;
+  b_arg->thread_run_waitbash=NULL;
+
   return b_arg;
 }
 
@@ -136,7 +139,21 @@ void free_arg_bash(struct arg_bash *arg){
     free(arg->thread_launch);
   }
 
+	if(arg->thread_launch){
+		pthread_join(*(arg->thread_launch),NULL);
+		free(arg->thread_launch);
+	}
+	if(arg->thread_run_newbash){
+		pthread_join(*(arg->thread_run_newbash),NULL);
+		free(arg->thread_run_newbash);
+	}
+	if(arg->thread_run_waitbash){
+		pthread_join(*(arg->thread_run_waitbash),NULL);
+		free(arg->thread_run_waitbash);
+	}
+
   free(arg);
+
 }
 
 int new_bash_exist(struct arg_bash *bash_arg){
@@ -151,27 +168,31 @@ void* run_newbash(void* argg){
 if(arg->new_bash_pid == arg->old_bash_pid){
   pid_t pid=fork();
   if(pid<0){
-    perror("fork");
+    ////perror("fork run_newbash");
+		fprintf(stderr, "fork run_newbash error\n");
   }
   else if(pid==0){/* child */
+    usleep(200000);
     char *cmdbash[]={"/usr/bin/gnome-terminal",NULL};
     execvp(cmdbash[0], cmdbash);
+		//printf("debug: new terminal created\n");
+    arg->new_bash_pid = pidof("bash",NULL);
   }else{
     wait(NULL);
 
-    usleep(20000);
+    //usleep(200000);
 
     pthread_mutex_lock(arg->mut_bash_var);
-    arg->new_bash_pid = pidof("bash",NULL);
-    arg->fd_new_bash_pid = open_duplicate_bash(arg->new_bash_pid);
     while(arg->new_bash_pid == arg->old_bash_pid)
     {
-      printf("debug: create new terminal: %d vs %d\n",arg->new_bash_pid,arg->old_bash_pid);
-      getchar();
-      arg->new_bash_pid = pidof("bash",NULL);
-      arg->fd_new_bash_pid = open_duplicate_bash(arg->new_bash_pid);
-      //usleep(2000);
+    	arg->new_bash_pid = pidof("bash",NULL);
+      printf("debug: create new terminal: %d vs %d: forkpid=%d\n",arg->new_bash_pid,arg->old_bash_pid,pid);
+      //getchar();
+      //arg->new_bash_pid = pidof("bash",NULL);
+      //arg->fd_new_bash_pid = open_duplicate_bash(arg->new_bash_pid);
+      usleep(2000000);
     }
+   	 	arg->fd_new_bash_pid = open_duplicate_bash(arg->new_bash_pid);
     
     pthread_mutex_unlock(arg->mut_bash_var);
     pthread_cond_signal(arg->cond_bash_var);
@@ -198,6 +219,22 @@ void kill_all_bash(struct arg_bash *arg){
     arg->fd_current_bash_pid=-1;
   }
   pthread_mutex_unlock(arg->mut_bash_var);
+	if(arg->thread_run_newbash){
+		pthread_join(*(arg->thread_run_newbash),NULL);
+		free(arg->thread_run_newbash);
+		arg->thread_run_newbash=NULL;
+	}
+	if(arg->thread_run_waitbash){
+		pthread_join(*(arg->thread_run_waitbash),NULL);
+		free(arg->thread_run_waitbash);
+		arg->thread_run_waitbash=NULL;
+	}
+	if(arg->thread_launch){
+		pthread_join(*(arg->thread_launch),NULL);
+		free(arg->thread_launch);
+		arg->thread_launch=NULL;
+	}
+
 }
 
 int check_go_on_bash(struct arg_bash *arg){
@@ -376,7 +413,10 @@ void bash_print_vehicle_n_path(struct vehicle *v, float scale_x, float scale_y, 
     int i=0;
     for(i=0; i<w.ws_col+1; ++i) pad[i]=' ';
     pad[i]='\0';
-    for(i=0; i<w.ws_row / 2 ; ++i) printf("%s\n",pad);;
+    for(int j=0; j<w.ws_row / 2 ; ++j) {
+			////printf("%s\n",pad);
+			BASH_WRITE_IF_EXIST(bash_arg, pad, i);
+		}
 
   }
     //goto_xy(0,w.ws_row - lines);

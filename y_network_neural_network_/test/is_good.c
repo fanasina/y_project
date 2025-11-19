@@ -302,57 +302,6 @@ TEST(first_learn_vehicle_50__9){
 
 
 
-/*
-
-  copy_coordinate(path->lower_bound_block[4], (float[]){0,0});
-  copy_coordinate(path->upper_bound_block[4], (float[]){150,250});
-  copy_coordinate(path->lower_bound_block[3], (float[]){150,40});
-  copy_coordinate(path->upper_bound_block[3], (float[]){250,150});
-  copy_coordinate(path->lower_bound_block[2], (float[]){250,80});
-  copy_coordinate(path->upper_bound_block[2], (float[]){360,200});
-  copy_coordinate(path->lower_bound_block[1], (float[]){360,70});
-  copy_coordinate(path->upper_bound_block[1], (float[]){600,150});
-  copy_coordinate(path->lower_bound_block[0], (float[]){600,90});
-  copy_coordinate(path->upper_bound_block[0], (float[]){760,300});
-  copy_coordinate(path->lower_bound_block[6], (float[]){260,300});
-  copy_coordinate(path->upper_bound_block[6], (float[]){760,360});
-  copy_coordinate(path->lower_bound_block[5], (float[]){0,250});
-  copy_coordinate(path->upper_bound_block[5], (float[]){410,300});
-
-
-  copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
-  copy_coordinate(path->upper_bound_block[0], (float[]){100,250});
-  copy_coordinate(path->lower_bound_block[1], (float[]){100,0});
-  copy_coordinate(path->upper_bound_block[1], (float[]){250,80});
-  copy_coordinate(path->lower_bound_block[2], (float[]){250,0});
-  copy_coordinate(path->upper_bound_block[2], (float[]){360,140});
-  copy_coordinate(path->lower_bound_block[3], (float[]){360,70});
-  copy_coordinate(path->upper_bound_block[3], (float[]){600,140});
-  copy_coordinate(path->lower_bound_block[4], (float[]){600,90});
-  copy_coordinate(path->upper_bound_block[4], (float[]){720,300});
-  copy_coordinate(path->lower_bound_block[5], (float[]){300,300});
-  copy_coordinate(path->upper_bound_block[5], (float[]){720,350});
-  copy_coordinate(path->lower_bound_block[6], (float[]){0,250});
-  copy_coordinate(path->upper_bound_block[6], (float[]){410,300});
- 
-
-
-
-  copy_coordinate(path->lower_bound_block[0], (float[]){0,300});
-  copy_coordinate(path->upper_bound_block[0], (float[]){400,700});
-  copy_coordinate(path->lower_bound_block[1], (float[]){100,0});
-  copy_coordinate(path->upper_bound_block[1], (float[]){1000,300});
-  copy_coordinate(path->lower_bound_block[2], (float[]){1000,50});
-  copy_coordinate(path->upper_bound_block[2], (float[]){1400,500});
-  copy_coordinate(path->lower_bound_block[3], (float[]){1400,200});
-  copy_coordinate(path->upper_bound_block[3], (float[]){1800,700});
-  copy_coordinate(path->lower_bound_block[4], (float[]){1100,700});
-  copy_coordinate(path->upper_bound_block[4], (float[]){1700,1000});
-  copy_coordinate(path->lower_bound_block[5], (float[]){800,600});
-  copy_coordinate(path->upper_bound_block[5], (float[]){1100,975});
-  copy_coordinate(path->lower_bound_block[6], (float[]){100,700});
-  copy_coordinate(path->upper_bound_block[6], (float[]){800,975});
- */
 
 #else 
 
@@ -415,7 +364,8 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
     20/*long int nb_training_before_update_weight_in_target*/,
     10000/*size_t number_episodes*/
   );
-/*   UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, nnetworks->main_net, d_f_act , df );
+/*   
+ 	 UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, nnetworks->main_net, d_f_act , df );
    UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, nnetworks->main_net, f_act, f );
    UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, nnetworks->target_net, d_f_act , df );
    UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, nnetworks->target_net, f_act , f );
@@ -432,13 +382,18 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
     pprint /*struct print_params * pprint*/,
     qlparams/*struct qlearning_params *qlearnParams*/
   );
-
-  struct arg_bash *bash_arg= create_arg_bash();
+	
+	pthread_t thread_learn;
+	pthread_create(&thread_learn, NULL, learn_to_drive, (void*)rlAgent);
+ 	//learn_to_drive(rlAgent);
+  
+	struct arg_bash *bash_arg= create_arg_bash();
 
   struct arg_run_qlearn_bprint *argQL_BP =   create_arg_run_qlearn_bprint(bash_arg, rlAgent);
 
   struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, argQL_BP);
   struct y_socket_t *argS = y_socket_create("1600", 2, 3, var);
+ 
 
   pthread_t pollTh;
   pthread_create(&pollTh, NULL, y_socket_poll_fds, (void*)argS);
@@ -446,11 +401,11 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
 
 
 
-  learn_to_drive(rlAgent);
 
 
 
   pthread_join(pollTh, NULL);
+	pthread_join(thread_learn, NULL);
   
   y_socket_free(argS);
   free_arg_var_(var);
