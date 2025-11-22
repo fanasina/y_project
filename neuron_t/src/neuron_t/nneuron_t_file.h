@@ -243,6 +243,7 @@ do{\
       }\
         if(Done){\
           free_dimension(dim);\
+					dim=NULL;\
           free_list_perm_in_dim(l_p);\
           l_p=NULL;\
         }\
@@ -254,6 +255,7 @@ do{\
   free(input);\
   free(iinput);\
   fclose(f_input);\
+	if(dim) free_dimension(dim);\
 \
 }while(0);
 
@@ -422,6 +424,7 @@ j=0;\
                 /*printf("debug : done=%d , l_p==NULL?=%d, endTensor=%d\n",Done, (l_p==NULL), endTensor);*/\
             if(l_p != NULL){\
               free_dimension(dim);\
+							dim=NULL;\
               free_list_perm_in_dim(l_p);\
               l_p=NULL;\
             }\
@@ -437,6 +440,8 @@ j=0;\
   free(iinput);\
   free(recInput);\
   close(fd_input);\
+	if(dim) free_dimension(dim);\
+	if(l_p) free_list_perm_in_dim(l_p);\
 \
 }while(0);
 
