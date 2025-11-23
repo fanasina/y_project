@@ -6,9 +6,10 @@
 GEN_LIST_ALL(pid_t)
 
 
-/* return max pidof target, and if m_pid_t is not NULL, put into it all pids */
+/* return last modified pidof target, and if m_pid_t is not NULL, put into it all pids */
 pid_t pidof(char *target, struct main_list_pid_t *m_pid_t){
-  pid_t maxpid=0;
+  pid_t lastModifiedPid=0;
+	ssize_t refModified=0;
   struct dirent *entry;
   DIR *proc = opendir("/proc"); /*  */
   
@@ -41,7 +42,13 @@ pid_t pidof(char *target, struct main_list_pid_t *m_pid_t){
       name[status-1]=0;
       if(strcmp(name,target)==0){
         pid_t valpid=(pid_t)atol(entry->d_name);
-        if(maxpid<valpid) maxpid=valpid;
+				struct stat attr;
+				stat(path, &attr);
+				ssize_t modifPathDate = attr.st_mtime;
+        if(refModified<modifPathDate) {
+					lastModifiedPid=valpid;
+					refModified=modifPathDate;
+				}
         if(m_pid_t){
           push_back_list_pid_t(m_pid_t,valpid);
         }
@@ -51,7 +58,7 @@ pid_t pidof(char *target, struct main_list_pid_t *m_pid_t){
   }
   closedir(proc);
   
-  return maxpid;
+  return lastModifiedPid;
 }
 /* to write in an open bash terminal */
 int sprintbashpid(pid_t pid, char *content, size_t size_content){

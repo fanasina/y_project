@@ -11,7 +11,8 @@
 #include <unistd.h>
 #define Sleep(x) usleep((x)*1000)
 #endif
-
+#include <errno.h>
+#include <sys/stat.h>
 
 #include "neuron_t/neuron_t.h"
 #include "neuron_t/nneuron_t_file.h"

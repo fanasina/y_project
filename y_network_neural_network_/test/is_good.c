@@ -347,8 +347,8 @@ EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->main_net, weigh
 EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_20240717_01h42m16s_5300.txt");
 */
 
-//EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->main_net, weight_in, ".ff_main_20240717_09h11m09s_1700.txt");
-//EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_20240717_09h11m09s_1700.txt");
+EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->main_net, weight_in, ".ff_main_.symlink");
+EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_.symlink");
 
 struct status_qlearning *qlstatus = create_status_qlearning ();
   struct delay_params *dly = create_delay_params (

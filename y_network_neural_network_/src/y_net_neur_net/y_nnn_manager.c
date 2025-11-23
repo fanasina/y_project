@@ -35,22 +35,38 @@ void y_nnn_manager_handle_input(char * buf, int len_buf, void *arg){
       launch_sleep_wait_bash(bash_arg);
     }else if(strncmp(buf,"killbash",8)==0){
       kill_all_bash(bash_arg);
-    }else if(strncmp(buf,"stoplearn",9)==0){
+    }else if((strncmp(buf,"kill",4)==0) ||  (strncmp(buf,"stoplearn",9)==0)){
+      kill_all_bash(bash_arg);
       pthread_mutex_lock(rlAgent->status->mut_ending);
       rlAgent->status->ending=1;
       pthread_mutex_unlock(rlAgent->status->mut_ending);
 
-      kill_all_bash(bash_arg);
-    }else if(strncmp(buf,"startprintnewbash",17)==0){
+    }else if(strncmp(buf,"stopprint",9)==0){
+      pthread_mutex_lock(bash_arg->mut_bash_var);
+      bash_arg->go_on=0;
+      pthread_mutex_unlock(bash_arg->mut_bash_var);
+			if(bash_arg->thread_run_newbash)
+				pthread_join(*(bash_arg->thread_run_newbash),NULL);
+      if(bash_arg->thread_run_waitbash)
+      	pthread_join(*(bash_arg->thread_run_waitbash),NULL);
+
+			
+    }else if(strncmp(buf,"goonprint",9)==0){
+      pthread_mutex_lock(bash_arg->mut_bash_var);
+      bash_arg->go_on=1;
+      pthread_mutex_unlock(bash_arg->mut_bash_var);
+		}else if(strncmp(buf,"startprintnewbash",17)==0){
       run_newbash(bash_arg);
-			bash_arg->thread_run_newbash=malloc(sizeof(pthread_t));
+			if(bash_arg->thread_run_newbash==NULL)
+				bash_arg->thread_run_newbash=malloc(sizeof(pthread_t));
       pthread_create(bash_arg->thread_run_newbash, NULL, runBashPrint, arg);
       //pthread_t thread_run;
       //pthread_create(&thread_run, NULL, runBashPrint, arg);
       //Sleep(2);
       
     }else if(strncmp(buf,"startprintwaitbash",18)==0){
-      bash_arg->thread_run_waitbash=malloc(sizeof(pthread_t));
+      if(bash_arg->thread_run_waitbash==NULL)
+				bash_arg->thread_run_waitbash=malloc(sizeof(pthread_t));
       pthread_create(bash_arg->thread_run_waitbash, NULL, run_sleep_wait_bash_and_print, arg);
       //pthread_t thread_run;
       //pthread_create(&thread_run, NULL, run_sleep_wait_bash_and_print, arg);
@@ -103,7 +119,7 @@ void* runBashPrint(void *arg){
   wait_valid_pid_bash(bash_arg);
 
   printf("debug: start runBashPrint in episode: %ld\n",qlStatus->index_episode);
-  while((new_bash_exist(bash_arg)) && check_go_on_print_params(pprint) && !is_ending(qlStatus)){
+  while( check_go_on_bash(bash_arg) && (new_bash_exist(bash_arg)) && check_go_on_print_params(pprint) && !is_ending(qlStatus)){
     if(/*(qlStatus->nb_episodes %125 == 0)  &&*/  pprint->printed){
           //pthread_mutex_lock(&(pprint->mut_printed));
           pthread_mutex_lock(&(car->mut_coord));

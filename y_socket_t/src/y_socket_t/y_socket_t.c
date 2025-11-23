@@ -347,6 +347,10 @@ void* y_socket_handler_(void *arg){
       }
       else if(len_buf >7 && strncmp(buf, "update", 6)==0){
         if(strncmp(buf+7,"kill",4)==0){
+
+					if(sock->var->extern_socket_handler){
+         		sock->var->extern_socket_handler("kill",4,sock->var->extern_arg);
+      		}
           pthread_mutex_lock(sock->mut_go_on);
           sock->go_on = 0;
           pthread_mutex_unlock(sock->mut_go_on);
@@ -610,6 +614,9 @@ if(buf_len>6){
 		}else if(buf_len && strncmp(buf, "help", 4)==0){
       usage_cmdl();
     }else if(buf_len && strncmp(buf, "kill", 4)==0){
+			if(var->extern_socket_handler){
+         var->extern_socket_handler(buf,buf_len,var->extern_arg);
+      }
       pthread_mutex_lock(argSock->mut_go_on);
       argSock->go_on = 0;
       pthread_mutex_unlock(argSock->mut_go_on);

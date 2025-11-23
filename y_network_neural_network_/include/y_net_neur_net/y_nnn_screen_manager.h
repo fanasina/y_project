@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
-
+#include <sys/stat.h>
 
 #include <ctype.h>
 #include <dirent.h>

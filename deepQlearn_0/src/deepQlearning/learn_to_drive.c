@@ -389,7 +389,7 @@ char *fileNameDateScore(char * pre, char* post,size_t score){
 
 const char* target_symlink = ".ff_target_.symlink";
 const char* main_symlink = ".ff_main_.symlink";
-
+const char* dest_folder=".ff_learnDir";
 
 void* learn_to_drive(void * lrnarg){
 	struct RL_agent *rlAgent = (struct RL_agent *)lrnarg;
@@ -401,8 +401,17 @@ void* learn_to_drive(void * lrnarg){
   struct status_qlearning * qlStatus = rlAgent->status;
   //struct print_params * pprint = rlAgent->pprint;
   char msg[100];
-  
-  ////pthread_t threadPrint;
+
+	if(mkdir(dest_folder, 0700)==-1){
+		if(errno != EEXIST){
+			perror(" create folder dst\n");
+		}
+	}
+	else{
+		printf("debug: %s successfully created\n",dest_folder);
+	}
+
+	////pthread_t threadPrint;
   ////pthread_create(&threadPrint, NULL, runPrint, (void*)rlAgent);
   
  // while(true){
@@ -429,7 +438,7 @@ void* learn_to_drive(void * lrnarg){
           if(car_status->cumulative_reward > qlStatus->progress_best_cumul->end_list->value){
 
             push_back_list_TYPE_L_INT(qlStatus->progress_best_cumul, car_status->cumulative_reward);
-            char *file = fileNameDateScore(".ff_main_",".txt",car_status->cumulative_reward);
+            char *file = fileNameDateScore(".ff_learnDir/.ff_main_",".txt",car_status->cumulative_reward);
             EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->main_net ,weight_in, file);
             unlink(main_symlink);
             if(symlink(file, main_symlink)==-1){
@@ -438,7 +447,7 @@ void* learn_to_drive(void * lrnarg){
             }
             else write(1,":",1);
             free(file);
-            file = fileNameDateScore(".ff_target_",".txt",car_status->cumulative_reward);
+            file = fileNameDateScore(".ff_learnDir/.ff_target_",".txt",car_status->cumulative_reward);
             EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->target_net ,weight_in, file);
             unlink(target_symlink);
             if(symlink(file, target_symlink)==-1){
