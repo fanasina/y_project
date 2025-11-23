@@ -115,7 +115,7 @@ void* runBashPrint(void *arg){
   struct arg_run_qlearn_bprint *arg_run=(struct arg_run_qlearn_bprint*)arg;
   struct RL_agent *rlAgent = arg_run->rlAgent;
   struct arg_bash *bash_arg = arg_run->bash_arg;
-
+	bash_arg->run_bash=1;
   struct status_qlearning *qlStatus = rlAgent->status;
   struct print_params * pprint = rlAgent->pprint;
   struct vehicle *car = rlAgent->car;
@@ -181,6 +181,7 @@ void* runBashPrint(void *arg){
           }
   }
   printf("debug: end runBashPrint\n");
+	bash_arg->run_bash=0;
   return NULL;
 }
 

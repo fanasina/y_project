@@ -120,7 +120,7 @@ struct arg_bash *create_arg_bash(){
 
 	b_arg->thread_run_newbash=NULL;
   b_arg->thread_run_waitbash=NULL;
-
+	b_arg->run_bash=0;
   return b_arg;
 }
 
@@ -191,12 +191,12 @@ void free_arg_bash(struct arg_bash *arg){
 		free(arg->thread_launch);
 	}
 	if(arg->thread_run_newbash){
-		if(ret_check_down_bash_new == 0)
+		if(arg->run_bash && ret_check_down_bash_new == 0)
 			pthread_join(*(arg->thread_run_newbash),NULL);
 		free(arg->thread_run_newbash);
 	}
 	if(arg->thread_run_waitbash){
-		if(ret_check_down_bash_current==0)
+		if(arg->run_bash && ret_check_down_bash_current==0)
 			pthread_join(*(arg->thread_run_waitbash),NULL);
 		free(arg->thread_run_waitbash);
 	}
@@ -277,7 +277,7 @@ void kill_all_bash(struct arg_bash *arg){
   }
   pthread_mutex_unlock(arg->mut_bash_var);
 	if(arg->thread_run_newbash){
-		if(ret_check_down_bash_new == 0){
+		if(ret_check_down_bash_new == 0 && arg->go_on){
 			printf("debug: join thread_run_newbash\n");
 			pthread_join(*(arg->thread_run_newbash),NULL);
 		}else
@@ -286,7 +286,7 @@ void kill_all_bash(struct arg_bash *arg){
 		arg->thread_run_newbash=NULL;
 	}
 	if(arg->thread_run_waitbash){
-		if(ret_check_down_bash_current == 0){
+		if(ret_check_down_bash_current == 0 && arg->go_on){
 			printf("debug: join thread_run_waitbash\n");
 			pthread_join(*(arg->thread_run_waitbash),NULL);
 		}else

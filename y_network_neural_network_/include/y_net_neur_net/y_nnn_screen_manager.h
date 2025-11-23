@@ -56,6 +56,8 @@ struct arg_bash{
   pthread_t *thread_run_newbash;
   pthread_t *thread_run_waitbash;
 
+	int run_bash;
+
   pthread_mutex_t *mut_bash_var;
   pthread_cond_t *cond_bash_var;
   int go_on;
