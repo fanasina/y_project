@@ -37,9 +37,16 @@ void y_nnn_manager_handle_input(char * buf, int len_buf, void *arg){
       kill_all_bash(bash_arg);
     }else if((strncmp(buf,"kill",4)==0) ||  (strncmp(buf,"stoplearn",9)==0)){
       kill_all_bash(bash_arg);
-      pthread_mutex_lock(rlAgent->status->mut_ending);
+
+			pthread_mutex_lock(rlAgent->status->mut_ending);
       rlAgent->status->ending=1;
       pthread_mutex_unlock(rlAgent->status->mut_ending);
+
+			pthread_join(*(rlAgent->networks->thread_learn), NULL);
+			// have to free here to not call pthread_join again when free networks 
+			free(rlAgent->networks->thread_learn);
+			// set NULL to avoid free again and call join!
+			rlAgent->networks->thread_learn = NULL;
 
     }else if(strncmp(buf,"stopprint",9)==0){
       pthread_mutex_lock(bash_arg->mut_bash_var);

@@ -383,8 +383,8 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
     qlparams/*struct qlearning_params *qlearnParams*/
   );
 	
-	pthread_t thread_learn;
-	pthread_create(&thread_learn, NULL, learn_to_drive, (void*)rlAgent);
+	//pthread_t thread_learn;
+	//pthread_create(&thread_learn, NULL, learn_to_drive, (void*)rlAgent);
  	//learn_to_drive(rlAgent);
   
 	struct arg_bash *bash_arg= create_arg_bash();
@@ -405,7 +405,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
 
 
   pthread_join(pollTh, NULL);
-	pthread_join(thread_learn, NULL);
+	//pthread_join(thread_learn, NULL);
   
   y_socket_free(argS);
   free_arg_var_(var);

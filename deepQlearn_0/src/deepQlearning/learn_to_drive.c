@@ -76,6 +76,8 @@ struct networks_qlearning * create_nework_qlearning(
     tmpTarget= tmpTarget->next_layer;
     tmpBest = tmpBest->next_layer;
   }
+
+	qnets->thread_learn = NULL;
   
 
 
@@ -183,6 +185,9 @@ struct RL_agent * create_RL_agent (
   rlagent->pprint = pprint ;
   rlagent->qlearnParams = qlearnParams ;
 
+	rlagent->networks->thread_learn=malloc(sizeof(pthread_t));
+	pthread_create(rlagent->networks->thread_learn, NULL, learn_to_drive, (void*)rlagent);
+		
   return rlagent;
 }
 
@@ -191,6 +196,10 @@ void free_networks_qlearning (struct networks_qlearning * networks){
   free_neurons_TYPE_FLOAT(networks->target_net);
   free_neurons_TYPE_FLOAT(networks->best_net);
   free_config_layers(networks->config);
+	if(networks->thread_learn){
+		pthread_join(*(networks->thread_learn), NULL);
+		free(networks->thread_learn);
+	}
   free(networks);
 }
 void free_status_qlearning(struct status_qlearning *status_ql){

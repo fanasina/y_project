@@ -86,6 +86,7 @@ struct networks_qlearning {
   neurons_TYPE_FLOAT *main_net;
   neurons_TYPE_FLOAT *target_net;
   neurons_TYPE_FLOAT *best_net;
+	pthread_t *thread_learn;
 };
 
 struct RL_agent {
