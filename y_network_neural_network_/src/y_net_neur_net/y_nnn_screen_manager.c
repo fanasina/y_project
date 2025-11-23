@@ -124,38 +124,80 @@ struct arg_bash *create_arg_bash(){
   return b_arg;
 }
 
+int check_bash_down(pid_t pid){
+	char path_folder[SIZE_LOCAL_BUF];
+	snprintf(path_folder, SIZE_LOCAL_BUF, "/proc/%d", pid);
+	printf("debug: check_bash_down %s\n", path_folder);
+	if (access(path_folder, F_OK) == 0) {
+    // file exists
+		char path[SIZE_LOCAL_BUF];
+  	snprintf(path,SIZE_LOCAL_BUF, "/proc/%d/comm",pid);
+		if(access(path, F_OK) == 0){
+			char name[SIZE_LOCAL_BUF];
+    	int status;
+			int fd_comm = open(path, O_RDONLY);
+			if(fd_comm<0){
+				perror("fd_comm: check_bash_down");
+				return fd_comm;
+			}
+    	if((status=read(fd_comm, name, SIZE_LOCAL_BUF))){
+      	name[status-1]=0;
+      	if(strcmp(name,"bash")==0){
+					close(fd_comm);
+					printf("debug: success check_bash_down not down = %s , name = %s\n",path,name);
+					return 0;//success
+				}				
+				printf("debug: check_bash_down fail: name=%s != bash\n",name);
+			}
+			close(fd_comm);
+		}
+	}
+ 	printf("debug: fail check_bash_down %s, bash already down \n",path_folder);	
+	//else {
+    // file doesn't exist
+	return -1;
+	//}
+
+	
+}
+
 /* free and kill bash */
 void free_arg_bash(struct arg_bash *arg){
   pthread_mutex_destroy(arg->mut_bash_var);
   free(arg->mut_bash_var);
   pthread_cond_destroy(arg->cond_bash_var);
   free(arg->cond_bash_var);
-
+	int ret_check_down_bash_new=-1;
+	int ret_check_down_bash_current = -1;
   if(arg->fd_new_bash_pid > 0) {
-    close(arg->fd_new_bash_pid);
-    kill(arg->new_bash_pid, SIGKILL);
+		if(check_bash_down(arg->new_bash_pid) == 0){
+    	close(arg->fd_new_bash_pid);
+    	kill(arg->new_bash_pid, SIGKILL);
+			ret_check_down_bash_new=0;
+		}
   }
   
   if(arg->fd_current_bash_pid > 0 && arg->fd_current_bash_pid != arg->fd_new_bash_pid) {
-    close(arg->fd_current_bash_pid);
-    kill(arg->current_bash_pid, SIGKILL);
+		if(check_bash_down(arg->current_bash_pid) == 0){
+    	close(arg->fd_current_bash_pid);
+    	kill(arg->current_bash_pid, SIGKILL);
+			ret_check_down_bash_current = 0;
+		}
   }
 
-  if(arg->thread_launch){
-    pthread_join(*(arg->thread_launch), NULL);
-    free(arg->thread_launch);
-  }
 
 	if(arg->thread_launch){
 		pthread_join(*(arg->thread_launch),NULL);
 		free(arg->thread_launch);
 	}
 	if(arg->thread_run_newbash){
-		pthread_join(*(arg->thread_run_newbash),NULL);
+		if(ret_check_down_bash_new == 0)
+			pthread_join(*(arg->thread_run_newbash),NULL);
 		free(arg->thread_run_newbash);
 	}
 	if(arg->thread_run_waitbash){
-		pthread_join(*(arg->thread_run_waitbash),NULL);
+		if(ret_check_down_bash_current==0)
+			pthread_join(*(arg->thread_run_waitbash),NULL);
 		free(arg->thread_run_waitbash);
 	}
 
@@ -212,27 +254,43 @@ if(arg->new_bash_pid == arg->old_bash_pid){
 
 void kill_all_bash(struct arg_bash *arg){
   pthread_mutex_lock(arg->mut_bash_var);
+	int ret_check_down_bash_new=-1;
+	int ret_check_down_bash_current=-1;
   if(arg->fd_new_bash_pid > 0) {
-    close(arg->fd_new_bash_pid);
-    kill(arg->new_bash_pid, SIGKILL);
+		if(check_bash_down(arg->new_bash_pid) == 0){
+    	close(arg->fd_new_bash_pid);
+    	kill(arg->new_bash_pid, SIGKILL);
+			ret_check_down_bash_new = 0;
+		}
     arg->new_bash_pid = arg->old_bash_pid;
     arg->fd_new_bash_pid = -1;
   }
   
   if(arg->fd_current_bash_pid > 0 && arg->fd_current_bash_pid != arg->fd_new_bash_pid) {
-    close(arg->fd_current_bash_pid);
-    kill(arg->current_bash_pid, SIGKILL);
-    arg->current_bash_pid = arg->old_bash_pid;
+		if(check_bash_down(arg->current_bash_pid) == 0){
+    	close(arg->fd_current_bash_pid);
+    	kill(arg->current_bash_pid, SIGKILL);
+			ret_check_down_bash_current = 0;
+		}
+		arg->current_bash_pid = arg->old_bash_pid;
     arg->fd_current_bash_pid=-1;
   }
   pthread_mutex_unlock(arg->mut_bash_var);
 	if(arg->thread_run_newbash){
-		pthread_join(*(arg->thread_run_newbash),NULL);
+		if(ret_check_down_bash_new == 0){
+			printf("debug: join thread_run_newbash\n");
+			pthread_join(*(arg->thread_run_newbash),NULL);
+		}else
+			printf("debug: not join thread_run_newbash\n");
 		free(arg->thread_run_newbash);
 		arg->thread_run_newbash=NULL;
 	}
 	if(arg->thread_run_waitbash){
-		pthread_join(*(arg->thread_run_waitbash),NULL);
+		if(ret_check_down_bash_current == 0){
+			printf("debug: join thread_run_waitbash\n");
+			pthread_join(*(arg->thread_run_waitbash),NULL);
+		}else
+			printf("debug: not join thread_run_waitbash\n");
 		free(arg->thread_run_waitbash);
 		arg->thread_run_waitbash=NULL;
 	}
