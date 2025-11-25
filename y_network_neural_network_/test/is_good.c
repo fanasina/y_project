@@ -279,7 +279,7 @@ float df(float x){
 // **************************************************************
 
 #if 1
-TEST(_first_learn_vehicle_50__9){
+HIDE_TEST(_first_learn_vehicle_50__9){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
@@ -335,7 +335,7 @@ TEST(_first_learn_vehicle_50__9){
   int randomRange = 500;
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
-  float learning_rate = 0.00001 /* 0.001*/;  
+  float learning_rate = 0.001 /*0.01*/ /* 0.001*/;  
   struct networks_qlearning *nnetworks = create_nework_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
@@ -360,7 +360,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
     0.95/*float gamma*/,
     learning_rate,
     0 /* (not used!)float discount_factor*/,
-    0.01/*0.99*/  /*float exploration_factor*/,
+    0.78/*0.01*//*0.99*/  /*float exploration_factor*/,
     20/*long int nb_training_before_update_weight_in_target*/,
     10000/*size_t number_episodes*/
   );
@@ -421,7 +421,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
 // ****************************************************************
 
 #if 1
-HIDE_TEST(first_learn_vehicle_50__10){
+HIDE_TEST(_first_learn_vehicle_50__10){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
@@ -578,9 +578,35 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
   );
 
 
-  learn_to_drive(rlAgent);
+  //learn_to_drive(rlAgent);
+	//learn_to_drive(rlAgent);
+  
+	struct arg_bash *bash_arg= create_arg_bash();
 
-  free_RL_agent(rlAgent);
+  struct arg_run_qlearn_bprint *argQL_BP =   create_arg_run_qlearn_bprint(bash_arg, rlAgent);
+
+  struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, argQL_BP);
+  struct y_socket_t *argS = y_socket_create("1600", 2, 3, var);
+ 
+
+  pthread_t pollTh;
+  pthread_create(&pollTh, NULL, y_socket_poll_fds, (void*)argS);
+
+
+
+
+
+
+
+  pthread_join(pollTh, NULL);
+	//pthread_join(thread_learn, NULL);
+  
+  y_socket_free(argS);
+  free_arg_var_(var);
+  free_arg_run_qlearn_bprint(argQL_BP);
+  //free_arg_bash(bash_arg);
+
+  //free_RL_agent(rlAgent);
 
 
 
@@ -588,7 +614,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
 }
 #endif
 
-HIDE_TEST(_first_learn_vehicle_50__11_9){
+TEST(_first_learn_vehicle_50__11_9){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
@@ -664,7 +690,7 @@ HIDE_TEST(_first_learn_vehicle_50__11_9){
   int randomRange = 500;
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
-  float learning_rate = 0.00001 /* 0.001*/;  
+  float learning_rate = 0.001; /* 0.00001*/ /* 0.001*/;  
   struct networks_qlearning *nnetworks = create_nework_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
@@ -676,8 +702,8 @@ EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->main_net, weigh
 EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_20240717_01h42m16s_5300.txt");
 */
 
-EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->main_net, weight_in, ".ff_main_.symlink");
-EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_.symlink");
+//EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->main_net, weight_in, ".ff_main_.symlink");
+//EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_.symlink");
 
 struct status_qlearning *qlstatus = create_status_qlearning ();
   struct delay_params *dly = create_delay_params (
@@ -689,7 +715,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
     0.95/*float gamma*/,
     learning_rate,
     0 /* (not used!)float discount_factor*/,
-    0.01/*0.99*/  /*float exploration_factor*/,
+    0.99 /*0.99*/  /*float exploration_factor*/,
     20/*long int nb_training_before_update_weight_in_target*/,
     10000/*size_t number_episodes*/
   );
@@ -1149,7 +1175,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
 
 
 #if 1
-HIDE_TEST(first_learn_vehicle13){
+HIDE_TEST(__first_learn_vehicle13){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
@@ -1216,8 +1242,8 @@ HIDE_TEST(first_learn_vehicle13){
 
   struct status_qlearning *qlstatus = create_status_qlearning ();
   struct delay_params *dly = create_delay_params (
-    100/*size_t delay_between_episodes*/,
-    10/*size_t delay_between_games*/
+    500/*size_t delay_between_episodes*/,
+    50/*size_t delay_between_games*/
   );
   
   struct qlearning_params *qlparams = create_qlearning_params (
@@ -1246,9 +1272,37 @@ HIDE_TEST(first_learn_vehicle13){
     qlparams/*struct qlearning_params *qlearnParams*/
   );
 
-  learn_to_drive(rlAgent);
+  //learn_to_drive(rlAgent);
 
-  free_RL_agent(rlAgent);
+  //learn_to_drive(rlAgent);
+
+    struct arg_bash *bash_arg= create_arg_bash();
+
+  struct arg_run_qlearn_bprint *argQL_BP =   create_arg_run_qlearn_bprint(bash_arg, rlAgent);
+
+  struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, argQL_BP);
+  struct y_socket_t *argS = y_socket_create("1600", 2, 3, var);
+
+
+  pthread_t pollTh;
+  pthread_create(&pollTh, NULL, y_socket_poll_fds, (void*)argS);
+
+
+
+
+
+
+
+  pthread_join(pollTh, NULL);
+  //pthread_join(thread_learn, NULL);
+
+  y_socket_free(argS);
+  free_arg_var_(var);
+  free_arg_run_qlearn_bprint(argQL_BP);
+
+	
+	//free_RL_agent(rlAgent);
+  //free_RL_agent(rlAgent);
 
 
 
@@ -2701,7 +2755,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
 
 
 #if 1
-HIDE_TEST(first_learn_vehicle13){
+HIDE_TEST(_first_learn_vehicle13){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
@@ -2798,9 +2852,37 @@ HIDE_TEST(first_learn_vehicle13){
     qlparams/*struct qlearning_params *qlearnParams*/
   );
 
-  learn_to_drive(rlAgent);
+  //learn_to_drive(rlAgent);
 
-  free_RL_agent(rlAgent);
+  //learn_to_drive(rlAgent);
+
+    struct arg_bash *bash_arg= create_arg_bash();
+
+  struct arg_run_qlearn_bprint *argQL_BP =   create_arg_run_qlearn_bprint(bash_arg, rlAgent);
+
+  struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, argQL_BP);
+  struct y_socket_t *argS = y_socket_create("1600", 2, 3, var);
+
+
+  pthread_t pollTh;
+  pthread_create(&pollTh, NULL, y_socket_poll_fds, (void*)argS);
+
+
+
+
+
+
+
+  pthread_join(pollTh, NULL);
+  //pthread_join(thread_learn, NULL);
+
+  y_socket_free(argS);
+  free_arg_var_(var);
+  free_arg_run_qlearn_bprint(argQL_BP);
+
+	
+	//free_RL_agent(rlAgent);
+  //free_RL_agent(rlAgent);
 
 
 

@@ -137,7 +137,7 @@ void* runBashPrint(void *arg){
           ////printf("%s ",pprint->string_space);
           len_buf=sprintf(buf,"%s ",pprint->string_space);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
-#if 0
+#if 1
           ////printf("ep: %ld ",qlStatus->index_episode);
           len_buf=sprintf(buf,"ep: %ld\n",qlStatus->index_episode);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)

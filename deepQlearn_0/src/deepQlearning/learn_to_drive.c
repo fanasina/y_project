@@ -79,7 +79,9 @@ struct networks_qlearning * create_nework_qlearning(
 
 	qnets->thread_learn = NULL;
   
-
+	for(int i=0;i<COUNT_ACTION;++i){
+		qnets->nb_successive_action[i]=0;
+	}
 
   return qnets; 
 
@@ -162,7 +164,7 @@ struct qlearning_params * create_qlearning_params  (
 
   qparams->factor_update_learning_rate = 0.995;
   qparams->minimum_threshold_learning_rate = 0.0001 ;
-  qparams->factor_update_exploration_factor = 0.995;
+  qparams->factor_update_exploration_factor = 0.9995 /*0.995*/;
   qparams->minimum_threshold_exploration_factor = 0.01;
 
 //  qparams->threshold_number_same_action = 500;
@@ -244,6 +246,8 @@ void free_RL_agent(struct RL_agent *rlAgent){
   free(rlAgent);
 }
 
+#define ACCEPTABLE_REWARD 1000
+
 void train_qlearning(struct RL_agent * rlAgent, 
   int action  //, long reward
   ){
@@ -275,18 +279,19 @@ void train_qlearning(struct RL_agent * rlAgent,
         ttmp = ttmp->prev_layer;
       }
 
-// *** 
-  float new_value = ( (net_main->learning_rate < qlParams->minimum_threshold_learning_rate /*0.0001*/) ? net_main->learning_rate :(net_main->learning_rate ) * qlParams->factor_update_learning_rate   /*0.995*/ );
-  UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, net_main, learning_rate, new_value);
+// ***
+	if(car_status->cumulative_reward > ACCEPTABLE_REWARD){ 
+  	float new_value = ( (net_main->learning_rate < qlParams->minimum_threshold_learning_rate /*0.0001*/) ? net_main->learning_rate :(net_main->learning_rate ) * qlParams->factor_update_learning_rate   /*0.995*/ );
+  	UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, net_main, learning_rate, new_value);
 
-  qlParams->exploration_factor = (qlParams->exploration_factor < qlParams->minimum_threshold_exploration_factor) ? qlParams->exploration_factor : qlParams->exploration_factor * qlParams->factor_update_exploration_factor ;
-
+  	qlParams->exploration_factor = (qlParams->exploration_factor < qlParams->minimum_threshold_exploration_factor) ? qlParams->exploration_factor : qlParams->exploration_factor * qlParams->factor_update_exploration_factor ;
+	}
 //  free_tensor_TYPE_FLOAT(action_value);
 //  free_tensor_TYPE_FLOAT(next_action_value);
   free_tensor_TYPE_FLOAT(experimental_values);
 
 }
-
+#define MAX_SUCCESSIVE_ACTION 200
 int select_action(struct RL_agent * rlAgent){
   //static size_t explore = 0;
   int action;
@@ -305,6 +310,17 @@ int select_action(struct RL_agent * rlAgent){
   float proba_explor =  (float) (xrand() % ((1<<17) -1))/ ((1<<17) -1); //frand(); //(float)(random ) / randRange;
   if(proba_explor > rlAgent->qlearnParams->exploration_factor ){
     action = ARG_MAX_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  );
+    //printf(" STRATEGY : action : %d , factor : %f nb_episodes : %ld \n",action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
+		if(rlAgent->networks->nb_successive_action[action]>MAX_SUCCESSIVE_ACTION){
+			rlAgent->networks->nb_successive_action[action]=0;
+			int recAction=action;
+			while(action==recAction){
+    		action = xrand() % action_value->dim->rank ; 
+				//printf("debug: action=%d recAction=%d\n",action, recAction);
+			}
+		  write(1,"#",1);	
+		}
+		////else write(1,".",1);
     //if(action == ARG_MIN_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  )) 
       //action = xrand() % action_value->dim->rank ; 
   }
@@ -312,7 +328,15 @@ int select_action(struct RL_agent * rlAgent){
     action = xrand() % action_value->dim->rank ; 
    // explore++;
     //printf(" EXPLORE :%ld, action : %d , factor : %f nb_episodes : %ld \n",explore,action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
+    //printf(" EXPLORE : action : %d , factor : %f nb_episodes : %ld \n",action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
+		////write(1,"*",1);
   }
+	for(int a=0;a<COUNT_ACTION;++a){
+		if(a!=action)
+			rlAgent->networks->nb_successive_action[a]=0;
+	}
+	(rlAgent->networks->nb_successive_action[action])++;
+
   /*
     if(rlAgent->status->last_action == action){
       ++(rlAgent->status->count_last_action);
@@ -445,6 +469,9 @@ void* learn_to_drive(void * lrnarg){
           //push_back_list_TYPE_L_INT(qlStatus->list_main_cumul, car_status->cumulative_reward);
           // printf(" cumul : %ld ", car_status->cumulative_reward);
           if(car_status->cumulative_reward > qlStatus->progress_best_cumul->end_list->value){
+          	int len_cumul=0;
+						char cumulSTR[128];
+						len_cumul=sprintf(cumulSTR, " %ld ", car_status->cumulative_reward);
 
             push_back_list_TYPE_L_INT(qlStatus->progress_best_cumul, car_status->cumulative_reward);
             char *file = fileNameDateScore(".ff_learnDir/.ff_main_",".txt",car_status->cumulative_reward);
@@ -455,6 +482,7 @@ void* learn_to_drive(void * lrnarg){
               //fprintf(stderr,"debug: symlink %s with %s. explain:%s \n",main_symlink, file, explain_symlink(file, main_symlink) );
             }
             else write(1,":",1);
+            write(1,cumulSTR,len_cumul);
             free(file);
             file = fileNameDateScore(".ff_learnDir/.ff_target_",".txt",car_status->cumulative_reward);
             EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->target_net ,weight_in, file);

@@ -581,7 +581,7 @@ void step_vehicle(struct vehicle *v, int action){
   }
 }
 
-#define RANDOM 1
+#define RANDOM 0
 
 void reset(struct vehicle *v){
   //static bool init = true;
@@ -597,28 +597,29 @@ void reset(struct vehicle *v){
     //srand(time(NULL));
     //init = false;
   //}
-  int random;
   int diff;
   diff = path->upper_bound_block[0]->x[0] - path->lower_bound_block[0]->x[0];
-  random = xrand() % (diff/2) ;
   #if RANDOM
+  int random;
+  random = xrand() % (diff/2) ;
     v->coord->x[0] = path->lower_bound_block[0]->x[0] + random;
   #else
     v->coord->x[0] = path->lower_bound_block[0]->x[0] + diff/2;
   #endif
   diff = path->upper_bound_block[0]->x[1] - path->lower_bound_block[0]->x[1];
-  random = xrand() % (diff/2);
   #if RANDOM
+  random = xrand() % (diff/2);
     v->coord->x[1] = path->lower_bound_block[0]->x[1] + random;
   #else
     v->coord->x[1] = path->lower_bound_block[0]->x[1] + diff/2;
   #endif
-  random = xrand() % 50;
   #if RANDOM
-   // v->direction = 115 - random ;
-    v->direction = random - 25  ;
+  random = xrand() % 50;
+    v->direction = 80 - random ;
+    //v->direction = 115 - random ;
+   // v->direction = random - 25  ;
   #else
-    v->direction = -90;
+    v->direction = 70; //-90;
   #endif
   v->speed = SPEED;
   read_sensor(v);
