@@ -158,6 +158,8 @@ void* runBashPrint(void *arg){
           //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_target, output, "net_target_out");
           //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, input, "net_main_input");
           ////printf(" action : %d , factor : %f nb_episodes : %ld \n",qlStatus->action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
+          BASH_PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, bash_arg, net_main, weight_in, "net_main_we_in");
+          
           len_buf=sprintf(buf," action : %d , factor : %f nb_episodes : %ld \n",qlStatus->action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
 

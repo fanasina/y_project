@@ -164,5 +164,27 @@ GEN_NEURON_(TYPE_DOUBLE)
     free(vmsg);\
   }while(0);\
 
+#define BASH_PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(type, bash_arg, neuronVar, attribute, msg)\
+  do{\
+    neurons_##type *tmpn = neuronVar;\
+    char *vmsg=malloc(strlen(msg)+70);\
+    size_t i=0;\
+    size_t lenVMG=0;\
+    size_t lenBSH_T=0;\
+    while(tmpn){\
+      lenVMG = sprintf(vmsg,"%s layer %ld",msg,i++);\
+      BASH_WRITE_IF_EXIST(bash_arg,vmsg,lenVMG);\
+      if(tmpn->attribute){\
+        char *bashSTR=NULL;\
+        lenBSH_T=sprint_tensor_##type(&bashSTR, tmpn->attribute, true);\
+        BASH_WRITE_IF_EXIST(bash_arg,bashSTR,lenBSH_T);\
+        if(bashSTR) free(bashSTR);\
+      }\
+      tmpn = tmpn->next_layer;\
+    }\
+    free(vmsg);\
+  }while(0);\
+
+
 
 #endif /*__NEURON_T_C__H*/
