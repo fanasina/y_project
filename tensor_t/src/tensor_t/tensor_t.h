@@ -83,6 +83,7 @@ void update_6tensor_func_##type(tensor_##type *M0, tensor_##type *M1,  \
 
 GENERATE_TENSOR_TYPE(TYPE_FLOAT);
 GENERATE_TENSOR_TYPE(TYPE_DOUBLE);
+GENERATE_TENSOR_TYPE(TYPE_L_DOUBLE);
 
 
 #endif /* __TENSOR_T__H__ */

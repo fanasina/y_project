@@ -60,6 +60,8 @@ struct func_act_##type {\
 void do_not_update_learnig_rate_##type(neurons_##type *N);\
 void time_based_update_learning_rate_##type(neurons_##type *nr);\
 void step_based_update_learning_rate_##type(neurons_##type *nr);\
+type id_##type(type x);\
+type d_id_##type(type x);\
 void setup_learning_rate_params_neurons_##type(neurons_##type *base,type initial_learning_rate, type decay_rate, size_t drop_rate, void (*update_learning_rate)(neurons_##type *));\
 /*void calc_net_neurons_##type(neurons_##type *nr);*/\
 void calc_out_neurons_##type(neurons_##type *nr);\
@@ -125,6 +127,7 @@ size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##typ
 
 GEN_NEURON_(TYPE_FLOAT)
 GEN_NEURON_(TYPE_DOUBLE)
+GEN_NEURON_(TYPE_L_DOUBLE)
 
 
 #define UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(type, neuronVar, attribute, value) \
@@ -164,21 +167,24 @@ GEN_NEURON_(TYPE_DOUBLE)
     free(vmsg);\
   }while(0);\
 
-#define BASH_PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(type, bash_arg, neuronVar, attribute, msg)\
+#define BASH_PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(type, bash_arg, neuronVar, attribute, msg, putIndexTens)\
   do{\
     neurons_##type *tmpn = neuronVar;\
     char *vmsg=malloc(strlen(msg)+70);\
-    size_t i=0;\
-    size_t lenVMG=0;\
+    /*size_t i=0;\
+    size_t lenVMG=0;*/\
     size_t lenBSH_T=0;\
     while(tmpn){\
-      lenVMG = sprintf(vmsg,"%s layer %ld",msg,i++);\
-      BASH_WRITE_IF_EXIST(bash_arg,vmsg,lenVMG);\
+      /*lenVMG = sprintf(vmsg,"%s layer %ld",msg,i++);\
+      BASH_WRITE_IF_EXIST(bash_arg,vmsg,lenVMG);*/\
       if(tmpn->attribute){\
         char *bashSTR=NULL;\
-        lenBSH_T=sprint_tensor_##type(&bashSTR, tmpn->attribute, true);\
-        BASH_WRITE_IF_EXIST(bash_arg,bashSTR,lenBSH_T);\
+        lenBSH_T=sprint_tensor_##type(&bashSTR, tmpn->attribute, putIndexTens);\
+        if(tmpn/*->next_layer==NULL*/){\
+          BASH_WRITE_IF_EXIST(bash_arg,bashSTR,lenBSH_T);\
+        }\
         if(bashSTR) free(bashSTR);\
+        /*if(lenBSH_T==0) getchar();*/\
       }\
       tmpn = tmpn->next_layer;\
     }\

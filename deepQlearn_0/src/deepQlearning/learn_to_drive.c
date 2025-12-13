@@ -2,17 +2,26 @@
 
 char *action_name[8] = {"LEFT", "CENTER", "RIGHT"};
 
-#define THRESHOLD_UP 10
+#define UPPER_THRESHOLD 10
+#define DIVIDER__  1
+#define USE_THRESHOLD 0
 
 float reLU(float x){
-  if(x>THRESHOLD_UP) return THRESHOLD_UP;
-  if(x>0) return x;
+  if(x!=x){// nan
+    printf("nan relu ");
+  }
+#if USE_THRESHOLD
+  if(x>UPPER_THRESHOLD) return UPPER_THRESHOLD;
+#endif
+  if(x>0) return x/DIVIDER__;
   return 0;
 }
 
 float d_reLU(float x){
-  if (x>THRESHOLD_UP) return 0;
-  if (x>0) return 1;
+#if USE_THRESHOLD
+  if (x>UPPER_THRESHOLD) return 0;
+#endif
+  if (x>0) return 1/DIVIDER__;
   return 0;
 }
 
@@ -37,7 +46,16 @@ float id(float x){ return x;}
 
 float constOne(float x){return 1;}
 
-struct networks_qlearning * create_nework_qlearning(
+void tensorProdTHR_TYPE_FLOAT(tensor_TYPE_FLOAT **MM, tensor_TYPE_FLOAT *M0, tensor_TYPE_FLOAT *M1, size_t nbthread){
+  return tensorProd_TYPE_FLOAT(MM,M0,M1);
+}
+
+
+void tensorContractnProdTHR_TYPE_FLOAT(tensor_TYPE_FLOAT **MM, tensor_TYPE_FLOAT *M0, tensor_TYPE_FLOAT *M1, size_t contractionNumber, size_t nbthread) {
+  return tensorContractnProd_TYPE_FLOAT(MM,M0,M1,contractionNumber);
+}
+
+struct networks_qlearning * create_network_qlearning(
   struct config_layers * config,
   bool randomize, float minR, float maxR,  int randomRange,
   size_t nb_prod_thread,
@@ -55,10 +73,13 @@ struct networks_qlearning * create_nework_qlearning(
   copy_weight_in_networks_from_main_to_best(qnets);
 
   setup_all_layers_functions_TYPE_FLOAT(qnets->main_net, tensorContractnProdThread_TYPE_FLOAT, tensorProdThread_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
+  //setup_all_layers_functions_TYPE_FLOAT(qnets->main_net, tensorContractnProdTHR_TYPE_FLOAT, tensorProdTHR_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
   setup_all_layers_params_TYPE_FLOAT(qnets->main_net, nb_prod_thread, nb_calc_thread, learning_rate);
   setup_all_layers_functions_TYPE_FLOAT(qnets->target_net, tensorContractnProdThread_TYPE_FLOAT, tensorProdThread_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
+  //setup_all_layers_functions_TYPE_FLOAT(qnets->target_net, tensorContractnProdTHR_TYPE_FLOAT, tensorProdTHR_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
   setup_all_layers_params_TYPE_FLOAT(qnets->target_net, nb_prod_thread, nb_calc_thread, learning_rate);
   setup_all_layers_functions_TYPE_FLOAT(qnets->best_net, tensorContractnProdThread_TYPE_FLOAT, tensorProdThread_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
+  //setup_all_layers_functions_TYPE_FLOAT(qnets->best_net, tensorContractnProdTHR_TYPE_FLOAT, tensorProdTHR_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
   setup_all_layers_params_TYPE_FLOAT(qnets->best_net, nb_prod_thread, nb_calc_thread, learning_rate);
 
 // ne pas mettre fonction d'activation à la sortie , i.e: fonction identité : f(x) = x:
@@ -67,12 +88,12 @@ struct networks_qlearning * create_nework_qlearning(
   neurons_TYPE_FLOAT *tmpBest = qnets->best_net;
   while(tmpMain){
     if(tmpMain->next_layer == NULL){
-      tmpMain->f_act = id;
-      tmpMain->d_f_act = constOne;
-      tmpTarget->f_act = id;
-      tmpTarget->d_f_act = constOne;
-      tmpBest->f_act = id;
-      tmpBest->d_f_act = constOne;
+      tmpMain->f_act = id_TYPE_FLOAT;//id;
+      tmpMain->d_f_act = d_id_TYPE_FLOAT; //constOne;
+      tmpTarget->f_act = id_TYPE_FLOAT;//id;
+      tmpTarget->d_f_act = d_id_TYPE_FLOAT;//constOne;
+      tmpBest->f_act = id_TYPE_FLOAT;//id;
+      tmpBest->d_f_act = d_id_TYPE_FLOAT;// constOne;
     }
     tmpMain = tmpMain->next_layer;
     tmpTarget= tmpTarget->next_layer;
@@ -156,18 +177,18 @@ struct qlearning_params * create_qlearning_params  (
 ){
   struct qlearning_params * qparams = malloc(sizeof(struct qlearning_params));
 
-  qparams->gamma = gamma;
-  qparams->learning_rate = learning_rate ;
-  qparams->discount_factor = discount_factor ;
+  qparams->gamma = gamma; /* taux d'actualisation (discount rate): default : 0.95  */
+  qparams->learning_rate = learning_rate ; /* default : 0.001 */
+  qparams->discount_factor = discount_factor ; /* */
   qparams->exploration_factor = exploration_factor ;
   
   qparams->nb_training_before_update_weight_in_target = nb_training_before_update_weight_in_target;
   qparams->number_episodes = number_episodes;
 
   qparams->factor_update_learning_rate = 0.995;
-  qparams->minimum_threshold_learning_rate = 0.0001 ;
-  qparams->factor_update_exploration_factor = 0.9995 /*0.995*/;
-  qparams->minimum_threshold_exploration_factor = 0.01;
+  qparams->minimum_threshold_learning_rate = 0.00001 ;
+  qparams->factor_update_exploration_factor = 0.995 /*0.995*/;
+  qparams->minimum_threshold_exploration_factor = 0.0001;
 
 //  qparams->threshold_number_same_action = 500;
 
@@ -250,6 +271,9 @@ void free_RL_agent(struct RL_agent *rlAgent){
 
 #define ACCEPTABLE_REWARD 1000
 
+#define UPDATE_PARAMS 1
+#define UPDATE_EXPLOR_FAC 1
+
 void train_qlearning(struct RL_agent * rlAgent, 
   int action  //, long reward
   ){
@@ -263,8 +287,11 @@ void train_qlearning(struct RL_agent * rlAgent,
   calculate_output_by_network_neurons_TYPE_FLOAT(net_target, new_state, &next_action_value);
   tensor_TYPE_FLOAT * experimental_values = CREATE_TENSOR_FROM_CPY_DIM_TYPE_FLOAT(action_value->dim);
   
+     // print_neurons_msg_TYPE_FLOAT(net_main, " net_main "); getchar();
   struct game_status * car_status = rlAgent->car->status;
+#if UPDATE_PARAMS
   struct qlearning_params * qlParams = rlAgent->qlearnParams;
+#endif
   copy_tensor_TYPE_FLOAT(experimental_values, action_value) ;
   //copy_tensor_TYPE_FLOAT(experimental_values, next_action_value) ;
   // experimental_values === Q-tab learning
@@ -277,23 +304,33 @@ void train_qlearning(struct RL_agent * rlAgent,
       copy_tensor_TYPE_FLOAT(ttmp->target, experimental_values);
       while(ttmp != net_main){
         calc_delta_neurons_TYPE_FLOAT(ttmp);
-        update_weight_neurons_TYPE_FLOAT(ttmp);
+        //update_weight_neurons_TYPE_FLOAT(ttmp);
         ttmp = ttmp->prev_layer;
       }
-
+      ttmp=net_main->next_layer; 
+      while(ttmp){
+        update_weight_neurons_TYPE_FLOAT(ttmp);
+        ttmp = ttmp->next_layer;
+      }
 // ***
-	if(car_status->cumulative_reward > ACCEPTABLE_REWARD){ 
+#if UPDATE_PARAMS
+	if((car_status->cumulative_reward > ACCEPTABLE_REWARD) || (rlAgent->status->nb_episodes % 100 == 0) ){ 
   	float new_value = ( (net_main->learning_rate < qlParams->minimum_threshold_learning_rate /*0.0001*/) ? net_main->learning_rate :(net_main->learning_rate ) * qlParams->factor_update_learning_rate   /*0.995*/ );
   	UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, net_main, learning_rate, new_value);
-
+    qlParams->learning_rate = new_value;
+#if UPDATE_EXPLOR_FAC
   	qlParams->exploration_factor = (qlParams->exploration_factor < qlParams->minimum_threshold_exploration_factor) ? qlParams->exploration_factor : qlParams->exploration_factor * qlParams->factor_update_exploration_factor ;
+#endif
 	}
+#endif
 //  free_tensor_TYPE_FLOAT(action_value);
 //  free_tensor_TYPE_FLOAT(next_action_value);
   free_tensor_TYPE_FLOAT(experimental_values);
 
 }
-#define MAX_SUCCESSIVE_ACTION 200
+#define SUCCESSIVE_ACTION_CHECK 1
+
+#define MAX_SUCCESSIVE_ACTION 1000
 int select_action(struct RL_agent * rlAgent){
   //static size_t explore = 0;
   int action;
@@ -313,15 +350,19 @@ int select_action(struct RL_agent * rlAgent){
   if(proba_explor > rlAgent->qlearnParams->exploration_factor ){
     action = ARG_MAX_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  );
     //printf(" STRATEGY : action : %d , factor : %f nb_episodes : %ld \n",action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
-		if(rlAgent->networks->nb_successive_action[action]>MAX_SUCCESSIVE_ACTION){
+#if SUCCESSIVE_ACTION_CHECK
+  if(rlAgent->networks->nb_successive_action[action]>MAX_SUCCESSIVE_ACTION){
 			rlAgent->networks->nb_successive_action[action]=0;
 			int recAction=action;
 			while(action==recAction){
     		action = xrand() % action_value->dim->rank ; 
 				//printf("debug: action=%d recAction=%d\n",action, recAction);
 			}
-		  write(1,"#",1);	
+      struct qlearning_params * qlParams = rlAgent->qlearnParams;
+		  write(1,"#",1);
+      qlParams->exploration_factor = (qlParams->exploration_factor < 1 ) ? qlParams->exploration_factor / qlParams->factor_update_exploration_factor :  qlParams->exploration_factor  ;
 		}
+#endif
 		////else write(1,".",1);
     //if(action == ARG_MIN_ARRAY_TYPE_FLOAT( action_value->x, action_value->dim->rank  )) 
       //action = xrand() % action_value->dim->rank ; 
@@ -333,12 +374,13 @@ int select_action(struct RL_agent * rlAgent){
     //printf(" EXPLORE : action : %d , factor : %f nb_episodes : %ld \n",action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
 		////write(1,"*",1);
   }
+#if SUCCESSIVE_ACTION_CHECK
 	for(int a=0;a<COUNT_ACTION;++a){
 		if(a!=action)
 			rlAgent->networks->nb_successive_action[a]=0;
 	}
 	(rlAgent->networks->nb_successive_action[action])++;
-
+#endif 
   /*
     if(rlAgent->status->last_action == action){
       ++(rlAgent->status->count_last_action);
@@ -450,7 +492,12 @@ void* learn_to_drive(void * lrnarg){
   ////pthread_create(&threadPrint, NULL, runPrint, (void*)rlAgent);
   
  // while(true){
-    for(size_t index_episode = 0; (!is_ending(qlStatus)) && (index_episode < qlParams->number_episodes) ; ++index_episode){
+    for(size_t index_episode = 0; 
+      (!is_ending(qlStatus)) 
+      //|| (car_status->cumulative_reward > 2 * ACCEPTABLE_REWARD) 
+      //|| (index_episode < qlParams->number_episodes) 
+      ; 
+      ++index_episode){
       reset(car);
       qlStatus->nb_training_after_updated_weight_in_target = 0;
       qlStatus->index_episode = index_episode;

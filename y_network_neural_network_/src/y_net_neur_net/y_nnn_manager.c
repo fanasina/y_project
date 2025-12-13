@@ -129,10 +129,11 @@ void* runBashPrint(void *arg){
   while( check_go_on_bash(bash_arg) && (new_bash_exist(bash_arg)) && check_go_on_print_params(pprint) && !is_ending(qlStatus)){
     if(/*(qlStatus->nb_episodes %125 == 0)  &&*/  pprint->printed){
           //pthread_mutex_lock(&(pprint->mut_printed));
-          pthread_mutex_lock(&(car->mut_coord));
-          bash_print_vehicle_n_path(car, pprint->scale_x, pprint->scale_y,bash_arg);
-          pthread_mutex_unlock(&(car->mut_coord));
-
+          if(bash_arg->weight_net_print == 0){
+            pthread_mutex_lock(&(car->mut_coord));
+            bash_print_vehicle_n_path(car, pprint->scale_x, pprint->scale_y,bash_arg);
+            pthread_mutex_unlock(&(car->mut_coord));
+          }
           //pthread_mutex_unlock(&(pprint->mut_printed));
           ////printf("%s ",pprint->string_space);
           len_buf=sprintf(buf,"%s ",pprint->string_space);
@@ -150,7 +151,7 @@ void* runBashPrint(void *arg){
 
           }
           ////printf("\n< %5.2f > ( %s  ) \n", car->direction, action_name[qlStatus->action % COUNT_ACTION]);
-          len_buf=sprintf(buf,"\n< %5.2f > ( %s  ) \n", car->direction, action_name[qlStatus->action % COUNT_ACTION]);
+          len_buf=sprintf(buf,"\n< %5.2f ( %s  ) \n", car->direction, action_name[qlStatus->action % COUNT_ACTION]);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
           //print_weight_in_neurons_TYPE_FLOAT(net_main, "net_main_wei");
           //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, weight_in, "net_main_we_in");
@@ -158,9 +159,15 @@ void* runBashPrint(void *arg){
           //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_target, output, "net_target_out");
           //PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, net_main, input, "net_main_input");
           ////printf(" action : %d , factor : %f nb_episodes : %ld \n",qlStatus->action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
-          BASH_PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, bash_arg, net_main, weight_in, "net_main_we_in");
-          
-          len_buf=sprintf(buf," action : %d , factor : %f nb_episodes : %ld \n",qlStatus->action,rlAgent->qlearnParams->exploration_factor, rlAgent->status->nb_episodes);
+         
+          if(bash_arg->weight_net_print){
+            BASH_PRINT_ATTRIBUTE_TENS_IN_ALL_LAYERS(TYPE_FLOAT, bash_arg, net_target, weight_in, "net_main_we_in", false);
+          }
+          len_buf=sprintf(buf," action : %d , learning_rate: %f, factor : %f nb_episodes : %ld \n",
+            qlStatus->action,
+            rlAgent->qlearnParams->learning_rate, 
+            rlAgent->qlearnParams->exploration_factor, 
+            rlAgent->status->nb_episodes);
           BASH_WRITE_IF_EXIST(bash_arg, buf, len_buf)
 
           FOR_LIST_FORM_BEGIN(TYPE_L_INT, qlStatus->progress_best_cumul){

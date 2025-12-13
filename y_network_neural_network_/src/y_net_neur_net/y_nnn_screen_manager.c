@@ -116,6 +116,7 @@ struct arg_bash *create_arg_bash(){
   pthread_cond_init(b_arg->cond_bash_var,NULL);
   
   b_arg->go_on=1;
+  b_arg->weight_net_print=0;
   b_arg->thread_launch=NULL;
 
 	b_arg->thread_run_newbash=NULL;

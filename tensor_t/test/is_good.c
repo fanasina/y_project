@@ -510,6 +510,106 @@ TEST(SplitOne_randomInit){
 }
 #endif
 
+TEST(tensorProdNoOpt){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(2);
+#if VALGRIND_
+  d0->perm[0]=5;
+  d0->perm[1]=2; //3;
+  d0->perm[2]=3;
+
+  d1->perm[0]=2;
+  d1->perm[1]=3;//3;
+
+#else
+
+
+  d0->perm[0]=5;
+  d0->perm[1]=7; //3;
+  d0->perm[2]=12;
+
+  d1->perm[0]=2;
+  d1->perm[1]=13;//3;
+#endif
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  print_tensor_float(M0,"M0");
+  print_tensor_float(M1,"M1");
+
+
+  tensor_TYPE_FLOAT *M=NULL; 
+  tensor_TYPE_FLOAT *Mn=NULL; 
+  
+  tensorProdNotOpt_TYPE_FLOAT(&Mn,M0,M1);
+  
+  float MMM0[d0->perm[0]][d0->perm[1]][d0->perm[2]];
+  long int coord3[3];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int i1=0;i1<d0->perm[1];++i1){
+  for(long int i2=0;i2<d0->perm[2];++i2){
+    coord3[0]=i0; coord3[1]=i1; coord3[2]=i2;
+    MMM0[i0][i1][i2]=M0->x[signedLineFromCoord(coord3, d0)];
+    //printf("M0[%ld][%ld][%ld] = %f \n",i0,i1,i2,MMM0[i0][i1][i2]);
+  }
+  }
+  }
+
+  float MMM1[d1->perm[0]][d1->perm[1]];
+  long int coord2[2];
+  for(long int j0=0;j0<d1->perm[0];++j0){
+  for(long int j1=0;j1<d1->perm[1];++j1){
+    coord2[0]=j0; coord2[1]=j1;
+    MMM1[j0][j1]=M1->x[signedLineFromCoord(coord2, d1)];
+  }
+  }
+  //tensorProd_TYPE_FLOAT(&M,M0,M1);
+  float MMMm[d0->perm[0]][d0->perm[1]][d0->perm[2]][d1->perm[0]][d1->perm[1]];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int i1=0;i1<d0->perm[1];++i1){
+  for(long int i2=0;i2<d0->perm[2];++i2){
+  for(long int j0=0;j0<d1->perm[0];++j0){
+  for(long int j1=0;j1<d1->perm[1];++j1){
+    MMMm[i0][i1][i2][j0][j1]=MMM0[i0][i1][i2] * MMM1[j0][j1];
+    //printf("MMMm[%ld][%ld][%ld][%ld][%ld] = %f \n",i0,i1,i2,j0,j1,MMMm[i0][i1][i2][j0][j1]);
+  }
+  }
+  }
+  }
+  }
+  //LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+  //print_tensor_float(M,"M");
+
+  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+  long int coord5[5];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int i1=0;i1<d0->perm[1];++i1){
+  for(long int i2=0;i2<d0->perm[2];++i2){
+  for(long int j0=0;j0<d1->perm[0];++j0){
+  for(long int j1=0;j1<d1->perm[1];++j1){
+    coord5[0]=i0; coord5[1]=i1;coord5[2]=i2;
+    coord5[3]=j0; coord5[4]=j1;
+    EXPECT_EQ_TYPE_FLOAT(MMMm[i0][i1][i2][j0][j1], Mn->x[signedLineFromCoord(coord5, Mn->dim)] );
+  }
+  }
+  }
+  }
+  }
+
+  print_tensor_float(Mn,"Mn");
+  
+  free_tensor_TYPE_FLOAT(M0);
+  free_tensor_TYPE_FLOAT(M1);
+  //free_tensor_TYPE_FLOAT(M);
+  free_tensor_TYPE_FLOAT(Mn);
+}
 TEST(tensorProd ){
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(2);
@@ -563,7 +663,365 @@ TEST(tensorProd ){
   free_tensor_TYPE_FLOAT(Mn);
 }
 
-TEST(tensorContractnProd_TYPE_FLOAT ){
+TEST(tensorContractnProd_TYPE_FLOATNoOpt ){ 
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+#if VALGRIND_
+  d0->perm[0]=5;
+  d0->perm[1]=2; //3;
+  d0->perm[2]=3;
+
+  d1->perm[0]=3;
+  d1->perm[1]=3;//3;
+  d1->perm[2]=8;
+
+#else
+
+
+  d0->perm[0]=15;
+  d0->perm[1]=12; //3;
+  d0->perm[2]=13;
+
+  d1->perm[0]=13;
+  d1->perm[1]=15;//3;
+  d1->perm[2]=14;
+#endif
+
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  print_tensor_float(M0,"M0");
+  print_tensor_float(M1,"M1");
+
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *MnO=NULL;
+
+  //tensorContractnProd_TYPE_FLOAT(&M, M0,M1,2);
+  tensorContractnProd_TYPE_FLOAT(&MnO, M0,M1,1);
+  //tensorContractnProdNotOpt_TYPE_FLOAT(&MnO, M0,M1,1);
+printDebug_dimension(MnO->dim, "dim Contr 1");
+  float MMM0[d0->perm[0]][d0->perm[1]][d0->perm[2]];
+  long int coord3[3];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int i1=0;i1<d0->perm[1];++i1){
+  for(long int i2=0;i2<d0->perm[2];++i2){
+    coord3[0]=i0; coord3[1]=i1; coord3[2]=i2;
+    MMM0[i0][i1][i2]=M0->x[signedLineFromCoord(coord3, d0)];
+    //printf("M0[%ld][%ld][%ld] = %f \n",i0,i1,i2,MMM0[i0][i1][i2]);
+  }
+  }
+  }
+
+  float MMM1[d1->perm[0]][d1->perm[1]][d1->perm[2]];
+  long int coord23[3];
+  for(long int j0=0;j0<d1->perm[0];++j0){
+  for(long int j1=0;j1<d1->perm[1];++j1){
+  for(long int j2=0;j2<d1->perm[2];++j2){
+    coord23[0]=j0; coord23[1]=j1; coord23[2]=j2;
+    MMM1[j0][j1][j2]=M1->x[signedLineFromCoord(coord23, d1)];
+  }
+  }
+  }
+  //tensorProd_TYPE_FLOAT(&M,M0,M1);
+  float MMMm[d0->perm[0]][d0->perm[1]][d1->perm[1]][d1->perm[2]];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int i1=0;i1<d0->perm[1];++i1){
+  for(long int j1=0;j1<d1->perm[1];++j1){
+  for(long int j2=0;j2<d1->perm[2];++j2){
+    MMMm[i0][i1][j1][j2]=0;
+      for(long int i2=0;i2<d0->perm[2];++i2){
+        MMMm[i0][i1][j1][j2] += MMM0[i0][i1][i2] * MMM1[i2][j1][j2];
+    //printf("MMMm[%ld][%ld][%ld][%ld][%ld] = %f \n",i0,i1,i2,j0,j1,MMMm[i0][i1][i2][j0][j1]);
+      }
+  }
+  }
+  }
+  }
+  //LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+  //print_tensor_float(M,"M");
+
+  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+  long int coord4[4];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int i1=0;i1<d0->perm[1];++i1){
+  for(long int j1=0;j1<d1->perm[1];++j1){
+  for(long int j2=0;j2<d1->perm[2];++j2){
+    coord4[0]=i0; coord4[1]=i1; coord4[2]=j1; coord4[3]=j2;
+    //EXPECT_EQ_TYPE_FLOAT(MMMm[i0][i1][j1][j2], MnO->x[signedLineFromCoord(coord4, MnO->dim)] );
+   
+   if(expected_EQ_TYPE_FLOAT(MMMm[i0][i1][j1][j2], MnO->x[signedLineFromCoord(coord4, MnO->dim)] ) == false){
+      LOG("[ %ld, %ld, %ld, %ld ] [%ld]\n",i0,i1,j1,j2,
+      signedLineFromCoord(coord4, MnO->dim)
+      );
+
+   }
+   
+  }
+  }
+  }
+  }
+
+  //print_tensor_float(M,"M");
+  print_tensor_float(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //  EXPECT_EQ_TYPE_FLOAT(M->x[i],MnO->x[i]);
+    
+  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+  //free_tensor_TYPE_FLOAT(M);
+  free_tensor_TYPE_FLOAT(MnO);
+  free_tensor_TYPE_FLOAT(M0);
+  free_tensor_TYPE_FLOAT(M1);
+
+}
+TEST(tensorContractnProd_TYPE_FLOATNoOpt2 ){
+  endian=true; //
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+#if VALGRIND_
+  d0->perm[0]=5;
+  d0->perm[1]=2; //3;
+  d0->perm[2]=3;
+
+  d1->perm[0]=2;
+  d1->perm[1]=3;//3;
+  d1->perm[2]=8;
+
+#else
+
+
+  d0->perm[0]=35;
+  d0->perm[1]=32; //3;
+  d0->perm[2]=23;
+
+  d1->perm[0]=32;
+  d1->perm[1]=23;//3;
+  d1->perm[2]=44;
+#endif
+
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  print_tensor_float(M0,"M0");
+  print_tensor_float(M1,"M1");
+
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *MnO=NULL;
+
+  //tensorContractnProd_TYPE_FLOAT(&M, M0,M1,2);
+  tensorContractnProdNotOpt_TYPE_FLOAT(&MnO, M0,M1,2);
+
+  float MMM0[d0->perm[0]][d0->perm[1]][d0->perm[2]];
+  long int coord3[3];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int i1=0;i1<d0->perm[1];++i1){
+  for(long int i2=0;i2<d0->perm[2];++i2){
+    coord3[0]=i0; coord3[1]=i1; coord3[2]=i2;
+    MMM0[i0][i1][i2]=M0->x[signedLineFromCoord(coord3, d0)];
+    //printf("M0[%ld][%ld][%ld] = %f \n",i0,i1,i2,MMM0[i0][i1][i2]);
+  }
+  }
+  }
+
+  float MMM1[d1->perm[0]][d1->perm[1]][d1->perm[2]];
+  long int coord23[3];
+  for(long int j0=0;j0<d1->perm[0];++j0){
+  for(long int j1=0;j1<d1->perm[1];++j1){
+  for(long int j2=0;j2<d1->perm[2];++j2){
+    coord23[0]=j0; coord23[1]=j1; coord23[2]=j2;
+    MMM1[j0][j1][j2]=M1->x[signedLineFromCoord(coord23, d1)];
+  }
+  }
+  }
+  //tensorProd_TYPE_FLOAT(&M,M0,M1);
+  float MMMm[d0->perm[0]][d1->perm[2]];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int j2=0;j2<d1->perm[2];++j2){
+    MMMm[i0][j2]=0;
+    for(long int i1=0;i1<d0->perm[1];++i1){
+      for(long int i2=0;i2<d0->perm[2];++i2){
+        MMMm[i0][j2] += MMM0[i0][i1][i2] * MMM1[i1][i2][j2];
+    //printf("MMMm[%ld][%ld][%ld][%ld][%ld] = %f \n",i0,i1,i2,j0,j1,MMMm[i0][i1][i2][j0][j1]);
+      }
+    }
+  }
+  }
+  //LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+  //print_tensor_float(M,"M");
+
+  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+  long int coord52[2];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int j2=0;j2<d1->perm[2];++j2){
+    coord52[0]=i0; coord52[1]=j2;
+    EXPECT_EQ_TYPE_FLOAT(MMMm[i0][j2], MnO->x[signedLineFromCoord(coord52, MnO->dim)] );
+  
+   if(expected_EQ_TYPE_FLOAT(MMMm[i0][j2], MnO->x[signedLineFromCoord(coord52, MnO->dim)] ) == false){
+      LOG("[ %ld, %ld] [%ld]\n",i0,j2,
+      signedLineFromCoord(coord52, MnO->dim)
+      );
+
+   }
+  }
+  }
+
+  //print_tensor_float(M,"M");
+  print_tensor_float(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //  EXPECT_EQ_TYPE_FLOAT(M->x[i],MnO->x[i]);
+    
+  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+  //free_tensor_TYPE_FLOAT(M);
+  free_tensor_TYPE_FLOAT(MnO);
+  free_tensor_TYPE_FLOAT(M0);
+  free_tensor_TYPE_FLOAT(M1);
+
+}
+TEST(tensorContractnProd_TYPE_FLOATNoOpt3endianFalse ){
+  endian=false;
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+#if VALGRIND_
+  d0->perm[0]=5;
+  d0->perm[1]=2; //3;
+  d0->perm[2]=3;
+
+  d1->perm[0]=4;
+  d1->perm[1]=2;//3;
+  d1->perm[2]=5;
+
+#else
+
+
+  d0->perm[0]=13;
+  d0->perm[1]=12; //3;
+  d0->perm[2]=35;
+
+  d1->perm[0]=32;
+  d1->perm[1]=12;//3;
+  d1->perm[2]=13;
+#endif
+
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+  print_tensor_float(M0,"M0");
+  print_tensor_float(M1,"M1");
+
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *MnO=NULL;
+
+  //tensorContractnProd_TYPE_FLOAT(&M, M0,M1,2);
+  tensorContractnProdNotOpt_TYPE_FLOAT(&MnO, M0,M1,2);
+
+  float MMM0[d0->perm[0]][d0->perm[1]][d0->perm[2]];
+  long int coord3[3];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int i1=0;i1<d0->perm[1];++i1){
+  for(long int i2=0;i2<d0->perm[2];++i2){
+    coord3[0]=i0; coord3[1]=i1; coord3[2]=i2;
+    MMM0[i0][i1][i2]=M0->x[signedLineFromCoord(coord3, d0)];
+    //printf("M0[%ld][%ld][%ld] = %f \n",i0,i1,i2,MMM0[i0][i1][i2]);
+  }
+  }
+  }
+
+  float MMM1[d1->perm[0]][d1->perm[1]][d1->perm[2]];
+  long int coord23[3];
+  for(long int j0=0;j0<d1->perm[0];++j0){
+  for(long int j1=0;j1<d1->perm[1];++j1){
+  for(long int j2=0;j2<d1->perm[2];++j2){
+    coord23[0]=j0; coord23[1]=j1; coord23[2]=j2;
+    MMM1[j0][j1][j2]=M1->x[signedLineFromCoord(coord23, d1)];
+  }
+  }
+  }
+  //tensorProd_TYPE_FLOAT(&M,M0,M1);
+  float MMMm[d0->perm[0]][d1->perm[2]];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int j2=0;j2<d1->perm[2];++j2){
+    MMMm[i0][j2]=0;
+    for(long int i1=0;i1<d0->perm[1];++i1){
+      for(long int i2=0;i2<d0->perm[2];++i2){
+        MMMm[i0][j2] += MMM0[i0][i1][i2] * MMM1[i1][i2][j2];
+    //printf("MMMm[%ld][%ld][%ld][%ld][%ld] = %f \n",i0,i1,i2,j0,j1,MMMm[i0][i1][i2][j0][j1]);
+      }
+    }
+  }
+  }
+  //LOG("M->dim->rank = %ld\n",M->dim->rank);
+
+  //print_tensor_float(M,"M");
+
+  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,Mn->x,Mn->dim->rank);
+  long int coord52[2];
+  for(long int i0=0;i0<d0->perm[0];++i0){
+  for(long int j2=0;j2<d1->perm[2];++j2){
+    coord52[0]=i0; coord52[1]=j2;
+    EXPECT_EQ_TYPE_FLOAT(MMMm[i0][j2], MnO->x[signedLineFromCoord(coord52, MnO->dim)] );
+  
+   if(expected_EQ_TYPE_FLOAT(MMMm[i0][j2], MnO->x[signedLineFromCoord(coord52, MnO->dim)] ) == false){
+      LOG("[ %ld, %ld] [%ld]\n",i0,j2,
+      signedLineFromCoord(coord52, MnO->dim)
+      );
+
+   }
+  }
+  }
+
+  //print_tensor_float(M,"M");
+  print_tensor_float(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //  EXPECT_EQ_TYPE_FLOAT(M->x[i],MnO->x[i]);
+    
+  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+  //free_tensor_TYPE_FLOAT(M);
+  free_tensor_TYPE_FLOAT(MnO);
+  free_tensor_TYPE_FLOAT(M0);
+  free_tensor_TYPE_FLOAT(M1);
+
+}
+
+
+
+TEST(tensorContractnProd_TYPE_FLOAT ){ 
   dimension *d0=create_dim(3);
   dimension *d1=create_dim(3);
 #if VALGRIND_

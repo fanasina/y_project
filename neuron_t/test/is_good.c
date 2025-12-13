@@ -38,6 +38,12 @@ float df(float x){
   return exp(-x)/ ((1+exp(-x)) * (1+exp(-x)));
 }
 
+float __id_(float x){
+  return x;
+}
+float d__id_(float x){
+  return 1;
+}
 
 TEST(init_One){
   //endian=false;
@@ -94,7 +100,7 @@ TEST(data_set_from_file){
 #define epsilon 0.0001
 
 bool cond(float e, size_t nbreps){
-  if (nbreps > 20000) return true;
+  if (nbreps > 2000) return true;
   if ((e<epsilon) && (e>-epsilon)) return true;
   return false;
 }
@@ -106,6 +112,7 @@ TEST(learning_first){
   print_data_set_msg_TYPE_FLOAT(ds,"data");
   neurons_TYPE_FLOAT *bn=NULL, *tmp ;
   setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){2,4,1},3,false,0,1,5000); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
+  //setup_networks_OneD_TYPE_FLOAT(&bn, (size_t[]){2,4,1},3,true,0,1,5000); /* 2 input , 1 target; 1 hidden layer with 5 neurons */
 
   setup_all_layers_functions_TYPE_FLOAT(bn,
     tensorContractnProdThread_TYPE_FLOAT,
@@ -115,11 +122,23 @@ TEST(learning_first){
     f,
     df);
 
-  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.1);
+  setup_all_layers_params_TYPE_FLOAT(bn, 5/*5*/, 3/*1*/ ,  0.5);
 
+  neurons_TYPE_FLOAT *ttmp=bn;
+  while(ttmp){
+    if(ttmp->next_layer == NULL){
+      ttmp->f_act=__id_;
+      ttmp->d_f_act=d__id_;
+    }
+    ttmp=ttmp->next_layer;
+  }
+
+  LOG("%s","setup done\n");
+  print_neurons_msg_TYPE_FLOAT(bn,"bn before ");
 
   size_t reps = learning_online_neurons_TYPE_FLOAT(bn,ds,cond);
   
+  print_neurons_msg_TYPE_FLOAT(bn,"bn after ");
  
   //char msg[256];
   for(size_t i=0; i<ds->size; ++i){
@@ -136,16 +155,16 @@ TEST(learning_first){
     */
   }
   
+  LOG("reps = %ld error=%f\n",reps, error_out_TYPE_FLOAT(bn));
   free_data_set_TYPE_FLOAT(ds);
   free_neurons_TYPE_FLOAT(bn); 
 
-  LOG("reps = %ld\n",reps);
   randomizeInitWeight = rec_randomizeInitWeight;
 }
 
 
 
-TEST(learning_second_PRINT){
+TEST(learning_second_PRINT){ endian=false;
    bool rec_randomizeInitWeight = randomizeInitWeight;
    randomizeInitWeight =false;
   
@@ -162,8 +181,15 @@ TEST(learning_second_PRINT){
     f,
     df);
 
-  setup_all_layers_params_TYPE_FLOAT(bn, 5, 3 ,  0.1);
-
+  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.4);
+  neurons_TYPE_FLOAT *ttmp=bn;
+  while(ttmp){
+    if(ttmp->next_layer == NULL){
+      ttmp->f_act=__id_;
+      ttmp->d_f_act=d__id_;
+    }
+    ttmp=ttmp->next_layer;
+  }
 
   size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
   
@@ -214,8 +240,16 @@ TEST(learning_withconfig2){
     f,
     df);
 
-  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.1);
-
+  setup_all_layers_params_TYPE_FLOAT(bn, 1, 1 ,  0.5);
+  
+  neurons_TYPE_FLOAT *ttmp=bn;
+  while(ttmp){
+    if(ttmp->next_layer == NULL){
+      ttmp->f_act=__id_;
+      ttmp->d_f_act=d__id_;
+    }
+    ttmp=ttmp->next_layer;
+  }
 
   size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
   
@@ -230,6 +264,8 @@ TEST(learning_withconfig2){
 
   free_data_set_TYPE_FLOAT(ds);
   free_neurons_TYPE_FLOAT(bn); 
+  
+  free_config_layers(pconf);
 
   LOG("reps = %ld\n",reps);
   randomizeInitWeight = rec_randomizeInitWeight;
@@ -255,8 +291,15 @@ TEST(learning_cloneuroneset){
     f,
     df);
 
-  setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.1);
-
+  setup_all_layers_params_TYPE_FLOAT(bn, 1, 1 ,  0.5);
+  neurons_TYPE_FLOAT *ttmp=bn;
+  while(ttmp){
+    if(ttmp->next_layer == NULL){
+      ttmp->f_act=__id_;
+      ttmp->d_f_act=d__id_;
+    }
+    ttmp=ttmp->next_layer;
+  }
   //print_neurons_msg_TYPE_FLOAT(bn,"before create clones");
 
   cloneuronset_TYPE_FLOAT *clnrnst = create_cloneuronset_from_base_conf_TYPE_FLOAT(bn, pconf, 3);
@@ -308,7 +351,14 @@ TEST(learning_cloneuroneset_LEARN_RATE){
   size_t dropRate = 100;
 //  setup_learning_rate_params_neurons_TYPE_FLOAT(bn, initRate, decayRate, dropRate, time_based_update_learning_rate_TYPE_FLOAT);
   setup_learning_rate_params_neurons_TYPE_FLOAT(bn, initRate, decayRate, dropRate, step_based_update_learning_rate_TYPE_FLOAT);
-
+  neurons_TYPE_FLOAT *ttmp=bn;
+  while(ttmp){
+    if(ttmp->next_layer == NULL){
+      ttmp->f_act=__id_;
+      ttmp->d_f_act=d__id_;
+    }
+    ttmp=ttmp->next_layer;
+  }
   //print_neurons_msg_TYPE_FLOAT(bn,"before create clones");
 
   cloneuronset_TYPE_FLOAT *clnrnst = create_cloneuronset_from_base_conf_TYPE_FLOAT(bn, pconf, 3);
@@ -331,7 +381,6 @@ TEST(learning_cloneuroneset_LEARN_RATE){
 
   LOG("reps = %ld\n",reps);
   randomizeInitWeight = rec_randomizeInitWeight;
-
 }
 
 TEST(copy_weight_in_neurons){
@@ -356,7 +405,14 @@ TEST(copy_weight_in_neurons){
     df);
 
   setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.1);
-
+  neurons_TYPE_FLOAT *ttmp=bn;
+  while(ttmp){
+    if(ttmp->next_layer == NULL){
+      ttmp->f_act=__id_;
+      ttmp->d_f_act=d__id_;
+    }
+    ttmp=ttmp->next_layer;
+  }
 
   size_t reps = learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
   
@@ -396,6 +452,7 @@ TEST(copy_weight_in_neurons){
 
   LOG("reps = %ld\n",reps);
   randomizeInitWeight = rec_randomizeInitWeight;
+  free_config_layers(pconf);
 }
 
 
@@ -435,7 +492,14 @@ TEST(Extract_weight_in_neurons){
     df);
 
   setup_all_layers_params_TYPE_FLOAT(cpyn, 5, 1 ,  0.1);
-
+  neurons_TYPE_FLOAT *ttmp=bn;
+  while(ttmp){
+    if(ttmp->next_layer == NULL){
+      ttmp->f_act=__id_;
+      ttmp->d_f_act=d__id_;
+    }
+    ttmp=ttmp->next_layer;
+  }
   EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, cpyn, weight_in, ".ff_bn_weight_in__toExtract.txt")
 //  copy_weight_in_neurons_TYPE_FLOAT(cpyn, bn);
   EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, bn, weight_in, ".ff_bn_weight_in__toExtract___exp.txt")
@@ -463,6 +527,8 @@ TEST(Extract_weight_in_neurons){
 
   LOG("reps = %ld\n",reps);
   randomizeInitWeight = rec_randomizeInitWeight;
+
+  free_config_layers(pconf);
 }
 
 
@@ -492,7 +558,14 @@ TEST(Extract_EXPORT_weight_in_neurons){
     df);
 
   setup_all_layers_params_TYPE_FLOAT(bn, 5, 1 ,  0.1);
-
+  neurons_TYPE_FLOAT *ttmp=bn;
+  while(ttmp){
+    if(ttmp->next_layer == NULL){
+      ttmp->f_act=__id_;
+      ttmp->d_f_act=d__id_;
+    }
+    ttmp=ttmp->next_layer;
+  }
 
   size_t reps = 1;// learning_online2_neurons_TYPE_FLOAT(bn,ds,cond);
   EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, bn, weight_in, ".ff_bn_weight_in__toCMP__.txt")
@@ -534,6 +607,8 @@ TEST(Extract_EXPORT_weight_in_neurons){
 
   LOG("reps = %ld\n",reps);
   randomizeInitWeight = rec_randomizeInitWeight;
+
+  free_config_layers(pconf);
 }
 
 
@@ -596,7 +671,14 @@ TEST(Extract_EXPORT_weight_in_neurons_double){
     doubledf);
 
   setup_all_layers_params_TYPE_DOUBLE(cpyn, 5, 1 ,  0.1);
-
+  neurons_TYPE_DOUBLE *ttmp=bn;
+  while(ttmp){
+    if(ttmp->next_layer == NULL){
+      ttmp->f_act=id_TYPE_DOUBLE;
+      ttmp->d_f_act=d_id_TYPE_DOUBLE;
+    }
+    ttmp=ttmp->next_layer;
+  }
 //  EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_DOUBLE, cpyn, weight_in, ".ff_bn_weight_in__toExtract.txt")
 //  copy_weight_in_neurons_TYPE_DOUBLE(cpyn, bn);
  
@@ -623,6 +705,7 @@ TEST(Extract_EXPORT_weight_in_neurons_double){
 
   LOG("reps = %ld\n",reps);
   randomizeInitWeight = rec_randomizeInitWeight;
+  free_config_layers(pconf);
 }
 
 

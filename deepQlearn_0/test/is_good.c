@@ -458,7 +458,7 @@ TEST(first_learn_vehicle_rev50_8){
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
   float learning_rate = 0.001; // 0.00001 /*0.001*/;  
-  struct networks_qlearning *nnetworks = create_nework_qlearning(
+  struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
     nb_prod_thread, nb_calc_thread,
@@ -622,7 +622,7 @@ TEST(first_learn_vehicle_50__9){
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
   float learning_rate = 0.00001 /* 0.001*/;  
-  struct networks_qlearning *nnetworks = create_nework_qlearning(
+  struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
     nb_prod_thread, nb_calc_thread,
@@ -792,7 +792,7 @@ TEST(first_learn_vehicle_50__10){
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
   float learning_rate = 0.00001 /* 0.001*/;  
-  struct networks_qlearning *nnetworks = create_nework_qlearning(
+  struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
     nb_prod_thread, nb_calc_thread,
@@ -964,7 +964,7 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
   float learning_rate = 0; /* 0.000001*/ /* 0.001*/;  
-  struct networks_qlearning *nnetworks = create_nework_qlearning(
+  struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
     nb_prod_thread, nb_calc_thread,
@@ -1143,7 +1143,7 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
   float learning_rate = 0.0000001 /* 0.001*/;  
-  struct networks_qlearning *nnetworks = create_nework_qlearning(
+  struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
     nb_prod_thread, nb_calc_thread,
@@ -1265,7 +1265,7 @@ TEST(first_learn_vehicle13){
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
   float learning_rate = 0.1;  
-  struct networks_qlearning *nnetworks = create_nework_qlearning(
+  struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
     nb_prod_thread, nb_calc_thread,
@@ -1375,7 +1375,7 @@ TEST(first_learn_vehicle){
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
   float learning_rate = 0.1;  
-  struct networks_qlearning *nnetworks = create_nework_qlearning(
+  struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
     nb_prod_thread, nb_calc_thread,
@@ -1486,7 +1486,7 @@ TEST(first_learn_vehicle){
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
   float learning_rate = 0.1;  
-  struct networks_qlearning *nnetworks = create_nework_qlearning(
+  struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
     nb_prod_thread, nb_calc_thread,

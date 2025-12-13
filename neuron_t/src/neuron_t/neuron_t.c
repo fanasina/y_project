@@ -57,7 +57,8 @@ type power_##type(type b, size_t p){\
 void step_based_update_learning_rate_##type(neurons_##type *nr){\
   nr->learning_rate=(nr->initial_learning_rate)*power_##type((nr->decay_rate),(1+(nr->iteration_step))/(nr->drop_rate));\
 }\
-\
+type id_##type(type x){ return x;}\
+type d_id_##type(type x){ return 1;}\
 void setup_learning_rate_params_neurons_##type(neurons_##type *base,type initial_learning_rate, type decay_rate, size_t drop_rate, void (*update_learning_rate)(neurons_##type *)){\
   while(base){\
     base->initial_learning_rate = initial_learning_rate;\
@@ -123,10 +124,13 @@ void calc_delta_neurons_##type(neurons_##type *nr){\
     /*decrement_dim_var(temp_w_d->dim);*/\
     \
     if(nr->nb_calc_thread < 2){\
-      for(size_t i = 0; i<(nr->net)->dim->rank; ++i)\
+      for(size_t i = 0; i<(nr->net)->dim->rank; ++i){\
+        if(temp_w_d->x[i]!=temp_w_d->x[i]) printf("debug: temp_w_d[%ld]=nan ",i);\
+        if((nr->net)->x[i] != (nr->net)->x[i]) printf("debug : (nr->net)->x[%ld] = nan ",i) ;\
         (nr->delta_out)->x[i]=(nr->d_f_act)((nr->net)->x[i]) * temp_w_d->x[i] ;\
+        if((nr->delta_out)->x[i] != (nr->delta_out)->x[i] ) printf("debug: (nr->delta_out)->x[%ld]=nan ",i);\
       /*print_tensor_msg_##type(nr->delta_out," nr delta_out calc 1 core hidden delta_out");\
-     */\
+     */}\
     }else{\
       update_4tensor_func_##type(nr->delta_out, nr->net, temp_w_d,\
         funcalc_delta_hidden_out_##type , \
@@ -140,6 +144,8 @@ void calc_delta_neurons_##type(neurons_##type *nr){\
 }\
 \
 type  func_only_weight_in_##type(type w0, type w1, type scalar){\
+  if(w0 != w0) printf("debug: w0=nan ");\
+  if(w1 != w1) printf("debug: w1=nan ");\
   return w0 - scalar * w1;\
 }\
 void only_update_weight_neurons_##type(neurons_##type *nr){\
@@ -703,6 +709,7 @@ void print_data_set_msg_##type(data_set_##type *ds, char *msg){\
 size_t learning_online_neurons_##type(neurons_##type *base, data_set_##type *dataset, bool (*condition)(type,size_t)){\
   neurons_##type *tmp=NULL, *ttmp;\
   size_t nbreps=0;\
+  /*char strNbreps[128];*/\
   do{\
     for(size_t i=0; i<dataset->size; ++i){\
       init_copy_in_out_networks_from_tensors_##type(base, dataset->input[i],dataset->target[i]);\
@@ -714,11 +721,18 @@ size_t learning_online_neurons_##type(neurons_##type *base, data_set_##type *dat
       }\
       while(ttmp != base){\
         calc_delta_neurons_##type(ttmp);\
-        update_weight_neurons_##type(ttmp);\
+        /*update_weight_neurons_##type(ttmp);*/\
         ttmp = ttmp->prev_layer;\
+      }\
+      ttmp = base->next_layer;\
+      while(ttmp){\
+        update_weight_neurons_##type(ttmp);\
+        ttmp = ttmp->next_layer;\
       }\
     }\
     nbreps += (dataset->size);\
+    /*sprintf(strNbreps, " base %ld ",nbreps);\
+    print_neurons_msg_##type(base, strNbreps ); getchar();*/\
   }while(!condition(error_out_##type(base), nbreps));\
     \
   \
@@ -730,8 +744,9 @@ size_t learning_online2_neurons_##type(neurons_##type *base, data_set_##type *da
   size_t nbreps=0;\
   type err=0;\
   bool ending=false;\
+  /*char strNbreps[128];*/\
   do{\
-    for(size_t i=0; i<dataset->size && !ending; ++i){\
+    for(size_t i=0; i<dataset->size /*&& !ending*/; ++i){\
       init_copy_in_out_networks_from_tensors_##type(base, dataset->input[i],dataset->target[i]);\
       tmp=base->next_layer;\
       while(tmp){\
@@ -744,20 +759,23 @@ size_t learning_online2_neurons_##type(neurons_##type *base, data_set_##type *da
         /*update_weight_neurons_##type(ttmp);\
         */ttmp = ttmp->prev_layer;\
       }\
-        tmp = ttmp->next_layer;\
+        tmp = base/*ttmp*/->next_layer;\
       while(tmp){\
         update_weight_neurons_##type(tmp);\
         tmp = tmp->next_layer;\
       }\
-      err = ABSMAX(err,error_out_##type(base));\
+      /*if(i%20==0){err = error_out_##type(base);} else err = ABSMAX(err,error_out_##type(base));\
+      */err = error_out_##type(base);\
       ending = condition(err, ++nbreps);\
+    /*sprintf(strNbreps, " base %ld  ",nbreps );\
+    print_neurons_msg_##type(base, strNbreps ); getchar();*/\
     }\
 \
   }while(!ending);\
     \
   \
-  printf(" ### reps : %ld, err:%f \n",nbreps,err);\
-  return nbreps;\
+  /*printf(" ### reps : %ld, err:%f \n",nbreps,err);\
+  */return nbreps;\
 }\
 \
 neurons_##type * calculate_output_by_network_neurons_##type(neurons_##type *base, tensor_##type *input, tensor_##type **output_link){\
@@ -804,8 +822,8 @@ void print_predict_by_network_with_error_neurons_##type(neurons_##type *base, te
       }\
 \
 \
-  printf(" error : %f\n", error_out_##type(base));\
-  print_tensor_msg_##type(input,"from input:");\
+  /*printf(" error : %f\n", error_out_##type(base));\
+  */print_tensor_msg_##type(input,"from input:");\
   \
 }\
 \
@@ -1021,3 +1039,4 @@ size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##typ
   
 GEN_NEURONS_F_(TYPE_FLOAT)
 GEN_NEURONS_F_(TYPE_DOUBLE)
+GEN_NEURONS_F_(TYPE_L_DOUBLE)

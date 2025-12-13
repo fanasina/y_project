@@ -18,7 +18,7 @@ INCLUDE=-I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(DIMDIR)/src -I$(TENSDIR)/src #"-
 #LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL -lm -lpthread
 #CFLAGS= -Wall -Werror -fpic $(INCLUDE)
 CFLAGS= -Wall -Werror -fpic $(INCLUDE)
-LDFLAGS= -lOpenCL -lpthread
+LDFLAGS= -lOpenCL -lpthread 
 
 #SRC_DIR=$(ROOT_DIR)/src
 #SRC=$(wildcard */*/*.c) 

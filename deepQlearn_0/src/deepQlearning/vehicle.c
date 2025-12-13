@@ -7,7 +7,11 @@
 //#define CENTER 1
 //#define RIGHT 2
 
-#define LIMIT_DISTANCE ((float)((SUBDIVISION-1)/10))/SUBDIVISION
+#define MAXDISTANCE 49
+#define DIVISER     10
+
+//#define LIMIT_DISTANCE ((float)((SUBDIVISION-1)/10))/SUBDIVISION
+#define LIMIT_DISTANCE ((float)((int)(SUBDIVISION/10)-1)/SUBDIVISION)
 
 #define REWARD_STOP -1000
 #define REWARD_CONTINUE 100
@@ -420,9 +424,12 @@ float distance2_coordinate(coordinate *c0, coordinate *c1){
     diStep_sensor->x[0] += step_sensor * cos(direction_radian);\
     diStep_sensor->x[1] -= step_sensor * sin(direction_radian);\
   }\
-  dist = (distance2_coordinate(diStep_sensor, v->coord)/10/*5*/);\
+  /*dist = (distance2_coordinate(diStep_sensor, v->coord)/10)*/;\
+  dist = (distance2_coordinate(diStep_sensor, v->coord)/DIVISER);\
   /*printf("| dist :%f | ",dist);*/\
-  v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),dist))/SUBDIVISION ;\
+  /*v->sensor->x[position] = (float)(MIN((SUBDIVISION-1),dist))/SUBDIVISION ;*/\
+  if(dist>=0) v->sensor->x[position] = (float)(MIN(MAXDISTANCE,dist))/SUBDIVISION;\
+  else v->sensor->x[position] = 0;\
   
   
  #if 0 
@@ -581,7 +588,7 @@ void step_vehicle(struct vehicle *v, int action){
   }
 }
 
-#define RANDOM 0
+#define RANDOM 1
 
 void reset(struct vehicle *v){
   //static bool init = true;
@@ -615,11 +622,11 @@ void reset(struct vehicle *v){
   #endif
   #if RANDOM
   random = xrand() % 50;
-    v->direction = 80 - random ;
+    //v->direction = 80 - random ;
     //v->direction = 115 - random ;
-   // v->direction = random - 25  ;
+    v->direction = random - 25  ;
   #else
-    v->direction = 70; //-90;
+    v->direction = 80; //-90;
   #endif
   v->speed = SPEED;
   read_sensor(v);

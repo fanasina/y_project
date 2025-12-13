@@ -23,6 +23,21 @@ void printArraySzt(size_t *a, size_t sz,char *msg){
   printf("\n");
 }
 
+int checkContractProdTensorDim(dimension *d0, dimension *d1, ssize_t contractionNumber){
+  if((d0->size-contractionNumber <0)||(d1->size-contractionNumber <0)) return 0;
+  if(endian){
+    ssize_t beginCommonM0=d0->size-contractionNumber;
+    for(ssize_t i=0; i<contractionNumber; ++i){
+      if(d0->perm[beginCommonM0+i] != d1->perm[i]) return 0;
+    }
+  }else{
+    ssize_t beginCommonM1=d1->size-contractionNumber;
+    for(ssize_t i=0; i<contractionNumber; ++i){
+      if(d0->perm[i] != d1->perm[beginCommonM1+i]) return 0;
+    }
+   }
+  return 1;
+}
 /*
 bool isLessEqThan(long int a, long int b) { return a <= b; }
 bool isLessThan(long int a, long int b) { return a < b; }
@@ -399,11 +414,11 @@ void print_tensor_msg_##type(tensor_##type *T,char *msg) {\
     printf(" |#%ld]: %s, ",i,val);\
     /*printf(" %s, ",val);*/\
     free(val); val=NULL;\
-    if(T->x[i] != T->x[i]){\
+    /*if(T->x[i] != T->x[i]){\
       printf("\nALERT NAN\n");\
       char c;\
       scanf("%c",&c);\
-    }\
+    }*/\
     if(coord[begin]==(T->dim)->perm[begin]-1){\
       size_t count=0;\
       for(long int j=begin; cond(j,end); j = iter(j)){\
@@ -456,7 +471,12 @@ void fprint_tensor_##type(char *file_name, tensor_##type *T) {\
         else break;\
       }\
     }\
-    /*fprintf(fileWrite," [");\
+    if(T->x[i] != T->x[i]){\
+      printf("\nALERT NAN\n");\
+      ;\
+      return;\
+    }\
+/*fprintf(fileWrite," [");\
     for(size_t k=0; k<(T->dim)->size;++k) fprintf(fileWrite," %ld,",coord[k]);\
     */val=type##_TO_STR(T->x[i]);\
     fprintf(fileWrite," %s, ",val);\
@@ -540,6 +560,14 @@ size_t sprint_tensor_##type(char **tensorContent,tensor_##type *T, bool withInde
     (*tensorContent)[cur++]=']';\
     (*tensorContent)[cur++]=' ';\
   }\
+     if(T->x[i] != T->x[i]){\
+      /*char *nanStr="ALERT NAN";\
+      for(size_t c=0;c<strlen(nanStr);++c)\
+        (*tensorContent)[cur++]=nanStr[c];*/\
+      printf(" ALERT NAN ");\
+      ;\
+      /*return strlen(nanStr)*/;\
+    }\
     val=type##_TO_STR(T->x[i]);\
     /*printf(" {%ld} %s [",i,val);*/\
     (*tensorContent)[cur++]=' ';\
@@ -639,6 +667,12 @@ void tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor_##
    /* if (!checkMatchProdtensor(M0->dim, M1->dim, contractionNumber)) {\
         prsize_tf("Deep = %d\n", contractionNumber);\
     }*/\
+    if(checkContractProdTensorDim(M0->dim, M1->dim, contractionNumber)==0){\
+      printf("checkContractProdTensorDim %ld contractionNumber\n", contractionNumber);\
+        printDebug_dimension(M0->dim, "M0 dim");\
+        printDebug_dimension(M1->dim, "M1 dim");\
+        getchar();\
+    }\
 \
     size_t len0 = M0->dim->size - contractionNumber;\
     size_t len1 = M1->dim->size - contractionNumber;\
@@ -726,6 +760,7 @@ void* runProd_thread_##type(void *arg){\
    }\
   return 0;\
 }\
+\
 \
 void tensorProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t nbthread) {  \
     dimension *dd;  \
@@ -863,8 +898,14 @@ void* runProdContract_thread_##type(void *arg){\
  M[x0,x1,x3..xl x{l+1}...xn] X M[xn,x{n-1},x{n-2}...xl y{l+1} ..ym] = M[x0,x1..xly{l+1}...y{n+m-2l}] (deep = l > 0)\
 M[[i][j]]=sum_{[k]}M0[[i][k]]*M[[k][j]]*/\
 \
-void tensorContractnProdThread_##type(tensor_##type** MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread) {\
 \
+void tensorContractnProdThread_##type(tensor_##type** MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread) {\
+    if(checkContractProdTensorDim(M0->dim, M1->dim, contractionNumber)==0){\
+      printf("checkContractProdTensorDim %ld contractionNumber\n", contractionNumber);\
+        printDebug_dimension(M0->dim, "M0 dim");\
+        printDebug_dimension(M1->dim, "M1 dim");\
+        getchar();\
+    }\
     size_t len0 = M0->dim->size - contractionNumber;\
     size_t len1 = M1->dim->size - contractionNumber;\
 \
@@ -962,6 +1003,15 @@ void* runPro2dContract_thread_##type(void *arg){\
 M[[i][j]]=sum_{[k]}M0[[i][k]]*M[[k][j]]*/\
 \
 void tensorContractnPro2dThread_##type(tensor_##type** MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread) {\
+    /*if(checkContractProdTensorDim(M0->dim, M1->dim, contractionNumber)==0){\
+      printf("checkContractProdTensorDim %ld contractionNumber\n", contractionNumber);\
+    }*/\
+    if(checkContractProdTensorDim(M0->dim, M1->dim, contractionNumber)==0){\
+      printf("checkContractProdTensorDim %ld contractionNumber\n", contractionNumber);\
+        printDebug_dimension(M0->dim, "M0 dim");\
+        printDebug_dimension(M1->dim, "M1 dim");\
+        getchar();\
+    }\
 \
     size_t len0 = M0->dim->size - contractionNumber;\
     size_t len1 = M1->dim->size - contractionNumber;\
@@ -1015,10 +1065,12 @@ void tensorContractnPro2dThread_##type(tensor_##type** MM, tensor_##type *M0, te
   FREE_dM_S_ ; \
 }\
 void tensorContractnProdNotOpt_##type(tensor_##type** MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber) {\
-   /* if (!checkMatchProdtensor(M0->dim, M1->dim, contractionNumber)) {\
-        prsize_tf("Deep = %d\n", contractionNumber);\
-    }*/\
-\
+    if (!checkContractProdTensorDim(M0->dim, M1->dim, contractionNumber)) {\
+        printf("error Deep = %ld\n", contractionNumber);\
+        printDebug_dimension(M0->dim, "M0 dim");\
+        printDebug_dimension(M1->dim, "M1 dim");\
+        getchar();\
+    }\
     size_t len0 = M0->dim->size - contractionNumber;\
     size_t len1 = M1->dim->size - contractionNumber;\
 \
@@ -1259,8 +1311,8 @@ void parseInputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_#
         if(!filled1){\
           ++i1;\
           (*Tpart1)->x[i++] = x;\
-          printf("++ x: %f, i1:%ld , rkn1: %ld\n",x,i1,ddim1->rank);\
-          if(i1 == ddim1->rank){\
+          /*printf("++ x: %f, i1:%ld , rkn1: %ld\n",x,i1,ddim1->rank);\
+          */if(i1 == ddim1->rank){\
             filled1=true;\
             i1=0;\
             filled2=false;\
@@ -1269,8 +1321,8 @@ void parseInputOutput_withDim_to_tensors_##type(tensor_##type **Tpart1, tensor_#
           if(!filled2){\
             ++i2;\
             (*Tpart2)->x[j++] = x;\
-            printf("-----++ x: %f, i2:%ld , rknr: %ld\n",x,i2,ddim2->rank);\
-            if(i2 == ddim2->rank){\
+            /*printf("-----++ x: %f, i2:%ld , rknr: %ld\n",x,i2,ddim2->rank);\
+            */if(i2 == ddim2->rank){\
               filled2=true;\
               i2=0;\
               filled1=false;\
@@ -1942,3 +1994,4 @@ void update_6tensor_func_##type(tensor_##type *M0, tensor_##type *M1, \
 
 GEN_FUNC_TENSOR(TYPE_FLOAT);
 GEN_FUNC_TENSOR(TYPE_DOUBLE);
+GEN_FUNC_TENSOR(TYPE_L_DOUBLE);

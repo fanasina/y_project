@@ -99,7 +99,7 @@ struct RL_agent {
 
 };
 
-struct networks_qlearning * create_nework_qlearning(
+struct networks_qlearning * create_network_qlearning(
   struct config_layers * config,
   bool randomize, float minR, float maxR,  int randomRange,
   size_t nb_prod_thread,

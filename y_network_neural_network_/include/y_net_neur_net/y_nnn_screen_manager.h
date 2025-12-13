@@ -61,6 +61,7 @@ struct arg_bash{
   pthread_mutex_t *mut_bash_var;
   pthread_cond_t *cond_bash_var;
   int go_on;
+  int weight_net_print;
 };
 
 struct arg_bash *create_arg_bash();
