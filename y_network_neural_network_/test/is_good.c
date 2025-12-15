@@ -778,6 +778,8 @@ TEST(_first_learn_vehicle_50__11){
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
 
+  LOG("debug: f_name = %s\n", __func__);
+
 #if 1
 
   copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
@@ -922,6 +924,10 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
    UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, nnetworks->target_net, d_f_act , df );
    UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, nnetworks->target_net, f_act , f );
 */
+  qlparams->caller_func_name=malloc(strlen(__func__)+1);
+  strcpy(qlparams->caller_func_name, __func__);
+
+
   struct print_params *pprint = create_print_params(
     12/*float scale_x*/,12 /*float scale_y*/,  
     dly/*struct delay_params * dly_p*/
@@ -1088,7 +1094,7 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   int randomRange = 500;
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
-  float learning_rate = 0.0000001 /* 0.001*/;  
+  float learning_rate = 0.00001 /* 0.001*/;  
   struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
@@ -1235,7 +1241,7 @@ HIDE_TEST(__first_learn_vehicle13){
   int randomRange = 5000;
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
-  float learning_rate = 0.1;  
+  float learning_rate = 0.00001;  
   struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
@@ -1243,7 +1249,10 @@ HIDE_TEST(__first_learn_vehicle13){
     learning_rate
   );
 
-  struct status_qlearning *qlstatus = create_status_qlearning ();
+EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->main_net, weight_in, ".ff_main_.symlink");
+EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_.symlink");
+
+struct status_qlearning *qlstatus = create_status_qlearning ();
   struct delay_params *dly = create_delay_params (
     500/*size_t delay_between_episodes*/,
     50/*size_t delay_between_games*/
@@ -1253,7 +1262,7 @@ HIDE_TEST(__first_learn_vehicle13){
     0.95/*float gamma*/,
     learning_rate,
     0 /* (not used!)float discount_factor*/,
-    0.85  /*float exploration_factor*/,
+    0.085  /*float exploration_factor*/,
     20/*long int nb_training_before_update_weight_in_target*/,
     10000/*size_t number_episodes*/
   );
@@ -1284,7 +1293,7 @@ HIDE_TEST(__first_learn_vehicle13){
   struct arg_run_qlearn_bprint *argQL_BP =   create_arg_run_qlearn_bprint(bash_arg, rlAgent);
 
   struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, argQL_BP);
-  struct y_socket_t *argS = y_socket_create("1600", 2, 3, var);
+  struct y_socket_t *argS = y_socket_create("16001", 2, 3, var);
 
 
   pthread_t pollTh;

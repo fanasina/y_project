@@ -7,9 +7,11 @@ char *action_name[8] = {"LEFT", "CENTER", "RIGHT"};
 #define USE_THRESHOLD 0
 
 float reLU(float x){
+#if CHECK_NAN
   if(x!=x){// nan
     printf("nan relu ");
   }
+#endif
 #if USE_THRESHOLD
   if(x>UPPER_THRESHOLD) return UPPER_THRESHOLD;
 #endif
@@ -191,6 +193,7 @@ struct qlearning_params * create_qlearning_params  (
   qparams->minimum_threshold_exploration_factor = 0.0001;
 
 //  qparams->threshold_number_same_action = 500;
+  qparams->caller_func_name=NULL;
 
   return qparams;
 }
@@ -257,6 +260,7 @@ void free_print_params (struct print_params *pprint){
 }
 
 void free_qlearning_params(struct qlearning_params *q_params){
+  if(q_params->caller_func_name) free(q_params->caller_func_name);
   free(q_params);
 }
 void free_RL_agent(struct RL_agent *rlAgent){
@@ -464,8 +468,8 @@ char *fileNameDateScore(char * pre, char* post,size_t score){
   return filename;
 }
 
-const char* target_symlink = ".ff_target_.symlink";
-const char* main_symlink = ".ff_main_.symlink";
+//const char* target_symlink = ".ff_target_.symlink";
+//const char* main_symlink = ".ff_main_.symlink";
 const char* dest_folder=".ff_learnDir";
 
 void* learn_to_drive(void * lrnarg){
@@ -521,27 +525,58 @@ void* learn_to_drive(void * lrnarg){
           	int len_cumul=0;
 						char cumulSTR[128];
 						len_cumul=sprintf(cumulSTR, " %ld ", car_status->cumulative_reward);
+            char *mainfuncCaller=malloc(128);
+            char *targetfuncCaller=malloc(128);
+            char *mainSymlinkCaller=malloc(256);
+            char *targetSymlinkCaller=malloc(256);
+            if(qlParams->caller_func_name){
+              sprintf(mainfuncCaller,".ff_learnDir/.ff_main_%s",qlParams->caller_func_name);
+              sprintf(targetfuncCaller,".ff_learnDir/.ff_target_%s",qlParams->caller_func_name);
+              sprintf(mainSymlinkCaller,".ff_main_%s.symlink",qlParams->caller_func_name);
+              sprintf(targetSymlinkCaller,".ff_target_%s.symlink",qlParams->caller_func_name);
+            }else{
+              strcpy(mainfuncCaller,".ff_learnDir/.ff_main_");
+              strcpy(targetfuncCaller,".ff_learnDir/.ff_target_");
+              strcpy(mainSymlinkCaller,".ff_main_.symlink");
+              strcpy(targetSymlinkCaller,".ff_target_.symlink");
 
+            }
             push_back_list_TYPE_L_INT(qlStatus->progress_best_cumul, car_status->cumulative_reward);
-            char *file = fileNameDateScore(".ff_learnDir/.ff_main_",".txt",car_status->cumulative_reward);
+            //char *file = fileNameDateScore(".ff_learnDir/.ff_main_",".txt",car_status->cumulative_reward);
+            char *file = fileNameDateScore(mainfuncCaller,"",car_status->cumulative_reward);
             EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->main_net ,weight_in, file);
-            unlink(main_symlink);
-            if(symlink(file, main_symlink)==-1){
-              fprintf(stderr,"debug: symlink %s with %s.\n",main_symlink, file);
+              
+           
+            //unlink(main_symlink);
+            unlink(mainSymlinkCaller);
+            //if(symlink(file, main_symlink)==-1)
+            if(symlink(file, mainSymlinkCaller)==-1)
+            {
+              //fprintf(stderr,"debug: symlink %s with %s.\n",main_symlink, file);
+              fprintf(stderr,"debug: symlink %s with %s.\n",mainSymlinkCaller, file);
               //fprintf(stderr,"debug: symlink %s with %s. explain:%s \n",main_symlink, file, explain_symlink(file, main_symlink) );
             }
             else write(1,":",1);
             write(1,cumulSTR,len_cumul);
             free(file);
-            file = fileNameDateScore(".ff_learnDir/.ff_target_",".txt",car_status->cumulative_reward);
+            //file = fileNameDateScore(".ff_learnDir/.ff_target_",".txt",car_status->cumulative_reward);
+            file = fileNameDateScore(targetfuncCaller,"",car_status->cumulative_reward);
             EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->target_net ,weight_in, file);
-            unlink(target_symlink);
-            if(symlink(file, target_symlink)==-1){
-              fprintf(stderr,"debug: symlink %s with %s\n",target_symlink,file );
+            //unlink(target_symlink);
+            //if(symlink(file, target_symlink)==-1)
+            unlink(targetSymlinkCaller);
+            if(symlink(file, targetSymlinkCaller)==-1)
+            {
+              //fprintf(stderr,"debug: symlink %s with %s\n",target_symlink,file );
+              fprintf(stderr,"debug: symlink %s with %s\n",targetSymlinkCaller,file );
               //fprintf(stderr,"debug: symlink %s with %s explain:%s\n",target_symlink,file,explain_symlink(file, target_symlink) );
             }
             else write(1,"-",1);
             free(file);
+            free(mainfuncCaller);
+            free(targetfuncCaller);
+            free(mainSymlinkCaller);
+            free(targetSymlinkCaller);
           }
           break;
         }
@@ -551,6 +586,66 @@ void* learn_to_drive(void * lrnarg){
       //  Sleep(pprint->delay->delay_between_episodes);
       //}
     }
+// UPDATE IF ENDING AND BETTER REWARD
+
+          if(car_status->cumulative_reward > qlStatus->progress_best_cumul->end_list->value)
+          {
+          	int len_cumul=0;
+						char cumulSTR[128];
+						len_cumul=sprintf(cumulSTR, " %ld ", car_status->cumulative_reward);
+            char *funcCaller_extension=malloc(128);
+            char *mainSymlinkCaller=malloc(256);
+            char *targetSymlinkCaller=malloc(256);
+            if(qlParams->caller_func_name){
+              sprintf(funcCaller_extension,"%s.txt",qlParams->caller_func_name);
+              sprintf(mainSymlinkCaller,".ff_main_%s.symlink",qlParams->caller_func_name);
+              sprintf(targetSymlinkCaller,".ff_target_%s.symlink",qlParams->caller_func_name);
+            }else{
+              sprintf(funcCaller_extension,".%s","txt");
+              strcpy(mainSymlinkCaller,".ff_main_.symlink");
+              strcpy(targetSymlinkCaller,".ff_target_.symlink");
+
+            }
+            push_back_list_TYPE_L_INT(qlStatus->progress_best_cumul, car_status->cumulative_reward);
+            //char *file = fileNameDateScore(".ff_learnDir/.ff_main_",".txt",car_status->cumulative_reward);
+            char *file = fileNameDateScore(".ff_learnDir/.ff_main_",funcCaller_extension,car_status->cumulative_reward);
+            EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->main_net ,weight_in, file);
+              
+           
+            //unlink(main_symlink);
+            unlink(mainSymlinkCaller);
+            //if(symlink(file, main_symlink)==-1)
+            if(symlink(file, mainSymlinkCaller)==-1)
+            {
+              //fprintf(stderr,"debug: symlink %s with %s.\n",main_symlink, file);
+              fprintf(stderr,"debug: symlink %s with %s.\n",mainSymlinkCaller, file);
+              //fprintf(stderr,"debug: symlink %s with %s. explain:%s \n",main_symlink, file, explain_symlink(file, main_symlink) );
+            }
+            else write(1,":",1);
+            write(1,cumulSTR,len_cumul);
+            free(file);
+            //file = fileNameDateScore(".ff_learnDir/.ff_target_",".txt",car_status->cumulative_reward);
+            file = fileNameDateScore(".ff_learnDir/.ff_target_",funcCaller_extension,car_status->cumulative_reward);
+            EXPORT_TO_FILE_TENSOR_ATTRIBUTE_IN_NNEURONS(TYPE_FLOAT, rlAgent->networks->target_net ,weight_in, file);
+            //unlink(target_symlink);
+            //if(symlink(file, target_symlink)==-1)
+            unlink(targetSymlinkCaller);
+            if(symlink(file, targetSymlinkCaller)==-1)
+            {
+              //fprintf(stderr,"debug: symlink %s with %s\n",target_symlink,file );
+              fprintf(stderr,"debug: symlink %s with %s\n",targetSymlinkCaller,file );
+              //fprintf(stderr,"debug: symlink %s with %s explain:%s\n",target_symlink,file,explain_symlink(file, target_symlink) );
+            }
+            else write(1,"-",1);
+            free(file);
+            free(funcCaller_extension);
+            free(mainSymlinkCaller);
+            free(targetSymlinkCaller);
+          }
+
+// END UPDATE
+
+
 			pthread_mutex_lock(qlStatus->mut_ending);
 			qlStatus->ending = 1;
 			pthread_mutex_unlock(qlStatus->mut_ending);

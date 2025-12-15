@@ -22,6 +22,10 @@
 
 #include "vehicle.h"
 
+#ifndef CHECK_NAN
+#define CHECK_NAN 0
+#endif
+
 //float reLU(float x);
 
 //float d_reLU(float x);
@@ -48,6 +52,7 @@ struct qlearning_params {
   long int nb_training_before_update_weight_in_target;
   size_t number_episodes;
 //  size_t threshold_number_same_action;
+  char *caller_func_name;
 };
 
 
