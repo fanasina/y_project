@@ -260,15 +260,13 @@ void free_print_params (struct print_params *pprint){
 }
 
 void free_qlearning_params(struct qlearning_params *q_params){
-    printf("free qlearning_params");
   if(q_params->caller_func_name!=NULL) {
-    printf("free caller_func_name");
     free(q_params->caller_func_name);
   }
   free(q_params);
 }
 void free_RL_agent(struct RL_agent *rlAgent){
-  free(rlAgent->qlearnParams);
+  free_qlearning_params(rlAgent->qlearnParams);
   free_print_params(rlAgent->pprint);
   free_status_qlearning(rlAgent->status);
   free_networks_qlearning(rlAgent->networks);
