@@ -366,7 +366,7 @@ int select_action(struct RL_agent * rlAgent){
 			}
       struct qlearning_params * qlParams = rlAgent->qlearnParams;
 		  write(1,"#",1);
-      qlParams->exploration_factor = (qlParams->exploration_factor < 1 ) ? qlParams->exploration_factor / qlParams->factor_update_exploration_factor :  qlParams->exploration_factor  ;
+      qlParams->exploration_factor = (qlParams->exploration_factor < 1 ) ? (qlParams->exploration_factor / qlParams->factor_update_exploration_factor)*5 :  qlParams->exploration_factor  ;
 		}
 #endif
 		////else write(1,".",1);
