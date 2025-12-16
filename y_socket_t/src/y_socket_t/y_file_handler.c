@@ -541,10 +541,11 @@ void* y_socket_send_file_for_node(void* arg){
   linkedFileName[0]='\0';
   ssize_t lenLinkedFileName =  readlink(argS->filename, linkedFileName, BUF_SIZE);
 
-	char * filename;
+	char * filename=NULL;
   if(lenLinkedFileName==-1) 
     filename=argS->filename;
   else{
+    linkedFileName[lenLinkedFileName]='\0';
     filename=malloc(lenLinkedFileName + 1);
     strcpy(filename, linkedFileName);
   }
