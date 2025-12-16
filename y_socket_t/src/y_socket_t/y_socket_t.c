@@ -613,6 +613,9 @@ if(buf_len>6){
       }
 		}else if(buf_len && strncmp(buf, "help", 4)==0){
       usage_cmdl();
+			if(var->extern_socket_handler){
+         var->extern_socket_handler(buf,buf_len,var->extern_arg);
+      }
     }else if(buf_len && strncmp(buf, "kill", 4)==0){
 			if(var->extern_socket_handler){
          var->extern_socket_handler(buf,buf_len,var->extern_arg);
