@@ -536,8 +536,18 @@ void* y_socket_send_file_for_node(void* arg){
 
 	struct pollfd *fds=argS->fds;
 	y_NODE_T node=argS->node;
+  
+  char linkedFileName[BUF_SIZE+1];
+  linkedFileName[0]='\0';
+  ssize_t lenLinkedFileName =  readlink(argS->filename, linkedFileName, BUF_SIZE);
 
-	char * filename=argS->filename;
+	char * filename;
+  if(lenLinkedFileName==-1) 
+    filename=argS->filename;
+  else{
+    filename=malloc(lenLinkedFileName + 1);
+    strcpy(filename, linkedFileName);
+  }
 #if TEMP_ADDR
   char tempAddr[64];
 #endif
@@ -606,27 +616,11 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
             ++seq;    
             len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"tm\" : \"%ld\" }",filename, seq, timeid);
           }
-  char linkedFileName[BUF_SIZE+1];
-  linkedFileName[0]='\0';
-  ssize_t lenLinkedFileName =  readlink(argS->filename, linkedFileName, BUF_SIZE);
   
           if(argS->dst_dir){
-            if(lenLinkedFileName==-1)
-              len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"tm\" : \"%ld\" , \"dst_dir\" : \"%s\" }",filename, seq, timeid, argS->dst_dir);
-            else{ 
-              char *optLinked=malloc(lenLinkedFileName+1);
-              strcpy(optLinked, linkedFileName);
-              len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"tm\" : \"%ld\" , \"dst_dir\" : \"%s\" , \"readlink\" : \"%s\" }",filename, seq, timeid, argS->dst_dir, optLinked);
-              free(optLinked);
-            }
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"tm\" : \"%ld\" , \"dst_dir\" : \"%s\" }",filename, seq, timeid, argS->dst_dir);
           }else{ 
-            if(lenLinkedFileName==-1)
-              len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"tm\" : \"%ld\" }",filename, seq, timeid);
-            else {
-              char *optLinked=malloc(lenLinkedFileName+1);
-              len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"tm\" : \"%ld\" , \"readlink\" : \"%s\" }",filename, seq, timeid, optLinked);
-              free(optLinked);
-            }
+            len_local_header_ = sprintf(buf_send, "{ \"cmd\" : \"post file %s\", \"seq\" : %ld , \"EOF\" : true , \"tm\" : \"%ld\" }",filename, seq, timeid);
           } 
           if(sendto(fds[(c_af==AF_INET6)].fd,
               buf_send, len_local_header_,
@@ -642,7 +636,7 @@ for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, na
 
         close(fd_file);
         ///printf("debug: fd=%d closed: filename=%s, for %s\n",fd_file,filename, tempAddr);
-
+  
 	size_t delay = 4000000; 			
 	printf("debug: wait %ld before checking, in tour:%d\n",delay, tour_i);
 	usleep(delay);				
@@ -656,6 +650,8 @@ remove_header_ok_if_done(argS->m_ok_head_l_t, nameid);
 
         //free(timeid);
 				purge_ptr_type_list_y_ptr_STRING(m_str_name_f);
+        if(lenLinkedFileName !=-1) free(filename);
+
   return NULL;
 }
 /// 
