@@ -21,6 +21,18 @@ void free_arg_run_qlearn_bprint(struct arg_run_qlearn_bprint *arg){
 
 void* run_sleep_wait_bash_and_print(void *arg);
 
+void helpManager(){
+  printf(
+  "deep Q learning car circuit\n"
+  "   stoplearn : to stop learning\n"
+  "   stopprint : to stop printing circuit simulation \n"
+  "   goonprint : to allow to print circuit\n"
+  "   startprintnewbash : to open new bash and print circuit on it\n"
+  "   startprintwaitbash : to wait new bash (terminal) before printing circuit on it\n"
+  "   killbash : to kill bash\n"
+  );
+}
+
 void y_nnn_manager_handle_input(char * buf, int len_buf, void *arg){
   struct arg_run_qlearn_bprint *run_arg=(struct arg_run_qlearn_bprint*)arg;
   struct arg_bash *bash_arg=run_arg->bash_arg;
@@ -29,6 +41,9 @@ void y_nnn_manager_handle_input(char * buf, int len_buf, void *arg){
   if(arg && (len_buf>0)){
     
     printf("debug: %s #%d (%d)\n",buf,len_buf,(bash_arg)->old_bash_pid);
+    if(strncmp(buf,"help",4)==0){
+      helpManager();
+    }
     if(strncmp(buf,"newbash",7)==0){
       run_newbash(bash_arg);
     }else if(strncmp(buf,"waitbash",8)==0){
