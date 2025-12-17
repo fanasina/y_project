@@ -7,6 +7,7 @@
 
 //#include "tools_t/tools_t.h"
 #include "tensor_t/tensor_t.h"
+#include "list_t/list_t.h"
 
 extern bool randomizeInitWeight;
 
@@ -124,6 +125,20 @@ typedef struct cloneuronset_##type cloneuronset_##type;\
 void free_cloneuronset_##type(cloneuronset_##type *clnrnst);\
 cloneuronset_##type * create_cloneuronset_from_base_conf_##type(neurons_##type *base, config_layers *conf, size_t nb_clone);\
 size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##type *dataset, bool (*condition)(type, size_t));\
+\
+\
+\
+struct set_neurons_##type{\
+  struct config_layers *pconf;\
+  struct neurons_##type *base;\
+  ssize_t score;\
+};\
+typedef struct set_neurons_##type * ptr_set_NEURONS_##type;\
+\
+GENERATE_LIST_ALL(ptr_set_NEURONS_##type)\
+GEN_HEAD_PTR_LIST(ptr_set_NEURONS_##type)\
+\
+
 
 GEN_NEURON_(TYPE_FLOAT)
 GEN_NEURON_(TYPE_DOUBLE)

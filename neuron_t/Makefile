@@ -9,12 +9,13 @@ YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
 YPERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
 
 TENSDIR=$(ROOTPROJECTDIR)/tensor_t
+LISTDIR=$(ROOTPROJECTDIR)/list_t
 
 NEURODIR=$(ROOT_DIR)
 DIMDIR=$(ROOTPROJECTDIR)/dimension_t
 
 #CFLAGS=-I$(INCLUDE_DIR) -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src #"-D DEBUG=1"
-INCLUDE=-I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(DIMDIR)/src -I$(TENSDIR)/src #"-D DEBUG=1"
+INCLUDE=-I$(NEURODIR)/src -I$(YPERMDIR)/src -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(LISTDIR)/src #"-D DEBUG=1"
 #LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL -lm -lpthread
 #CFLAGS= -Wall -Werror -fpic $(INCLUDE)
 CFLAGS= -Wall -Werror -fpic $(INCLUDE)

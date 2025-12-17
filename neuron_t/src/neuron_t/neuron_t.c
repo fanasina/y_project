@@ -1033,7 +1033,15 @@ size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##typ
   return nbreps;\
 }  \
 \
-
+\
+GEN_LIST_ALL(ptr_set_NEURONS_##type)\
+GEN_FUNC_PTR_LIST_FREE(ptr_set_NEURONS_##type){\
+  ptr_set_NEURONS_##type p_s_nn = (struct set_neurons_##type *)arg;\
+  free_config_layers(p_s_nn->pconf);\
+  free_neurons_##type(p_s_nn->base);\
+  free(p_s_nn);\
+}\
+\
  
   
   

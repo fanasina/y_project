@@ -443,8 +443,12 @@ j=0;\
 	if(dim) free_dimension(dim);\
 	if(l_p) free_list_perm_in_dim(l_p);\
 \
-}while(0);
-
+}while(0);\
+\
+\
+\
+\
+\
 
 
 
