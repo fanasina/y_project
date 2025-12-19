@@ -30,7 +30,7 @@ create_dim(size_t sz){
 }
 
 dimension* clone_dim(dimension *dim){
-  return init_copy_dim(dim->perm,dim->size);
+return init_copy_dim(dim->perm,dim->size);
 }
 
 dimension *
@@ -209,7 +209,7 @@ void min_dimension(dimension **d, dimension *d0, dimension *d1) {
 
 void printDebug_dimension(dimension *d,char *msg){
 
-  printf("(%s)->size = %ld | (%s)->rank = %ld \n[",msg,d->size,msg,d->rank);
+  printf("<%p>(%s)->size = %ld | (%s)->rank = %ld \n[",d,msg,d->size,msg,d->rank);
   for(size_t i=0; i<d->size; ++i)
     printf(" %ld,", d->perm[i]);
   printf("] \n");
@@ -451,3 +451,11 @@ void free_list_perm_in_dim(list_perm_in_dim *l_p){
   }
 }
 
+GEN_LIST_ALL(dimension)
+
+GEN_LIST_ALL(ptr_DIMENSION)
+GEN_FUNC_PTR_LIST_FREE(ptr_DIMENSION){
+  dimension *pdim=(dimension*)arg;
+  free_dimension(pdim);
+  //free(pdim);
+}

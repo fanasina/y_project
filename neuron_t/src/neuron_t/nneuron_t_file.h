@@ -447,9 +447,200 @@ j=0;\
 \
 \
 \
-\
-\
 
 
+
+#define EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS_PCONF(type, neuronDst, attribute, file_name_input, m_l_dim) \
+do{\
+  int fd_input;\
+  fd_input=open(file_name_input, O_RDONLY);\
+  if ( fd_input == -1 ) {\
+    fprintf( stderr, "Cannot open file: %s for reading\n",file_name_input );\
+    exit( -1 );\
+  }\
+  size_t buf_size=820;/*need to be more than the nb of char representation of the type*/\
+  char *input=malloc(buf_size + 1);\
+  char *recInput=malloc(buf_size + 1);\
+  memset(recInput,0, buf_size + 1);\
+  char *iinput=malloc(buf_size * 2);\
+  /*bool size_unknown=false, broken=false*/; \
+  bool Done=false;\
+  int retread = 0, curIn=0, lastNonNumber=0, lenRecIn=0;\
+\
+  list_perm_in_dim *l_p=NULL;\
+  dimension *dim=NULL;\
+  size_t ss;\
+  char *ttmp=NULL;\
+  char *ppEnd=NULL;\
+  bool bracketsDown=false/*, endTensor = false*/;\
+  size_t j=0;\
+  neurons_##type * tmpNN = neuronDst;\
+  tensor_##type * T=NULL;\
+  while(tmpNN /*&& !endTensor*/){\
+    bracketsDown = false;\
+    Done = false;\
+   /* T = tmpNN->attribute;\
+    if(T == NULL){\
+      Done = true;\
+    }*/\
+            T = tmpNN->attribute;\
+            while((T == NULL) && (tmpNN!=NULL)){\
+              tmpNN = tmpNN->next_layer;\
+              if(tmpNN)\
+                T = tmpNN->attribute;\
+            }\
+        /*printf("debug : dd ttmp = %s, T == NULL?=%d %s\n",ttmp,(T==NULL),#attribute);*/\
+            if(T == NULL){\
+              Done = true;\
+            } \
+j=0;\
+    while(!Done /*&& !endTensor*/){\
+      if(ttmp == NULL || *ttmp=='\0'){\
+        for(curIn=0; curIn<lenRecIn; ++curIn){\
+          iinput[curIn]=recInput[lenRecIn-curIn-1];\
+        }\
+        retread = read(fd_input, input, buf_size) ;\
+        /*endTensor = (retread != buf_size);*/\
+        /*printf("debug: ************************* ------>input = |%s|, retread=%d, input[ret-1]={%c}\n", input,retread,input[retread-1]);*/\
+        lenRecIn = 0;\
+        for(lastNonNumber=retread-1; lastNonNumber>=0; --lastNonNumber){ \
+          if(((input[lastNonNumber] >='0') && (input[lastNonNumber] <='9'))||(input[lastNonNumber] =='-')||(input[lastNonNumber] =='.')||(input[lastNonNumber] =='E')||(input[lastNonNumber] =='e')){\
+            recInput[lenRecIn++]=input[lastNonNumber];\
+          }\
+          else break;  \
+        }\
+        recInput[lenRecIn]='\0';\
+        /*printf("recInput = |%s|\n", recInput);*/\
+        for(int ii=0; ii<=lastNonNumber; ++ii){\
+          iinput[curIn++]=input[ii];\
+        }\
+        \
+        iinput[curIn]='\0';\
+        /*printf("iinput = |%s|\nDone=%d\n", iinput,Done);*/\
+        ttmp=iinput;\
+      }\
+      while(!Done && (*ttmp != '\0') /*&& !endTensor*/){\
+        /*printf("debug : >> ttmp = %s, bracketsDown=%d\n",ttmp, bracketsDown);*/\
+        if(*ttmp=='[') {\
+          bracketsDown=false;\
+        }\
+        ppEnd=ttmp;\
+        if( !bracketsDown){\
+          while(*ttmp!='\0' && *ppEnd!=']' ){\
+            if(*ttmp=='['){\
+        /*printf("debug : [[ ttmp = %s\n",ttmp);\
+   if(dim)printDebug_dimension(dim,"[DIM]");*/\
+              if(l_p != NULL){\
+                free_dimension(dim);\
+                free_list_perm_in_dim(l_p);\
+                l_p=NULL;\
+              }\
+   /*if(dim)printDebug_dimension(dim,"{DIM}");*/\
+            }\
+            ss = strtoul(ttmp, &ppEnd, 10);\
+            while(ttmp == ppEnd && *ttmp!='\0'  && ppEnd[0] !=']'){\
+             \
+             if(*ttmp=='['){\
+        /*printf("debug : [[ ttmp = %s\n",ttmp);\
+   if(dim)printDebug_dimension(dim,"[DIM]");*/\
+              if(l_p != NULL){\
+                free_dimension(dim);\
+                free_list_perm_in_dim(l_p);\
+                l_p=NULL;\
+              }\
+   /*if(dim)printDebug_dimension(dim,"{DIM}");*/\
+            }\
+             \
+        /*printf("debug : aa ttmp = %s\n",ttmp);*/\
+              ttmp++;\
+              ss = strtoul(ttmp, &ppEnd, 10);\
+        /*printf("debug : bb ttmp = %s\n",ttmp);*/\
+            }\
+            if(ppEnd !=ttmp ){\
+              append_in_list_perm(&l_p,ss);\
+            }\
+            ttmp=ppEnd;\
+          }\
+        /*printf("debug : cc ttmp = %s\n",ttmp);*/\
+          if( *ttmp ==']'){\
+            dim=create_dim_from_list_perm(l_p);\
+            push_back_list_ptr_DIMENSION(m_l_dim, clone_dim(dim));\
+            /*push_back_list_dimension(m_l_dim, *dim);*/\
+            bracketsDown = true;\
+     printf("debug: dim ptr: %p sizeof(*dim)=%ld sizeof(dimension)=%ld\n",dim,sizeof(*dim), sizeof(dimension));\
+   if(dim){printDebug_dimension(dim,"{DIM}");}\
+            j=0;\
+            \
+          }\
+        \
+        }\
+        /*printf("debug : <<---->> ttmp = %s, bracketsDown=%d T==NULL? =%d, done?=%d\n",ttmp, bracketsDown, (T==NULL), Done);*/\
+        if(!Done && bracketsDown){\
+        /*printf("debug : ee ttmp = %s, T==NULL ? = %d\n %ld vs %ld\n",ttmp,(T==NULL),T->dim->rank,dim->rank);\
+   printDebug_dimension(dim," DIM");*/\
+          if((T->dim->rank == dim->rank)){\
+            \
+            \
+          \
+            type x;\
+            while(strlen(ttmp) && (*ttmp!='[') && (j<dim->rank)){ \
+              x = strto_##type(ttmp, &ppEnd);\
+              while(ttmp == ppEnd && strlen(ttmp) && *ttmp!='[' ){\
+        /*printf("debug : dd ttmp = %s\n",ttmp);*/\
+                ttmp++;\
+                x = strto_##type(ttmp, &ppEnd);\
+        /*printf("debug : ww ttmp = %s\n",ttmp);*/\
+              }\
+              if((*ttmp!='[') && (ttmp != ppEnd)){\
+                T->x[j++]=x;\
+                /*printf("debug : x=%lf ===> %d\n",x,(j==dim->rank));*/\
+              }\
+              else if ( *ttmp =='[') {\
+                bracketsDown = false;\
+                Done=true;\
+                break;\
+              }\
+              ttmp=ppEnd;\
+              Done=(j==dim->rank);\
+              /*endTensor=(j==dim->rank);*/\
+            }\
+            if(Done) break;\
+            if(j == dim->rank ){\
+              Done = true;\
+            }\
+          }else {\
+            /*endTensor = true;*/\
+            /*Done = true;\
+            bracketsDown = false;*/\
+            break;\
+          }\
+        }\
+          if(Done){\
+                /*printf("debug : done=%d , l_p==NULL?=%d, endTensor=%d\n",Done, (l_p==NULL), endTensor);*/\
+            if(l_p != NULL){\
+              free_dimension(dim);\
+							dim=NULL;\
+              free_list_perm_in_dim(l_p);\
+              l_p=NULL;\
+            }\
+          }\
+          \
+      }\
+      if(Done) break;\
+  \
+    }\
+    tmpNN = tmpNN->next_layer;\
+  }\
+  free(input);\
+  free(iinput);\
+  free(recInput);\
+  close(fd_input);\
+	if(dim) free_dimension(dim);\
+	if(l_p) free_list_perm_in_dim(l_p);\
+\
+}while(0);\
+\
+\
+\
 
 #endif /* NNEURONE_T_FILE_H__C_ */

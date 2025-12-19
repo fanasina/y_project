@@ -39,9 +39,98 @@ void free_config_layers(config_layers *pconf){
   free(pconf);
 } 
 
+long int cmp_config_layers(config_layers *c1, config_layers *c2){
+  long int diff_nb=c1->nb_layers - c2->nb_layers;
+  if(diff_nb) return diff_nb;
+
+  for(long int i=0; i<c1->nb_layers; ++i){
+    long int diff_sz_layers = c1->sz_layers[i] - c2->sz_layers[i];
+    if(diff_sz_layers) return diff_sz_layers;
+    for(long int j=0; j<c1->sz_layers[i]; ++j){
+      long int diff_dim = c1->array_dim_in_layers[i][j] -  c2->array_dim_in_layers[i][j]; 
+      if(diff_dim) return diff_dim;
+    }
+  }
+  return 0;
+}
+
+config_layers * create_config_layers_from_m_list_ptr_DIMENSION(struct main_list_ptr_DIMENSION *m_l_dim){
+  config_layers * pconf=malloc(sizeof(struct config_layers));
+  pconf->nb_layers=m_l_dim->size;
+  //printf("debug: pconf->nb_layers=%ld\n",pconf->nb_layers);
+  pconf->sz_layers=malloc(pconf->nb_layers * sizeof(size_t));
+  pconf->array_dim_in_layers=malloc((pconf->nb_layers)*sizeof(size_t*));
+  for(struct list_ptr_DIMENSION *local_l_dim=m_l_dim->begin_list; local_l_dim; local_l_dim=local_l_dim->next){
+    size_t i = local_l_dim->index;
+    pconf->sz_layers[i]=local_l_dim->value->size;
+  //printf("debug: pconf->sz_layers[%ld]=%ld\n",i,pconf->sz_layers[i]);
+    pconf->array_dim_in_layers[i]=malloc((pconf->sz_layers[i])*sizeof(size_t));
+    for(size_t j=0; j< pconf->sz_layers[i];++j){
+      pconf->array_dim_in_layers[i][j] = local_l_dim->value->perm[j];
+  //printf("debug: pconf->array_dim_in_layers[%ld][%ld]=%ld\n",i,j,pconf->array_dim_in_layers[i][j]);
+    
+    }
+  }
+  return pconf;
+}
+
+
+config_layers * create_config_layers_from_m_list_dimension(struct main_list_dimension * m_l_dim){
+  config_layers * pconf=malloc(sizeof(struct config_layers));
+  pconf->nb_layers=m_l_dim->size;
+  printf("debug: pconf->nb_layers=%ld\n",pconf->nb_layers);
+  pconf->sz_layers=malloc(pconf->nb_layers * sizeof(size_t));
+  pconf->array_dim_in_layers=malloc((pconf->nb_layers)*sizeof(size_t*));
+  for(struct list_dimension *local_l_dim=m_l_dim->begin_list; local_l_dim; local_l_dim=local_l_dim->next){
+    size_t i = local_l_dim->index;
+    char msg[50]; sprintf(msg, "dim[%ld] ",i);
+    printDebug_dimension(&(local_l_dim->value), msg);
+    pconf->sz_layers[i]=local_l_dim->value.size;
+  printf("debug: pconf->sz_layers[%ld]=%ld\n",i,pconf->sz_layers[i]);
+    pconf->array_dim_in_layers[i]=malloc((pconf->sz_layers[i])*sizeof(size_t));
+    for(size_t j=0; j< pconf->sz_layers[i];++j){
+      pconf->array_dim_in_layers[i][j] = local_l_dim->value.perm[j];
+  printf("debug: pconf->array_dim_in_layers[%ld][%ld]=%ld\n",i,j,pconf->array_dim_in_layers[i][j]);
+    
+    }
+  }
+  return pconf;
+}
+
+void print_config_layers(config_layers * pconf){
+  for(size_t i=0;i<pconf->nb_layers; ++i){
+  printf("debug: pconf->sz_layers[%ld]=%ld\n",i,pconf->sz_layers[i]);
+    for(size_t j=0; j< pconf->sz_layers[i];++j){
+  printf(" [%ld][%ld]=%ld  | ",i,j,pconf->array_dim_in_layers[i][j]);
+    
+    }
+  printf("debug: pconf->nb_layers=%ld\n",pconf->nb_layers);
+  }
+}
 bool randomizeInitWeight=true;
 
 #define GEN_NEURONS_F_(type)\
+config_layers * create_config_layers_from_weight_in_neurons_##type(neurons_##type *base){\
+  config_layers *pconf=malloc(sizeof(struct config_layers));\
+  neurons_##type *tmp=base->next_layer;\
+  pconf->nb_layers=0;\
+  while(tmp){ ++(pconf->nb_layers); tmp=tmp->next_layer;}\
+  tmp=base->next_layer;\
+  pconf->sz_layers=malloc((pconf->nb_layers)*sizeof(size_t));\
+  pconf->array_dim_in_layers=malloc((pconf->nb_layers)*sizeof(size_t*));\
+  printf("debug: pconf->nb_layers=%ld\n",pconf->nb_layers);\
+  size_t layer=0;\
+  while(tmp){\
+    pconf->sz_layers[layer]=tmp->weight_in->dim->size;\
+  printf("debug: pconf->sz_layers[%ld]=%ld\n",layer,pconf->sz_layers[layer]);\
+    pconf->array_dim_in_layers[layer]=malloc((pconf->sz_layers[layer])*sizeof(size_t));\
+    for(size_t j=0;j<pconf->sz_layers[layer];++j){\
+      pconf->array_dim_in_layers[layer][j]=tmp->weight_in->dim->perm[j];\
+    }\
+    ++layer; tmp=tmp->next_layer;\
+  }\
+  return pconf;\
+}\
   \
 void do_not_update_learnig_rate_##type(neurons_##type *N){}\
 \
@@ -1034,14 +1123,66 @@ size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##typ
 }  \
 \
 \
-GEN_LIST_ALL(ptr_set_NEURONS_##type)\
-GEN_FUNC_PTR_LIST_FREE(ptr_set_NEURONS_##type){\
-  ptr_set_NEURONS_##type p_s_nn = (struct set_neurons_##type *)arg;\
+struct set_neurons_##type * create_set_neurons_##type(config_layers *pconf, struct neurons_##type *base, ssize_t score, size_t dateid){\
+  struct set_neurons_##type *p_set_n=malloc(sizeof(struct set_neurons_##type));\
+  p_set_n->pconf=pconf;\
+  p_set_n->base=base;\
+  p_set_n->score=score;\
+  p_set_n->dateid=dateid;\
+  return p_set_n;\
+}\
+\
+void free_set_neurons_##type(struct set_neurons_##type *p_s_nn){\
   free_config_layers(p_s_nn->pconf);\
   free_neurons_##type(p_s_nn->base);\
   free(p_s_nn);\
 }\
 \
+GEN_LIST_ALL(ptr_set_NEURONS_##type)\
+GEN_FUNC_PTR_LIST_FREE(ptr_set_NEURONS_##type){\
+  ptr_set_NEURONS_##type p_s_nn = (struct set_neurons_##type *)arg;\
+  free_set_neurons_##type(p_s_nn);\
+}\
+\
+ssize_t sum_score_set_neurons_##type(struct main_list_ptr_set_NEURONS_##type *m_set_nrns){\
+  ssize_t sum_score=0;\
+  for(struct list_ptr_set_NEURONS_##type *local_set_n=m_set_nrns->begin_list; local_set_n ; local_set_n = local_set_n->next ){\
+    sum_score+=(local_set_n->value->score);\
+  }\
+  return sum_score;\
+}\
+void put_meaning_of_weitgh_in_set_neurons_##type(struct set_neurons_##type *dst_nrns, struct main_list_ptr_set_NEURONS_##type * m_set_nrns)\
+{\
+  ssize_t sum_score=0;\
+  for(struct list_ptr_set_NEURONS_##type *local_set_n=m_set_nrns->begin_list; local_set_n ; local_set_n = local_set_n->next ){\
+    sum_score+=(local_set_n->value->score);\
+    if(cmp_config_layers(dst_nrns->pconf, local_set_n->value->pconf)){\
+      printf("debug: config_layers not match in inex = %ls \n",local_set_n->index);\
+      return;\
+    }\
+  }\
+  struct neurons_##type *tmp_dst=dst_nrns->base;\
+  while(tmp_dst){\
+    for(size_t i=0; i<tmp_dst->weight_in->dim->size;++i){\
+    tmp_dst->weight_in->x[i]=0;\
+    }\
+    tmp_dst=tmp_dst->next_layer;\
+  }\
+  for(struct list_ptr_set_NEURONS_##type *local_set_n=m_set_nrns->begin_list; local_set_n ; local_set_n = local_set_n->next ){\
+    local_set_n->value->cur_neurons=local_set_n->value->base;\
+    tmp_dst=dst_nrns->base;\
+    while(tmp_dst){\
+      for(size_t i=0; i<tmp_dst->weight_in->dim->size;++i){\
+        tmp_dst->weight_in->x[i] +=(((local_set_n->value->score) * (local_set_n->value->cur_neurons->weight_in->x[i]))/sum_score);\
+      }\
+      tmp_dst=tmp_dst->next_layer;\
+      local_set_n->value->cur_neurons=local_set_n->value->cur_neurons->next_layer;\
+    }\
+  }\
+}\
+\
+\
+
  
   
   

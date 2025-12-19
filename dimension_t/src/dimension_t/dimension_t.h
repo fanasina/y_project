@@ -2,6 +2,7 @@
 #define __DIMENSION_T__H__
 
 #include "permutation_t/permutation_t.h"
+#include "list_t/list_t.h"
 
 extern bool endian;
 
@@ -73,6 +74,12 @@ dimension * create_dim_from_list_perm( list_perm_in_dim *l_p);
 dimension * create_binary_dim(size_t dimension_size);
 
 void free_list_perm_in_dim(list_perm_in_dim *l_p);
+
+GENERATE_LIST_ALL(dimension)
+typedef dimension * ptr_DIMENSION;
+
+GENERATE_LIST_ALL(ptr_DIMENSION)
+GEN_HEAD_PTR_LIST(ptr_DIMENSION)
 
 #endif /* __DIMENSION_T__H__ */
 //int compare_dimension(dimension *d1, dimension *d2);

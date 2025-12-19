@@ -20,7 +20,10 @@ typedef struct config_layers config_layers;
 config_layers *create_config_layers(size_t nb_layers, size_t *sz_layers, size_t **array_dim_in_layers);
 config_layers *create_config_layers_from_OneD(size_t nb_layers, size_t *array_dim_in_layers);
 void free_config_layers(config_layers *pconf);
-
+long int cmp_config_layers(config_layers *c1, config_layers *c2);
+config_layers * create_config_layers_from_m_list_ptr_DIMENSION(struct main_list_ptr_DIMENSION *m_l_dim);
+config_layers * create_config_layers_from_m_list_dimension(struct main_list_dimension *m_l_dim);
+void print_config_layers(config_layers * pconf);
 
 #define GEN_NEURON_(type)\
 \
@@ -52,6 +55,8 @@ struct neurons_##type {/* layer */\
   type (*d_f_act)(type x);\
 };\
 typedef struct neurons_##type neurons_##type;\
+\
+config_layers * create_config_layers_from_weight_in_neurons_##type(neurons_##type *base);\
 \
 struct func_act_##type {\
   type (*func_act)(type x); /* function activation */\
@@ -131,9 +136,13 @@ size_t learning_cloneuronset_##type(cloneuronset_##type *clnrnst, data_set_##typ
 struct set_neurons_##type{\
   struct config_layers *pconf;\
   struct neurons_##type *base;\
+  struct neurons_##type *cur_neurons;\
   ssize_t score;\
+  size_t dateid;\
 };\
 typedef struct set_neurons_##type * ptr_set_NEURONS_##type;\
+\
+struct set_neurons_##type * create_set_neurons_##type(config_layers *pconf, struct neurons_##type *base, ssize_t score, size_t dateid);\
 \
 GENERATE_LIST_ALL(ptr_set_NEURONS_##type)\
 GEN_HEAD_PTR_LIST(ptr_set_NEURONS_##type)\
