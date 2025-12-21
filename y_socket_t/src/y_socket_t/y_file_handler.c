@@ -80,8 +80,8 @@ int funcCmp_y_ptr_HEADER_T(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
 
 int funcCmp_y_ptr_HEADER_T_fn_nameid_mask(y_ptr_HEADER_T h1, y_ptr_HEADER_T h2){
   if(h1==NULL || h2==NULL) return -1;
-  struct main_list_y_ptr_STRING * m_h1_nameid = split_str_to_main_list_y_ptr_STRING(h1->nameid,'_', h1->size_nameid);
-  struct main_list_y_ptr_STRING * m_h2_nameid = split_str_to_main_list_y_ptr_STRING(h2->nameid,'_', h2->size_nameid);
+  struct main_list_y_ptr_STRING * m_h1_nameid = split_str_to_main_list_y_ptr_STRING(h1->nameid,sep, h1->size_nameid);
+  struct main_list_y_ptr_STRING * m_h2_nameid = split_str_to_main_list_y_ptr_STRING(h2->nameid,sep, h2->size_nameid);
 	
 	//int count_match = 0;
 	struct main_list_TYPE_SIZE_T * m_index_not_match = create_var_list_TYPE_SIZE_T();
@@ -459,11 +459,14 @@ int remove_content_from_headers(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_p
   }
 }
 
+char sep=';';
+
 void y_fileNameDateScore(char* filename, char * pre, char* post,size_t score){
  // char *filename=malloc(256);
   time_t t = time(NULL);
-  struct tm tm = *localtime(&t);
-  sprintf(filename,"%s%d%02d%02d_%02dh%02dm%02ds_%ld%s",pre, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,score,post);
+  //struct tm tm = *localtime(&t);
+  //sprintf(filename,"%s%d%02d%02d_%02dh%02dm%02ds_%ld%s",pre, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,score,post);
+  sprintf(filename,"%s%c%ld%c%ld%c%s",pre, sep, t,sep,score,sep,post);
 
   //return filename;
 }
@@ -583,7 +586,7 @@ void* y_socket_send_file_for_node(void* arg){
        set_addr_str_from_node(tempAddr, node);
        c_af=(node).addr.ss_family;
 
-			 sprintf(nameid, "%s_%s_%ld",name_f, tempAddr, timeid);
+			 sprintf(nameid, "%s%c%s%c%ld",name_f,sep, tempAddr,sep, timeid);
 
 for(int tour_i=0;(tour_i<4) && (check_if_in_ok_header_l_(argS->m_ok_head_l_t, nameid) == 0); ++tour_i){
    
@@ -925,7 +928,7 @@ void receve_from_node(struct pollfd *fds, struct main_list_y_ptr_HEADER_T *m_hea
 #if 0
                            size_nameid = sprintf(nameid, "%s_%s_%s_%s",name_f /*filename*/, srcAddr, value_of_(js_dst_v)->type.string, timeid/*value_of_(js_tm_v)->type.string*/);
 #endif
-                           size_nameid = sprintf(nameid, "%s_%s_%s",name_f, srcAddr, /*value_of_(js_dst_v)->type.string,*/ value_of_(js_tm_v)->type.string);
+                           size_nameid = sprintf(nameid, "%s%c%s%c%s",name_f, sep, srcAddr, sep, /*value_of_(js_dst_v)->type.string,*/ value_of_(js_tm_v)->type.string);
                            ///printf("debug: nameid = %s\n", nameid);
 
                            //int intTimeid = atoi(timeid);

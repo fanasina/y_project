@@ -15,6 +15,8 @@
 
 #include "list_t/list_t.h"
 
+extern char sep;
+
 void y_fileNameDateScore(char* filename, char * pre, char* post,size_t score);
 
 struct arg_send_file{

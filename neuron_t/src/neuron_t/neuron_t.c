@@ -78,19 +78,19 @@ config_layers * create_config_layers_from_m_list_ptr_DIMENSION(struct main_list_
 config_layers * create_config_layers_from_m_list_dimension(struct main_list_dimension * m_l_dim){
   config_layers * pconf=malloc(sizeof(struct config_layers));
   pconf->nb_layers=m_l_dim->size;
-  printf("debug: pconf->nb_layers=%ld\n",pconf->nb_layers);
+  //printf("debug: pconf->nb_layers=%ld\n",pconf->nb_layers);
   pconf->sz_layers=malloc(pconf->nb_layers * sizeof(size_t));
   pconf->array_dim_in_layers=malloc((pconf->nb_layers)*sizeof(size_t*));
   for(struct list_dimension *local_l_dim=m_l_dim->begin_list; local_l_dim; local_l_dim=local_l_dim->next){
     size_t i = local_l_dim->index;
-    char msg[50]; sprintf(msg, "dim[%ld] ",i);
-    printDebug_dimension(&(local_l_dim->value), msg);
+    //char msg[50]; sprintf(msg, "dim[%ld] ",i);
+    //printDebug_dimension(&(local_l_dim->value), msg);
     pconf->sz_layers[i]=local_l_dim->value.size;
-  printf("debug: pconf->sz_layers[%ld]=%ld\n",i,pconf->sz_layers[i]);
+  //printf("debug: pconf->sz_layers[%ld]=%ld\n",i,pconf->sz_layers[i]);
     pconf->array_dim_in_layers[i]=malloc((pconf->sz_layers[i])*sizeof(size_t));
     for(size_t j=0; j< pconf->sz_layers[i];++j){
       pconf->array_dim_in_layers[i][j] = local_l_dim->value.perm[j];
-  printf("debug: pconf->array_dim_in_layers[%ld][%ld]=%ld\n",i,j,pconf->array_dim_in_layers[i][j]);
+  //printf("debug: pconf->array_dim_in_layers[%ld][%ld]=%ld\n",i,j,pconf->array_dim_in_layers[i][j]);
     
     }
   }
@@ -99,14 +99,19 @@ config_layers * create_config_layers_from_m_list_dimension(struct main_list_dime
 
 void print_config_layers(config_layers * pconf){
   for(size_t i=0;i<pconf->nb_layers; ++i){
-  printf("debug: pconf->sz_layers[%ld]=%ld\n",i,pconf->sz_layers[i]);
+  //printf("debug: pconf->sz_layers[%ld]=%ld\n",i,pconf->sz_layers[i]);
     for(size_t j=0; j< pconf->sz_layers[i];++j){
-  printf(" [%ld][%ld]=%ld  | ",i,j,pconf->array_dim_in_layers[i][j]);
+  //printf(" [%ld][%ld]=%ld  | ",i,j,pconf->array_dim_in_layers[i][j]);
     
     }
-  printf("debug: pconf->nb_layers=%ld\n",pconf->nb_layers);
+  //printf("debug: pconf->nb_layers=%ld\n",pconf->nb_layers);
   }
 }
+
+void extract_src_score_date_from_filename(char *src, ssize_t score, size_t date, char *filename){
+  //
+}
+
 bool randomizeInitWeight=true;
 
 #define GEN_NEURONS_F_(type)\
@@ -1157,7 +1162,7 @@ void put_meaning_of_weitgh_in_set_neurons_##type(struct set_neurons_##type *dst_
   for(struct list_ptr_set_NEURONS_##type *local_set_n=m_set_nrns->begin_list; local_set_n ; local_set_n = local_set_n->next ){\
     sum_score+=(local_set_n->value->score);\
     if(cmp_config_layers(dst_nrns->pconf, local_set_n->value->pconf)){\
-      printf("debug: config_layers not match in inex = %ls \n",local_set_n->index);\
+      printf("debug: config_layers not match in inex = %ld \n",local_set_n->index);\
       return;\
     }\
   }\

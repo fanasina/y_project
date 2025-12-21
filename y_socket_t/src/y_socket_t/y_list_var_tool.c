@@ -5,6 +5,8 @@ long  long_time_id(){
  // char *filename=malloc(256);
   //char timeid[64];//="20251011215824";
   time_t t = time(NULL);
+  return t;
+#if 0
   struct tm tm = *localtime(&t);
   //sprintf(timeid,"%d%02d%02d%02d%02d%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
 
@@ -13,6 +15,7 @@ long  long_time_id(){
   ///printf("debug: timeid=%s, vs tm=%ld\n",timeid, intm);
   //printf("debug: timeof=%ld, vs tm=%ld, tm_zone=%s\n",tm.tm_gmtoff, long_tm, tm.tm_zone);
   return long_tm;
+#endif
 }
 char * time_id(){
  // char *filename=malloc(256);

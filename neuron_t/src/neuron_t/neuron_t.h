@@ -25,6 +25,8 @@ config_layers * create_config_layers_from_m_list_ptr_DIMENSION(struct main_list_
 config_layers * create_config_layers_from_m_list_dimension(struct main_list_dimension *m_l_dim);
 void print_config_layers(config_layers * pconf);
 
+void extract_src_score_date_from_filename(char *src, ssize_t score, size_t date, char *filename);
+
 #define GEN_NEURON_(type)\
 \
 struct neurons_##type {/* layer */\

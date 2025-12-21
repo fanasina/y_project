@@ -464,8 +464,11 @@ if(/*(qlStatus->nb_episodes %125 == 0)  &&*/  pprint->printed){
 char *fileNameDateScore(char * pre, char* post,size_t score){
   char *filename=malloc(256);
   time_t t = time(NULL);
-  struct tm tm = *localtime(&t);
-  sprintf(filename,"%s%d%02d%02d_%02dh%02dm%02ds_%ld%s",pre, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,score,post);
+  ///struct tm tm = *localtime(&t);
+  //sprintf(filename,"%s%d%02d%02d_%02dh%02dm%02ds_%ld%s",pre, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,score,post);
+  ///sprintf(filename,"%s_%d%02d%02d%02d%02d%02d_%ld%s",pre, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec,score,post);
+  //char sep='_';
+  sprintf(filename,"%s%c%ld%c%ld%c%s",pre, sep, t, sep,score,sep,post);
 
   return filename;
 }

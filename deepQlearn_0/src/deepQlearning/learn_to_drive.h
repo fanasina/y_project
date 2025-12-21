@@ -38,6 +38,7 @@
 //#define main_symlink ".ff_main_.symlink"
 
 extern char *action_name[8];
+extern char sep;
 
 struct qlearning_params {
   float gamma;
