@@ -27,19 +27,21 @@ PERMSRC_O=$(PERMDIR)/src/permutation_t/permutation_t.o
 #SRC=$(wildcard **/**/*.c) 
 #OBJ=$(SRC:.c=.o) #$(TOOLSRC_O) 
 
+OBJ=$(DIMSRC_O) $(PERMSRC_O) 
+
 TOPTARGETS := all clean
-DEP=$(PERMDIR)
+DEP=$(PERMDIR) $(LISTDIR)
 
 $(TOPTARGETS): $(DEP)
 
 all: $(DIMSRC_O)
 
 
-$(DIMSRC_O) : $(DIMSRC) $(PERMSRC_O)
-	$(CC) -o $@ -c $< $(CFLAGS)
-
 $(DEP):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
+
+$(DIMSRC_O) : $(DIMSRC) $(PERMSRC_O)
+	$(CC) -o $@ -c $< $(CFLAGS)
 
 #$(TOOLSRC_O): $(TOOLSRC) 
 #	$(CC) -o $@ -c $< $(CFLAGS)
