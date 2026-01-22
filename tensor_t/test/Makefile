@@ -7,11 +7,12 @@ CC=gcc
 ROOT_DIR=$(PWD)
 YTESTDIR=$(ROOTPROJECTDIR)/ytest_t
 YPERMDIR=$(ROOTPROJECTDIR)/ypermutation_t
+LISTDIR=$(ROOTPROJECTDIR)/list_t
 
 TENSDIR=$(ROOTPROJECTDIR)/tensor_t
 DIMDIR=$(ROOTPROJECTDIR)/dimension_t
 INCLUDE_DIR=$(TENSDIR)/src
-CFLAGS=-I$(INCLUDE_DIR) -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src #"-D DEBUG=1"
+CFLAGS=-I$(INCLUDE_DIR) -I$(YPERMDIR)/src -I$(YTESTDIR)/include_ytest/include -I$(DIMDIR)/src -I$(TENSDIR)/src -I$(LISTDIR)/src #"-D DEBUG=1"
 LDFLAGS=-L$(YTESTDIR) -lytest -lOpenCL
 
 #SRC_DIR=$(ROOT_DIR)/src
