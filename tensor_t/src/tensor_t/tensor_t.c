@@ -736,6 +736,94 @@ void tensorContractnProd_##type(tensor_##type** MM, tensor_##type *M0, tensor_##
     }\
     FREE_dM_S_ \
 }\
+\
+/* M[x0,x1,x3..xn] X M[y0,y1,y3..ym] = M[z0,z1...zp] (deep = l > 0) /exists 1<= l<...<l=n /  xl = y0,x{l+1}=y1, x{n}=yl  et zi=xi i<n-l et zj=y{j-(n-l)} j>=n-l alor p=n+m-2l\
+ M[x0,x1,x3..xl x{l+1}...xn] X M[xn,x{n-1},x{n-2}...xl y{l+1} ..ym] = M[x0,x1..xly{l+1}...y{n+m-2l}] (deep = l > 0)\
+M[[i][j]]=sum_{[k]}M0[[i][k]]*M[[k][j]]*/\
+\
+void tensorContractnProdOpt0_##type(tensor_##type** MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber) {\
+   /* if (!checkMatchProdtensor(M0->dim, M1->dim, contractionNumber)) {\
+        prsize_tf("Deep = %d\n", contractionNumber);\
+    }*/\
+    if(checkContractProdTensorDim(M0->dim, M1->dim, contractionNumber)==0){\
+      printf("checkContractProdTensorDim %ld contractionNumber\n", contractionNumber);\
+        printDebug_dimension(M0->dim, "M0 dim");\
+        printDebug_dimension(M1->dim, "M1 dim");\
+        getchar();\
+    }\
+\
+    size_t len0 = M0->dim->size - contractionNumber;\
+    size_t len1 = M1->dim->size - contractionNumber;\
+\
+    size_t* tsub0 = malloc(sizeof(size_t) *len0);\
+    size_t* tsub1 = malloc(sizeof(size_t) *len1);\
+    size_t* tDk1 = malloc(sizeof(size_t) *contractionNumber);\
+    size_t* tDk0 = malloc(sizeof(size_t) *contractionNumber);\
+    subArray(tsub0, M0->dim->perm, 0, len0, 0);\
+    subArray(tsub1, M1->dim->perm, 0, len1, contractionNumber);\
+    subArray(tDk1, M1->dim->perm, 0, contractionNumber, 0);\
+    subArray(tDk0, M0->dim->perm, 0, contractionNumber, len0);\
+    /*printArraySzt(tsub0,len0,"tsub0");\
+    printArraySzt(tsub1,len1,"tsub1");\
+    printArraySzt(tDk0,contractionNumber,"tDk0");\
+    printArraySzt(tDk1,contractionNumber,"tDk1");*/\
+    dimension *dSub0 = init_dim(tsub0, len0);\
+    dimension *dSub1 = init_dim(tsub1, len1);\
+    dimension *dM1 = init_dim(tDk1, contractionNumber);\
+    dimension *dM0 = init_dim(tDk0, contractionNumber);\
+  /*printDebug_dimension(dSub0,"dSub0");\
+  printDebug_dimension(dSub1,"dSub1");\
+  printDebug_dimension(dM0,"dM0");\
+  printDebug_dimension(dM1,"dM1");*/\
+    dimension *dM;\
+    min_copy_dimension(&dM, dM0, dM1);\
+  /*printDebug_dimension(dM,"dM");*/\
+    \
+    dimension *dd;\
+    add_dimension(&dd, dSub0, dSub1);\
+  /*printDebug_dimension(dd,"dd");*/\
+    updateRankDim(dd);\
+    _RECREATE_TENSOR_IF_NOT_THE_SAME_DIM_OR_NULL_##type(MM,dd);\
+    tensor_##type *M= *MM;\
+\
+   \
+\
+    size_t a0_id, a1_id, n0_id, n1_id, begin0, begin1;\
+    for (size_t i = 0; i < M->dim->rank; i++) {\
+        if(endian){\
+          a0_id=i/dSub1->rank;\
+          a1_id=i%dSub1->rank;\
+          begin0=a0_id*dM->rank ;\
+          begin1= a1_id ;\
+        }\
+        else{\
+          a0_id=i%dSub0->rank;\
+          a1_id=i/dSub0->rank;\
+          begin1= a1_id*dM->rank ;\
+          begin0= a0_id ;\
+        }\
+        M->x[i] = 0;\
+        for (size_t k = 0; k < dM->rank; k++) {\
+          if(endian){\
+            /*n0_id= a0_id*dM->rank + k;*/\
+            /*n1_id= a1_id + dSub1->rank * k;*/\
+            /*M->x[i] += M0->x[begin0++] * M1->x[n1_id];*/\
+            M->x[i] += M0->x[begin0++] * M1->x[begin1];\
+            begin1 +=dSub1->rank ;\
+          }\
+          else{\
+            /*n0_id= a0_id + dSub0->rank * k;*/\
+            /*n1_id= a1_id*dM->rank + k;*/\
+            /*M->x[i] += M0->x[n0_id] * M1->x[begin1++];*/\
+            M->x[i] += M0->x[begin0] * M1->x[begin1++];\
+            begin0 += dSub0->rank ;\
+          }\
+            \
+        }\
+    }\
+    FREE_dM_S_ \
+}\
+\
 struct arg_Prod_##type{\
   type *M0x;\
   type *M1x;\

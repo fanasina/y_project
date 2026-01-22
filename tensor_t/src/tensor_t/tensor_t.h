@@ -42,6 +42,7 @@ void tensorProdThrea2d_##type(tensor_##type **MM, tensor_##type *M0, tensor_##ty
 void tensorContractnProdThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
 void tensorContractnPro2dThread_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread); \
 void tensorContractnProdNotOpt_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
+void tensorContractnProdOpt0_##type(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber); \
 type scalarProduct_dep_contractProd_##type(tensor_##type *M0, tensor_##type *M1, size_t nbthreads ,void (*tensorContractVar)(tensor_##type **MM, tensor_##type *M0, tensor_##type *M1, size_t contractionNumber, size_t nbthread ));\
 type scalarProduct_0_##type(tensor_##type *M0, tensor_##type *M1);\
 void init_random_x_##type(tensor_##type *M, type minR, type maxR,  int randomRange);\

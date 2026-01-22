@@ -17,7 +17,7 @@
 //#include "permutation_t/permutation_t.h"
 #include "tensor_t/tensor_t.h"
 
-#define VALGRIND_ 1
+#define VALGRIND_ 0
 
 TEST(rank){
   endian =true;
@@ -1098,13 +1098,13 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
 #else
 
 
-  d0->perm[0]=35;
+  d0->perm[0]=335;
   d0->perm[1]=32; //3;
-  d0->perm[2]=23;
+  d0->perm[2]=43;
 
   d1->perm[0]=32;
-  d1->perm[1]=23;//3;
-  d1->perm[2]=44;
+  d1->perm[1]=43;//3;
+  d1->perm[2]=244;
 #endif
 
   updateRankDim(d0);
@@ -1135,7 +1135,68 @@ TEST(tensorContractnProd_TYPE_FLOAT2 ){
   // for(size_t i=0;i<M->dim->rank;++i)
   //    EXPECT_EQ_TYPE_FLOAT(M->x[i],MnO->x[i]);
     
-  //EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
+
+  free_tensor_TYPE_FLOAT(M);
+  free_tensor_TYPE_FLOAT(MnO);
+  free_tensor_TYPE_FLOAT(M0);
+  free_tensor_TYPE_FLOAT(M1);
+
+}
+
+TEST(tensorContractnProdOpt0_TYPE_FLOAT2 ){
+  dimension *d0=create_dim(3);
+  dimension *d1=create_dim(3);
+#if VALGRIND_
+  d0->perm[0]=5;
+  d0->perm[1]=2; //3;
+  d0->perm[2]=3;
+
+  d1->perm[0]=2;
+  d1->perm[1]=3;//3;
+  d1->perm[2]=8;
+
+#else
+
+
+  d0->perm[0]=335;
+  d0->perm[1]=32; //3;
+  d0->perm[2]=43;
+
+  d1->perm[0]=32;
+  d1->perm[1]=43;//3;
+  d1->perm[2]=244;
+#endif
+
+  updateRankDim(d0);
+  updateRankDim(d1);
+
+
+  tensor_TYPE_FLOAT *M0 = CREATE_TENSOR_TYPE_FLOAT(d0);
+  tensor_TYPE_FLOAT *M1 = CREATE_TENSOR_TYPE_FLOAT(d1);
+
+  LOG("M0->dim->rank = %ld\n",M0->dim->rank);
+  LOG("M1->dim->rank = %ld\n",M1->dim->rank);
+  for(size_t i=0; i<M0->dim->rank;++i) M0->x[i]=i*0.1 +1;
+  for(size_t i=0; i<M1->dim->rank;++i) M1->x[i]=i*0.003 + 2;
+
+//  print_tensor_float(M0,"M0");
+//  print_tensor_float(M1,"M1");
+
+  tensor_TYPE_FLOAT *M=NULL;
+  tensor_TYPE_FLOAT *MnO=NULL;
+
+  tensorContractnProdOpt0_TYPE_FLOAT(&M, M0,M1,2);
+//  print_tensor_float(M,"M");
+  tensorContractnProdNotOpt_TYPE_FLOAT(&MnO, M0,M1,2);
+
+
+//  print_tensor_float(MnO,"MnO");
+ 
+  // for(size_t i=0;i<M->dim->rank;++i)
+  //    EXPECT_EQ_TYPE_FLOAT(M->x[i],MnO->x[i]);
+    
+  EXPECT_ARRAY_EQ_TYPE_FLOAT(M->x,M->dim->rank,MnO->x,MnO->dim->rank);
 
   free_tensor_TYPE_FLOAT(M);
   free_tensor_TYPE_FLOAT(MnO);
