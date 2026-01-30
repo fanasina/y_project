@@ -459,7 +459,7 @@ int remove_content_from_headers(struct main_list_y_ptr_HEADER_T *m_head_l_t, y_p
   }
 }
 
-char sep=';';
+char sep='%';
 
 void y_fileNameDateScore(char* filename, char * pre, char* post,size_t score){
  // char *filename=malloc(256);
