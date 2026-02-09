@@ -193,6 +193,6 @@ void usage_cmdl(){
   "\t\t\tNeed to add \"seq\" and \"tm\" keys to have good handling, the payload is after the header {}\n"
   "\t\t\tSee y_socket_send_file_for_node function.\n"
   "\t\tpost ok [filenameid]: to acknowledge receipt [filename].\n"
-  "\t\t\t[filenameid] is to precise witch [filename] (file name from whom and when)\n"
+  "\t\t\t[filenameid] is to precise wich [filename] (file name from whom and when)\n"
   );
 }
