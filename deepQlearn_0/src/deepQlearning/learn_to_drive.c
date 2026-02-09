@@ -75,6 +75,7 @@ struct networks_qlearning * create_network_qlearning(
   copy_weight_in_networks_from_main_to_best(qnets);
 
   setup_all_layers_functions_TYPE_FLOAT(qnets->main_net, tensorContractnProdThreadOpt0_TYPE_FLOAT, tensorProdThread_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
+  //setup_all_layers_functions_TYPE_FLOAT(qnets->main_net, tensorContractnProdThread_TYPE_FLOAT, tensorProdThread_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
   //setup_all_layers_functions_TYPE_FLOAT(qnets->main_net, tensorContractnProdTHR_TYPE_FLOAT, tensorProdTHR_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
   setup_all_layers_params_TYPE_FLOAT(qnets->main_net, nb_prod_thread, nb_calc_thread, learning_rate);
   setup_all_layers_functions_TYPE_FLOAT(qnets->target_net, tensorContractnProdThreadOpt0_TYPE_FLOAT, tensorProdThread_TYPE_FLOAT, D_L2, L2, reLU, d_reLU);
