@@ -276,6 +276,7 @@ void free_RL_agent(struct RL_agent *rlAgent){
 }
 
 #define ACCEPTABLE_REWARD 1000
+#define VERY_GOOD_REWARD 10000
 
 #define UPDATE_PARAMS 1
 #define UPDATE_EXPLOR_FAC 1
@@ -322,7 +323,8 @@ void train_qlearning(struct RL_agent * rlAgent,
 #if UPDATE_PARAMS
 	if((car_status->cumulative_reward > ACCEPTABLE_REWARD) || (rlAgent->status->nb_episodes % 100 == 0) ){ 
   	float new_value = ( (net_main->learning_rate < qlParams->minimum_threshold_learning_rate /*0.0001*/) ? net_main->learning_rate :(net_main->learning_rate ) * qlParams->factor_update_learning_rate   /*0.995*/ );
-  	UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, net_main, learning_rate, new_value);
+	  if((car_status->cumulative_reward > VERY_GOOD_REWARD) ) new_value = (net_main->learning_rate ) * qlParams->factor_update_learning_rate   /*0.995*/ ;
+    UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, net_main, learning_rate, new_value);
     qlParams->learning_rate = new_value;
 #if UPDATE_EXPLOR_FAC
   	qlParams->exploration_factor = (qlParams->exploration_factor < qlParams->minimum_threshold_exploration_factor) ? qlParams->exploration_factor : qlParams->exploration_factor * qlParams->factor_update_exploration_factor ;
