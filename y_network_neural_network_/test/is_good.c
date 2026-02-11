@@ -818,7 +818,7 @@ TEST(extract_with_pconf){
   copy_coordinate(path->upper_bound_block[5], (float[]){410,300});
 
 #else
-#if 1
+#if 0
 
   copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[0], (float[]){150,250});
@@ -834,6 +834,26 @@ TEST(extract_with_pconf){
   copy_coordinate(path->upper_bound_block[5], (float[]){760,350});
   copy_coordinate(path->lower_bound_block[6], (float[]){0,250});
   copy_coordinate(path->upper_bound_block[6], (float[]){410,300});
+
+#else
+#if 1
+
+  copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
+  copy_coordinate(path->upper_bound_block[0], (float[]){60,250});
+  copy_coordinate(path->lower_bound_block[1], (float[]){60,0});
+  copy_coordinate(path->upper_bound_block[1], (float[]){250,50});
+  copy_coordinate(path->lower_bound_block[2], (float[]){250,20});
+  copy_coordinate(path->upper_bound_block[2], (float[]){310,80});
+  copy_coordinate(path->lower_bound_block[3], (float[]){310,40});
+  copy_coordinate(path->upper_bound_block[3], (float[]){450,90});
+  copy_coordinate(path->lower_bound_block[4], (float[]){450,60});
+  copy_coordinate(path->upper_bound_block[4], (float[]){560,220});
+  copy_coordinate(path->lower_bound_block[5], (float[]){430,220});
+  copy_coordinate(path->upper_bound_block[5], (float[]){560,280});
+  copy_coordinate(path->lower_bound_block[6], (float[]){0,250});
+  copy_coordinate(path->upper_bound_block[6], (float[]){430,300});
+
+
 
 #else
 #if 0
@@ -871,6 +891,7 @@ TEST(extract_with_pconf){
   copy_coordinate(path->upper_bound_block[6], (float[]){8,9.75});
  
  
+#endif
 #endif
 #endif
 #endif
@@ -1221,7 +1242,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
   struct arg_run_qlearn_bprint *argQL_BP =   create_arg_run_qlearn_bprint(bash_arg, rlAgent);
 
   struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, argQL_BP);
-  struct y_socket_t *argS = y_socket_create("1610", 2, 3, var);
+  struct y_socket_t *argS = y_socket_create("1613", 2, 3, var);
  
 
   pthread_t pollTh;
@@ -1248,7 +1269,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
 
 
 
-HIDE_TEST(transfertlearning_extract_with_pconf){
+TEST(transfertlearning_extract_with_pconf){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
@@ -1293,9 +1314,9 @@ HIDE_TEST(transfertlearning_extract_with_pconf){
   copy_coordinate(path->upper_bound_block[5], (float[]){410,300});
 
 #else
-#if 1
+#if 0
 
-copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
+  copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[0], (float[]){150,250});
   copy_coordinate(path->lower_bound_block[1], (float[]){150,0});
   copy_coordinate(path->upper_bound_block[1], (float[]){250,150});
@@ -1309,6 +1330,27 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[5], (float[]){760,350});
   copy_coordinate(path->lower_bound_block[6], (float[]){0,250});
   copy_coordinate(path->upper_bound_block[6], (float[]){410,300});
+
+#else
+#if 1
+
+  copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
+  copy_coordinate(path->upper_bound_block[0], (float[]){60,250});
+  copy_coordinate(path->lower_bound_block[1], (float[]){60,0});
+  copy_coordinate(path->upper_bound_block[1], (float[]){250,50});
+  copy_coordinate(path->lower_bound_block[2], (float[]){250,20});
+  copy_coordinate(path->upper_bound_block[2], (float[]){310,80});
+  copy_coordinate(path->lower_bound_block[3], (float[]){310,40});
+  copy_coordinate(path->upper_bound_block[3], (float[]){450,90});
+  copy_coordinate(path->lower_bound_block[4], (float[]){450,60});
+  copy_coordinate(path->upper_bound_block[4], (float[]){560,220});
+  copy_coordinate(path->lower_bound_block[5], (float[]){430,220});
+  copy_coordinate(path->upper_bound_block[5], (float[]){560,280});
+  copy_coordinate(path->lower_bound_block[6], (float[]){0,250});
+  copy_coordinate(path->upper_bound_block[6], (float[]){430,300});
+
+
+
 
 #else
 #if 1
@@ -1346,6 +1388,7 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[6], (float[]){8,9.75});
  
  
+#endif
 #endif
 #endif
 #endif
@@ -1426,7 +1469,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
     0.95/*float gamma*/,
     learning_rate,
     0 /* (not used!)float discount_factor*/,
-    0.000001/*1.0*//*0.99*//*0.0001*//*0.99*/  /*float exploration_factor*/,
+    0.01/*1.0*//*0.99*//*0.0001*//*0.99*/  /*float exploration_factor*/,
     20/*long int nb_training_before_update_weight_in_target*/,
     10000/*size_t number_episodes*/
   );
@@ -1461,7 +1504,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
   struct arg_run_qlearn_bprint *argQL_BP =   create_arg_run_qlearn_bprint(bash_arg, rlAgent);
 
   struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, argQL_BP);
-  struct y_socket_t *argS = y_socket_create("1601", 2, 3, var);
+  struct y_socket_t *argS = y_socket_create("1621", 2, 3, var);
  
 
   pthread_t pollTh;
