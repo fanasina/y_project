@@ -323,7 +323,7 @@ void train_qlearning(struct RL_agent * rlAgent,
 #if UPDATE_PARAMS
 	if((car_status->cumulative_reward > ACCEPTABLE_REWARD) || (rlAgent->status->nb_episodes % 100 == 0) ){ 
   	float new_value = ( (net_main->learning_rate < qlParams->minimum_threshold_learning_rate /*0.0001*/) ? net_main->learning_rate :(net_main->learning_rate ) * qlParams->factor_update_learning_rate   /*0.995*/ );
-	  if((car_status->cumulative_reward > VERY_GOOD_REWARD) ) new_value = (net_main->learning_rate ) * qlParams->factor_update_learning_rate   /*0.995*/ ;
+	  if(car_status->cumulative_reward > VERY_GOOD_REWARD) new_value = (net_main->learning_rate ) * qlParams->factor_update_learning_rate ;
     UPDATE_ATTRIBUTE_NEURONE_IN_ALL_LAYERS(TYPE_FLOAT, net_main, learning_rate, new_value);
     qlParams->learning_rate = new_value;
 #if UPDATE_EXPLOR_FAC
