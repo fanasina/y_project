@@ -773,14 +773,14 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
 
 }
 
-HIDE_TEST(extract_with_pconf){
+TEST(extract_with_pconf){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
 
   LOG("debug: f_name = %s\n", __func__);
 
-#if 1
+#if 0
 
   copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[0], (float[]){100,250});
@@ -797,9 +797,10 @@ HIDE_TEST(extract_with_pconf){
   copy_coordinate(path->lower_bound_block[6], (float[]){0,250});
   copy_coordinate(path->upper_bound_block[6], (float[]){410,300});
  
+#else
+#if 0
 
 
-/*
 
   copy_coordinate(path->lower_bound_block[4], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[4], (float[]){150,250});
@@ -816,10 +817,10 @@ HIDE_TEST(extract_with_pconf){
   copy_coordinate(path->lower_bound_block[5], (float[]){0,250});
   copy_coordinate(path->upper_bound_block[5], (float[]){410,300});
 
+#else
+#if 1
 
-
-
-copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
+  copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[0], (float[]){150,250});
   copy_coordinate(path->lower_bound_block[1], (float[]){150,0});
   copy_coordinate(path->upper_bound_block[1], (float[]){250,150});
@@ -834,7 +835,8 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->lower_bound_block[6], (float[]){0,250});
   copy_coordinate(path->upper_bound_block[6], (float[]){410,300});
 
-
+#else
+#if 0
 
   copy_coordinate(path->lower_bound_block[0], (float[]){0,300});
   copy_coordinate(path->upper_bound_block[0], (float[]){400,700});
@@ -850,9 +852,9 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[5], (float[]){1100,975});
   copy_coordinate(path->lower_bound_block[6], (float[]){100,700});
   copy_coordinate(path->upper_bound_block[6], (float[]){800,975});
- */
 
 #else 
+#if 0
 
   copy_coordinate(path->lower_bound_block[0], (float[]){0,3});
   copy_coordinate(path->upper_bound_block[0], (float[]){4,7});
@@ -871,6 +873,10 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
  
  
 #endif
+#endif
+#endif
+#endif
+#endif
 
   update_bounds_limits_blocks(path);
 
@@ -885,7 +891,7 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   int randomRange = 500;
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
-  float learning_rate = 0.0007 /*0.001*//* 0.0001*/; /* 0.000001*/ /* 0.001*/;  
+  float learning_rate = 0.007 /*0.001*//* 0.0001*/; /* 0.000001*/ /* 0.001*/;  
   struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
@@ -979,7 +985,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
   struct arg_run_qlearn_bprint *argQL_BP =   create_arg_run_qlearn_bprint(bash_arg, rlAgent);
 
   struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, argQL_BP);
-  struct y_socket_t *argS = y_socket_create("1600", 2, 3, var);
+  struct y_socket_t *argS = y_socket_create("1609", 2, 3, var);
  
 
   pthread_t pollTh;
@@ -1006,7 +1012,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
 
 
 
-TEST(Transfert_learn_mini_learn){
+HIDE_TEST(Transfert_learn_mini_learn){
   size_t nb_block = 7;
   size_t dim= 2;
   struct blocks * path = create_blocks(nb_block, dim);
@@ -1031,7 +1037,7 @@ TEST(Transfert_learn_mini_learn){
   copy_coordinate(path->upper_bound_block[6], (float[]){410,300});
  
 #else
-#if 1
+#if 0
 
 
   copy_coordinate(path->lower_bound_block[4], (float[]){0,0});
@@ -1051,7 +1057,7 @@ TEST(Transfert_learn_mini_learn){
 
 
 #else
-#if 0
+#if 1
 copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   copy_coordinate(path->upper_bound_block[0], (float[]){150,250});
   copy_coordinate(path->lower_bound_block[1], (float[]){150,0});
@@ -1122,7 +1128,7 @@ copy_coordinate(path->lower_bound_block[0], (float[]){0,0});
   int randomRange = 500;
   size_t nb_prod_thread = 2;
   size_t nb_calc_thread = 4;
-  float learning_rate = 0.000001 /*0.001*//* 0.0001*/; /* 0.000001*/ /* 0.001*/;  
+  float learning_rate = 0.00001 /*0.001*//* 0.0001*/; /* 0.000001*/ /* 0.001*/;  
   struct networks_qlearning *nnetworks = create_network_qlearning(
     pconf,
     randomize, minR, maxR,  randomRange,
@@ -1136,8 +1142,8 @@ EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS(TYPE_FLOAT, nnetworks->target_net, wei
   struct main_list_ptr_DIMENSION *m_l_dim=create_var_list_ptr_DIMENSION();
   //struct main_list_dimension *m_l_dim=create_var_list_dimension();
 
-EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS_PCONF(TYPE_FLOAT, nnetworks->main_net, weight_in, ".ff_main_TEST_extract_with_pconf____9.symlink",m_l_dim);
-EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS_PCONF(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_target_TEST_extract_with_pconf____9.symlink",m_l_dim);
+EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS_PCONF(TYPE_FLOAT, nnetworks->main_net, weight_in, ".ff_learnDir/.ff_main_TEST_extract_with_pconf____9;1770646800;2400;",m_l_dim);
+EXTRACT_FILE_TO_TENSOR_ATTRIBUTE_NNEURONS_PCONF(TYPE_FLOAT, nnetworks->target_net, weight_in, ".ff_learnDir/.ff_target_TEST_extract_with_pconf____9;1770646800;2400;",m_l_dim);
  
  for(struct list_ptr_DIMENSION *local_l_dim=m_l_dim->begin_list; local_l_dim; local_l_dim=local_l_dim->next){
    size_t i=local_l_dim->index;
@@ -1182,7 +1188,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
     0.95/*float gamma*/,
     learning_rate,
     0 /* (not used!)float discount_factor*/,
-    0.000001/*1.0*//*0.99*//*0.0001*//*0.99*/  /*float exploration_factor*/,
+    0.0001/*1.0*//*0.99*//*0.0001*//*0.99*/  /*float exploration_factor*/,
     20/*long int nb_training_before_update_weight_in_target*/,
     10000/*size_t number_episodes*/
   );
@@ -1217,7 +1223,7 @@ struct status_qlearning *qlstatus = create_status_qlearning ();
   struct arg_run_qlearn_bprint *argQL_BP =   create_arg_run_qlearn_bprint(bash_arg, rlAgent);
 
   struct arg_var_ * var = create_arg_var_(y_nnn_manager_handle_input, argQL_BP);
-  struct y_socket_t *argS = y_socket_create("1600", 2, 3, var);
+  struct y_socket_t *argS = y_socket_create("1610", 2, 3, var);
  
 
   pthread_t pollTh;
